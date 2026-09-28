@@ -26,7 +26,7 @@
 html[data-theme="light"] { color-scheme: light; }
 html[data-theme="dark"]  { color-scheme: dark; }
 
-*, *::before, *::after { box-sizing: inherit; }
+*, *::before, *::after { box-sizing: inherit; -webkit-tap-highlight-color: transparent; }
 html { scroll-behavior: smooth; scroll-padding-top: 5.5rem; -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
@@ -68,7 +68,7 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   position: relative;
   display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 12px;
   background: var(--fg); color: var(--bg); font-weight: 800; letter-spacing: -0.04em; text-decoration: none; font-size: .95rem;
-  transition: transform .3s var(--spring);
+  transition: transform .3s var(--spring), translate .5s var(--spring);
 }
 .mark:hover { transform: rotate(-6deg) scale(1.06); }
 /* Reading progress as a ring around the mark */
@@ -97,9 +97,10 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   display: inline-flex; align-items: center; gap: .5rem; height: 2.5rem; padding: 0 .9rem; border-radius: 999px;
   border: 1px solid var(--line-2); background: color-mix(in oklch, var(--bg) 60%, transparent); color: var(--fg);
   font: inherit; font-weight: 600; font-size: .9rem; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  transition: background .2s, border-color .2s, transform .3s var(--spring);
+  transition: background .2s, border-color .2s, transform .3s var(--spring), translate .5s var(--spring);
 }
 .cmd-btn:hover, .theme-btn:hover { border-color: var(--fg-2); transform: translateY(-1px); }
+.cmd-btn:active, .theme-btn:active { transform: scale(.94); }
 .cmd-key { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: .78rem; padding: .15rem .4rem; border-radius: 6px; background: var(--line); }
 .cmd-btn { display: none; }
 @media (min-width: 46rem) { .cmd-btn { display: inline-flex; } }
@@ -140,7 +141,8 @@ html[data-theme="light"] .i-moon { display: block; }
   padding: .3rem .75rem .3rem .55rem; border-radius: 999px; border: 1px solid var(--line);
   background: color-mix(in oklch, var(--bg) 62%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
-.pulse { width: .55rem; height: .55rem; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 0 color-mix(in oklch, var(--signal) 60%, transparent); animation: pulse 2.2s ease-out infinite; }
+.meta-short { display: none; }
+.pulse { width: .55rem; height: .55rem; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 0 color-mix(in oklch, var(--signal) 60%, transparent); animation: pulse 2.2s ease-out infinite; flex: none; }
 @keyframes pulse { to { box-shadow: 0 0 0 14px transparent; } }
 
 .name {
@@ -168,9 +170,10 @@ html[data-theme="light"] .i-moon { display: block; }
   display: inline-flex; align-items: center; gap: .5rem; height: 3rem; padding: 0 1.35rem; border-radius: 999px;
   border: 1px solid var(--line-2); background: color-mix(in oklch, var(--bg) 55%, transparent); color: var(--fg);
   font: inherit; font-weight: 600; text-decoration: none; cursor: pointer; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-  transition: transform .35s var(--spring), background .2s, border-color .2s, color .2s;
+  transition: transform .35s var(--spring), translate .5s var(--spring), background .2s, border-color .2s, color .2s;
 }
 .btn:hover { transform: translateY(-2px); border-color: var(--fg-2); }
+.btn:active { transform: translateY(0) scale(.97); }
 .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .btn.primary:hover { background: color-mix(in oklch, var(--fg) 88%, var(--accent)); }
 
@@ -246,6 +249,7 @@ html[data-theme="light"] .i-moon { display: block; }
 }
 .tile:hover, .tile:focus-within { background: var(--tile-hover); border-color: var(--line-2); box-shadow: var(--shadow); }
 .tile:hover::after { opacity: 1; }
+.link-tile:active { background: var(--tile-hover); scale: .985; }
 .tile-in { position: relative; height: 100%; padding: clamp(1.2rem, 4cqw, 1.75rem); display: flex; flex-direction: column; gap: .55rem; }
 .label { color: var(--muted); margin: 0 0 .15rem; }
 .lead { font-size: clamp(1.1rem, 1.5cqw + .8rem, 1.35rem); font-weight: 500; color: var(--fg); }
@@ -256,9 +260,14 @@ html[data-theme="light"] .i-moon { display: block; }
 .t-now .tile-in, .t-time .tile-in, .t-edu .tile-in, .t-vb .tile-in { justify-content: space-between; }
 .t-about h2 { margin-bottom: .35rem; }
 
+/* Words of the two statements come into focus as they scroll into view */
+.w { display: inline-block; }
 @supports (animation-timeline: view()) {
   .js .tile { animation: rise .8s var(--ease-out) both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
   @keyframes rise { from { opacity: 0; translate: 0 32px; scale: .985; } }
+  .js .xp li, .js .tl li, .js .tech li { animation: rise .7s var(--ease-out) both; animation-timeline: view(); animation-range: entry 0% entry 40%; }
+  .js .w { animation: wordIn linear both; animation-timeline: view(); animation-range: entry calc(6% + var(--i, 0) * 1.4%) entry calc(38% + var(--i, 0) * 1.4%); }
+  @keyframes wordIn { from { opacity: .14; translate: 0 .14em; filter: blur(3px); } }
 }
 
 /* Squircle corners where the browser draws them; plain rounding elsewhere */
@@ -281,7 +290,7 @@ html[data-theme="light"] .i-moon { display: block; }
 .xp-d { color: var(--fg-2); font-size: .95rem; }
 
 /* Toronto daylight arc */
-.sky { width: 100%; height: auto; display: block; margin: .3rem 0 .1rem; overflow: visible; }
+.sky { width: 100%; max-width: 17rem; height: auto; display: block; margin: .3rem 0 .1rem; overflow: visible; }
 .sky-track, .sky-done, .sky-horizon { fill: none; stroke-linecap: round; }
 .sky-track { stroke: var(--line-2); stroke-width: 2; }
 .sky-done { stroke: var(--accent); stroke-width: 2.5; transition: stroke-dashoffset 1s var(--ease-out); }
@@ -307,6 +316,14 @@ html[data-theme="light"] .i-moon { display: block; }
 .chip:hover, .chip:focus-visible, .chip.is-open { text-decoration-color: var(--accent); }
 .chip:hover::after, .chip:focus-visible::after, .chip.is-open::after { scale: 1.7; background: var(--signal); }
 .chip:focus-visible { outline-offset: 2px; }
+.chip:active { scale: .97; }
+/* Position dots under the strip where the browser draws scroll markers */
+@supports (scroll-marker-group: after) {
+  .marquee { scroll-marker-group: after; }
+  .marquee::scroll-marker-group { display: flex; justify-content: center; gap: .4rem; padding: .5rem 0 0; }
+  .chip:not([aria-hidden])::scroll-marker { content: ""; width: .38rem; height: .38rem; border-radius: 50%; background: var(--line-2); transition: background .25s, scale .3s var(--spring); }
+  .chip:not([aria-hidden])::scroll-marker:target-current { background: var(--accent); scale: 1.3; }
+}
 .fw-pop {
   position: fixed; inset: auto; margin: 0; width: min(24rem, calc(100vw - 2rem)); padding: .85rem 1rem; border: 1px solid var(--line-2); border-radius: 16px;
   background: var(--bg-2); color: var(--fg-2); box-shadow: var(--shadow); font-size: .95rem; line-height: 1.45;
@@ -342,7 +359,7 @@ html[data-theme="light"] .i-moon { display: block; }
 .link-tile:hover .arrow { background: var(--fg); color: var(--bg); transform: translate(2px, -2px); }
 .t-p1 h3, .t-p2 h3, .t-p3 h3 { margin-top: auto; }
 
-/* Volleyball tile: the ball bounces on its own, and becomes a physics toy under a fine pointer */
+/* Volleyball tile: the ball bounces on its own, and becomes a physics toy on any pointer */
 .t-vb { position: relative; }
 .ball {
   position: absolute; right: 1.25rem; top: 1.25rem; width: 3.2rem; height: 3.2rem; border-radius: 50%;
@@ -350,9 +367,10 @@ html[data-theme="light"] .i-moon { display: block; }
     radial-gradient(circle at 35% 30%, oklch(1 0 0 / .55), transparent 40%),
     conic-gradient(from 210deg, var(--accent), oklch(0.85 0.17 60), var(--signal), var(--accent));
   animation: bounce 2.6s var(--ease-out) infinite;
+  touch-action: none;
 }
 @keyframes bounce { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
-.ball.is-live { top: 0; left: 0; right: auto; animation: none; cursor: grab; touch-action: none; will-change: translate; transition: scale .25s var(--spring); box-shadow: 0 10px 24px oklch(0 0 0 / .25); }
+.ball.is-live { top: 0; left: 0; right: auto; animation: none; cursor: grab; will-change: translate; transition: scale .25s var(--spring); box-shadow: 0 10px 24px oklch(0 0 0 / .25); }
 .ball.is-held { cursor: grabbing; scale: 1.1; }
 
 /* Tech tile */
@@ -368,6 +386,35 @@ html[data-theme="light"] .i-moon { display: block; }
 /* Footer */
 .foot { max-width: 84rem; margin: 0 auto; padding: 0 clamp(1.1rem, 5vw, 4rem) 3rem; display: flex; flex-wrap: wrap; gap: .6rem 2rem; color: var(--muted); font-size: .9rem; }
 .colophon { margin-left: auto; }
+
+/* Mobile dock: thumb-reach navigation, slips away while reading down and returns on the way up */
+.dock {
+  position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + .8rem); translate: -50% 0; z-index: 45;
+  display: flex; align-items: center; gap: .1rem; padding: .35rem;
+  border-radius: 999px; border: 1px solid var(--line-2); background: color-mix(in oklch, var(--bg) 74%, transparent);
+  backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); box-shadow: var(--shadow);
+  transition: translate .45s var(--spring), opacity .3s;
+}
+.dock.is-hidden { translate: -50% 150%; opacity: 0; }
+.dock a, .dock button {
+  display: flex; flex-direction: column; align-items: center; gap: .15rem; width: 3.7rem; padding: .35rem 0 .3rem; margin: 0; border: 0; border-radius: 999px;
+  background: none; color: var(--fg-2); font: inherit; font-size: .62rem; font-weight: 600; letter-spacing: .01em; text-decoration: none; cursor: pointer;
+  transition: color .2s, background .2s, scale .3s var(--spring);
+}
+.dock svg { width: 1.25rem; height: 1.25rem; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.dock a[aria-current="true"] { color: var(--fg); background: var(--line); }
+.dock a:active, .dock button:active { background: var(--line-2); scale: .94; }
+@media (min-width: 46rem) { .dock { display: none; } }
+
+/* Phone layout: room for the dock, a shorter meta line, hints above the dock */
+@media (max-width: 45.99rem) {
+  .hero-inner { padding-bottom: 7.5rem; }
+  .field-hint { bottom: calc(env(safe-area-inset-bottom, 0px) + 5.8rem); }
+  .foot { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 6.5rem); }
+  .meta-full { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .meta-short { display: inline; }
+  .toast { bottom: calc(env(safe-area-inset-bottom, 0px) + 5.6rem); }
+}
 
 /* Command palette */
 .cmdk {
@@ -391,15 +438,6 @@ html[data-theme="light"] .i-moon { display: block; }
 .cmdk-hint { display: flex; gap: 1.2rem; padding: .7rem 1.25rem; border-top: 1px solid var(--line); color: var(--muted); margin: 0; }
 /* Matched characters painted through the CSS Custom Highlight API */
 ::highlight(cmdk-match) { color: var(--accent); text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: 2px; }
-
-.fab {
-  position: fixed; right: 1.1rem; bottom: calc(env(safe-area-inset-bottom, 0px) + 1.1rem); z-index: 40;
-  width: 3.4rem; height: 3.4rem; border-radius: 50%; border: 1px solid var(--line-2); background: var(--fg); color: var(--bg);
-  display: grid; place-items: center; cursor: pointer; box-shadow: var(--shadow); transition: transform .35s var(--spring);
-}
-.fab:hover { transform: scale(1.06); }
-.fab svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
-@media (min-width: 46rem) { .fab { display: none; } }
 
 .toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 1.25rem); translate: -50% 0; z-index: 60; padding: .7rem 1.1rem; border-radius: 999px; background: var(--fg); color: var(--bg); font-weight: 600; font-size: .9rem; box-shadow: var(--shadow); opacity: 0; transition: opacity .2s; pointer-events: none; }
 .toast.is-on { opacity: 1; }
@@ -425,7 +463,7 @@ html[data-theme="light"] .i-moon { display: block; }
   .js .name .ch { animation: none; }
   .name .ch { transition: none; }
   .pulse, .ball, .scroll-hint i::after { animation: none; }
-  .js .hero-inner, .js .tile, .js .top::before, .js .mark::after { animation: none; }
+  .js .hero-inner, .js .tile, .js .top::before, .js .mark::after, .js .xp li, .js .tl li, .js .tech li, .js .w { animation: none; }
   .js .meta, .js .tag, .js .hero-cta, .js .field-hint.is-on, .js .scroll-hint { animation: none; }
-  .tile, .btn, .mark, .arrow, .cmdk, .cmdk::backdrop, .fw-pop, .chip::after, .sky-done, .sky-sun { transition: none; }
+  .tile, .btn, .mark, .arrow, .cmdk, .cmdk::backdrop, .fw-pop, .chip::after, .sky-done, .sky-sun, .dock { transition: none; }
 }

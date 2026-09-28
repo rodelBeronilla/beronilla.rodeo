@@ -3,6 +3,7 @@
   var root = document.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  function buzz(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) { /* ignore */ } } }
 
   /* Theme, with a circular reveal through the View Transitions API; the field pulses from the same point */
   var themeBtn = document.getElementById("theme-btn");
@@ -80,6 +81,23 @@
         chars.forEach(function (s) { s.style.setProperty("--w", 92); s.style.setProperty("--wg", 680); });
       });
     }
+  }
+
+  /* Statements reveal word by word as they scroll into view */
+  function splitWords(el) {
+    if (!el) return;
+    var words = el.textContent.trim().split(/\s+/);
+    el.textContent = "";
+    words.forEach(function (w, idx) {
+      var s = document.createElement("span");
+      s.className = "w"; s.textContent = w; s.style.setProperty("--i", idx);
+      el.appendChild(s);
+      if (idx < words.length - 1) el.appendChild(document.createTextNode(" "));
+    });
+  }
+  if (!reduce) {
+    splitWords(document.querySelector(".t-about .lead"));
+    splitWords(document.querySelector(".t-contact h2"));
   }
 
   /* Toronto clock */
@@ -206,10 +224,10 @@
     });
   }
 
-  /* Volleyball: a small physics toy. The tile tips toward the cursor and the ball rolls; drag it to throw. */
+  /* Volleyball: a small physics toy. Drag to throw on any pointer; under a fine pointer the tile also tips toward the cursor. */
   var vbTile = document.querySelector(".t-vb"), ball = vbTile ? vbTile.querySelector(".ball") : null;
   var B = null;
-  if (ball && fine && !reduce) {
+  if (ball && !reduce) {
     B = { x: 0, y: 0, vx: 0, vy: 0, w: 0, h: 0, r: 0, hx: 0, hy: 0, gx: 0, gy: 0, spin: 0, drag: false, hover: false, live: false, raf: 0, last: 0, px: 0, py: 0, pt: 0 };
     var placeBall = function () {
       ball.style.translate = (B.x - B.r).toFixed(1) + "px " + (B.y - B.r).toFixed(1) + "px";
@@ -246,15 +264,16 @@
       else { B.x = B.hx; B.y = B.hy; B.vx = 0; B.vy = 0; placeBall(); }
     };
     var vbKick = function () { if (!B.raf) { B.last = performance.now(); B.raf = requestAnimationFrame(vbFrame); } };
-    vbTile.addEventListener("pointerenter", function () {
+    var goLive = function () {
       if (!B.live) { vbMeasure(); ball.classList.add("is-live"); B.live = true; }
       else { var tr = vbTile.getBoundingClientRect(); B.w = tr.width; B.h = tr.height; }
-      B.hover = true; vbKick();
-    });
+    };
+    vbTile.addEventListener("pointerenter", function (e) { goLive(); if (e.pointerType !== "touch") { B.hover = true; vbKick(); } });
     vbTile.addEventListener("pointerleave", function () { B.hover = false; B.gx = 0; B.gy = 0; vbKick(); });
     ball.addEventListener("pointerdown", function (e) {
-      if (!B.live) return;
-      B.drag = true; ball.setPointerCapture(e.pointerId);
+      goLive();
+      B.drag = true;
+      try { ball.setPointerCapture(e.pointerId); } catch (err) { /* a pointer that is already gone */ }
       B.px = e.clientX; B.py = e.clientY; B.pt = performance.now(); B.vx = 0; B.vy = 0;
       ball.classList.add("is-held"); e.preventDefault(); vbKick();
     });
@@ -265,16 +284,17 @@
       B.y = Math.min(B.h - B.r, Math.max(B.r, e.clientY - tr.top));
       if (dt > 0.004) { B.vx = (e.clientX - B.px) / dt; B.vy = (e.clientY - B.py) / dt; B.px = e.clientX; B.py = e.clientY; B.pt = now; }
     });
-    var release = function () {
+    var release = function (e) {
       if (!B.drag) return;
       B.drag = false; ball.classList.remove("is-held");
       if (performance.now() - B.pt > 80) { B.vx = 0; B.vy = 0; }
+      if (e && e.pointerType === "touch") { B.hover = true; setTimeout(function () { B.hover = false; vbKick(); }, 2500); buzz(4); }
       vbKick();
     };
     ball.addEventListener("pointerup", release);
     ball.addEventListener("pointercancel", release);
     window.addEventListener("resize", function () {
-      if (B.live) { B.live = false; B.hover = false; ball.classList.remove("is-live"); ball.style.translate = ""; }
+      if (B.live) { B.live = false; B.hover = false; ball.classList.remove("is-live"); ball.style.translate = ""; ball.style.rotate = ""; }
     }, { passive: true });
   }
   function vbGravity(x, y) { if (B && B.hover && !B.drag) { B.gx = (x - 0.5) * 1600; B.gy = (y - 0.5) * 1600; } }
@@ -293,29 +313,54 @@
       }, { passive: true });
       t.addEventListener("pointerleave", function () { t.style.setProperty("--rx", "0deg"); t.style.setProperty("--ry", "0deg"); });
     });
+
+    /* Magnetic controls: buttons lean toward the cursor and spring back */
+    Array.prototype.slice.call(document.querySelectorAll(".btn, .mark, .theme-btn, .cmd-btn")).forEach(function (el) {
+      el.addEventListener("pointermove", function (e) {
+        var r = el.getBoundingClientRect();
+        var dx = (e.clientX - (r.left + r.width / 2)) / r.width, dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+        el.style.translate = (dx * 10).toFixed(1) + "px " + (dy * 8).toFixed(1) + "px";
+      }, { passive: true });
+      el.addEventListener("pointerleave", function () { el.style.translate = ""; });
+    });
   }
 
-  /* Top nav: mark the section in view */
-  var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#']"));
+  /* Section in view: underline in the top nav, highlight in the mobile dock */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#'], .dock a[href^='#']"));
   if (navLinks.length && "IntersectionObserver" in window) {
-    var byId = {};
-    navLinks.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
-    var current = null;
+    var groups = {};
+    navLinks.forEach(function (a) { var id = a.getAttribute("href").slice(1); (groups[id] = groups[id] || []).push(a); });
+    var currentId = null;
+    var setCurrent = function (id) {
+      if (currentId === id) return;
+      if (currentId) groups[currentId].forEach(function (a) { a.removeAttribute("aria-current"); });
+      currentId = id;
+      if (id) groups[id].forEach(function (a) { a.setAttribute("aria-current", "true"); });
+    };
     var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (!en.isIntersecting) return;
-        var a = byId[en.target.id];
-        if (!a || a === current) return;
-        if (current) current.removeAttribute("aria-current");
-        a.setAttribute("aria-current", "true");
-        current = a;
-      });
+      entries.forEach(function (en) { if (en.isIntersecting && groups[en.target.id]) setCurrent(en.target.id); });
     }, { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
-    Object.keys(byId).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
+    Object.keys(groups).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
     var top = document.getElementById("top");
-    if (top) new IntersectionObserver(function (en) {
-      if (en[0].isIntersecting && current) { current.removeAttribute("aria-current"); current = null; }
-    }, { rootMargin: "-60% 0px 0px 0px" }).observe(top);
+    if (top) new IntersectionObserver(function (en) { if (en[0].isIntersecting) setCurrent(null); }, { rootMargin: "-60% 0px 0px 0px" }).observe(top);
+  }
+
+  /* Mobile dock: slips away while reading down the page, returns on the way back up or at either end */
+  var dock = document.querySelector(".dock");
+  if (dock) {
+    var lastY = window.scrollY, dockRaf = 0;
+    window.addEventListener("scroll", function () {
+      if (dockRaf) return;
+      dockRaf = requestAnimationFrame(function () {
+        dockRaf = 0;
+        var y = window.scrollY, dy = y - lastY;
+        var atEnd = y + innerHeight >= document.documentElement.scrollHeight - 48;
+        if (dy > 8 && y > 160 && !atEnd) dock.classList.add("is-hidden");
+        else if (dy < -4 || y <= 160 || atEnd) dock.classList.remove("is-hidden");
+        lastY = y;
+      });
+    }, { passive: true });
+    dock.addEventListener("click", function (e) { if (e.target.closest("a, button")) buzz(4); });
   }
 
   /* Command palette */
@@ -388,10 +433,9 @@
   }
   function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); input.focus(); }
   function closeCmd() { if (dlg && dlg.open) dlg.close(); if (canHighlight) CSS.highlights.delete("cmdk-match"); }
-  function runSel() { var a = filtered[sel]; closeCmd(); if (a) setTimeout(a.run, 60); }
+  function runSel() { var a = filtered[sel]; closeCmd(); if (a) { buzz(5); setTimeout(a.run, 60); } }
   if (dlg) {
-    document.getElementById("cmd-open").addEventListener("click", openCmd);
-    document.getElementById("fab").addEventListener("click", openCmd);
+    ["cmd-open", "dock-menu"].forEach(function (id) { var b = document.getElementById(id); if (b) b.addEventListener("click", openCmd); });
     input.addEventListener("input", filter);
     dlg.addEventListener("keydown", function (e) {
       if (e.key === "ArrowDown") { e.preventDefault(); sel = (sel + 1) % Math.max(1, filtered.length); render(); }

@@ -51,9 +51,24 @@
   hero.addEventListener("pointerdown", function (e) {
     var p = heroPoint(e.clientX, e.clientY);
     pointer.tx = p[0]; pointer.ty = p[1]; pointer.active = true;
-    if (!e.target.closest("a, button, input")) firePulse(p[0], p[1]);
+    if (!e.target.closest("a, button, input")) {
+      firePulse(p[0], p[1]);
+      if (e.pointerType === "touch" && navigator.vibrate) { try { navigator.vibrate(6); } catch (err) { /* ignore */ } }
+    }
     touched(); kick();
   }, { passive: true });
+  /* Tilt to stir: a change in how the phone is held pushes the field, then it relaxes. Android only;
+     iOS would need a permission prompt, and a visitor should not be asked for that on a personal page. */
+  var tilt = [0, 0], tiltBase = [0, 0], tiltRaw = [0, 0], tiltSeen = false;
+  if (!reduce && window.DeviceMotionEvent && typeof window.DeviceMotionEvent.requestPermission !== "function") {
+    window.addEventListener("devicemotion", function (e) {
+      var g = e.accelerationIncludingGravity;
+      if (!g || g.x === null || g.y === null) return;
+      tiltRaw[0] = -g.x / 9.81; tiltRaw[1] = -g.y / 9.81;
+      if (!tiltSeen) { tiltSeen = true; tiltBase[0] = tiltRaw[0]; tiltBase[1] = tiltRaw[1]; }
+      kick();
+    }, { passive: true });
+  }
   document.addEventListener("field:settle", function () { settleUntil = performance.now() + 3600; touched(); kick(); });
   document.addEventListener("field:sweep", function () { startSweep(); });
   document.addEventListener("field:pulse", function (e) {
@@ -105,17 +120,27 @@
     }
     var pt = pulse.t < 0 ? -1 : (now - pulse.t) / 1000;
     if (pt > 1.8) { pulse.t = -1; pt = -1; }
+    if (tiltSeen) {
+      tiltBase[0] += (tiltRaw[0] - tiltBase[0]) * 0.012; tiltBase[1] += (tiltRaw[1] - tiltBase[1]) * 0.012;
+      tilt[0] += ((tiltRaw[0] - tiltBase[0]) * 2.2 - tilt[0]) * 0.15; tilt[1] += ((tiltRaw[1] - tiltBase[1]) * 2.2 - tilt[1]) * 0.15;
+    }
     renderer.render(now, dt, {
       order: order, lens: lens, light: light, scroll: scroll, secs: secs, pointer: pointer,
-      stir: stir, energy: energy, pulse: pulse, pulseT: pt, sweep: sweep.x, sweepW: 0.12
+      stir: stir, energy: energy, pulse: pulse, pulseT: pt, sweep: sweep.x, sweepW: 0.12, tilt: tilt
     });
     fps.frames++;
-    if (now - fps.since >= 1000) { fps.value = Math.round(fps.frames * 1000 / (now - fps.since)); fps.frames = 0; fps.since = now; telemetry(); }
+    if (now - fps.since >= 1000) {
+      if (running && visible && !reduce) { fps.value = Math.round(fps.frames * 1000 / (now - fps.since)); telemetry(); }
+      fps.frames = 0; fps.since = now;
+    }
     var settling = Math.abs(light - lightTarget) > 0.005 || Math.abs(sc - scroll) > 0.002 || settleK > 0.01 || energy > 0.01 ||
-      pt >= 0 || sweep.active || Math.abs(stir[0]) + Math.abs(stir[1]) > 0.01 || (renderer.needsFrames && renderer.needsFrames());
+      pt >= 0 || sweep.active || Math.abs(stir[0]) + Math.abs(stir[1]) > 0.01 || Math.abs(tilt[0]) + Math.abs(tilt[1]) > 0.01 ||
+      (renderer.needsFrames && renderer.needsFrames());
     if ((!reduce && visible && running) || settling) raf = requestAnimationFrame(frame);
   }
-  function kick() { if (!raf && renderer) raf = requestAnimationFrame(frame); }
+  function kick() {
+    if (!raf && renderer) { fps.frames = 0; fps.since = performance.now(); last = fps.since; raf = requestAnimationFrame(frame); }
+  }
 
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(function (en) {
@@ -148,6 +173,7 @@
     "  size: f32, seed: f32, aspect: f32, energy: f32,",
     "  stir: vec2f, pulse: vec2f,",
     "  pulseT: f32, sweep: f32, sweepW: f32, fade: f32,",
+    "  tilt: vec2f, pad2: vec2f,",
     "};",
     "@group(0) @binding(0) var<uniform> u: U;",
     "fn hash21(p: vec2f) -> f32 {",
@@ -199,7 +225,8 @@
     "  let local = max(lens, sweepK);",
     "  let order = clamp(u.order + local * (1.0 - u.order), 0.0, 1.0);",
     "  let t = u.time * 0.09;",
-    "  let flow = curl(pos * 1.3 + vec2f(t, -0.6 * t) + vec2f(u.seed, u.seed * 0.37)) * 0.9 * (1.0 + 2.5 * u.energy);",
+    "  let breath = 1.0 + 0.15 * sin(u.time * 0.35);",
+    "  let flow = curl(pos * 1.3 + vec2f(t, -0.6 * t) + vec2f(u.seed, u.seed * 0.37)) * 0.9 * breath * (1.0 + 2.5 * u.energy);",
     "  let goal = mix(nearest, home, u.order);",
     "  let spring = (goal - pos) * 9.0;",
     "  let reach = u.lens * slow * (1.0 - smoothstep(0.15, 0.95, d));",
@@ -208,7 +235,7 @@
     "  let rel = pos - m;",
     "  let side = sign(dir.x * rel.y - dir.y * rel.x);",
     "  let wake = (dir * 0.6 + vec2f(-dir.y, dir.x) * side) * (1.0 - smoothstep(0.0, 0.7, d)) * smoothstep(0.15, 1.2, sp) * min(sp, 3.0) * 1.1;",
-    "  let acc = mix(flow, spring, order) + gather * (1.0 - order) + wake + beam + flow * u.energy * 1.5;",
+    "  let acc = mix(flow, spring, order) + gather * (1.0 - order) + wake + beam + flow * u.energy * 1.5 + u.tilt * (1.0 - order);",
     "  let damp = pow(mix(0.95, 0.78, order), u.dt * 60.0);",
     "  vel = vel * damp + acc * u.dt;",
     "  if (u.pulseT >= 0.0) {",
@@ -319,7 +346,7 @@
         var N = N0;
         var seed = Math.random() * 100;
 
-        var ubuf = device.createBuffer({ size: 96, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        var ubuf = device.createBuffer({ size: 112, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
         var pbuf = device.createBuffer({ size: N0 * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, mappedAtCreation: true });
         function layout() {
           aspectV = W / H;
@@ -395,7 +422,7 @@
           trailView = trail.createView(); trailW = W; trailH = H; fresh = true;
           blitGroup = device.createBindGroup({ layout: bLayout, entries: [{ binding: 0, resource: sampler }, { binding: 1, resource: trailView }] });
         }
-        var uni = new Float32Array(24);
+        var uni = new Float32Array(28);
         var lost = false;
         device.lost.then(function () { lost = true; });
         device.addEventListener("uncapturederror", function (e) {
@@ -423,6 +450,7 @@
             uni[12] = 1.5 * scale; uni[13] = seed; uni[14] = aspectV; uni[15] = s.energy;
             uni[16] = s.stir[0]; uni[17] = s.stir[1]; uni[18] = s.pulse.x * W; uni[19] = s.pulse.y * H;
             uni[20] = s.pulseT; uni[21] = s.sweep; uni[22] = s.sweepW; uni[23] = reduce ? 1 : 0.085 + 0.05 * L;
+            uni[24] = s.tilt ? s.tilt[0] : 0; uni[25] = s.tilt ? s.tilt[1] : 0; uni[26] = 0; uni[27] = 0;
             device.queue.writeBuffer(ubuf, 0, uni);
             var bg = { r: 0.07 + (0.975 - 0.07) * L, g: 0.07 + (0.97 - 0.07) * L, b: 0.09 + (0.96 - 0.09) * L, a: 1 };
             var enc = device.createCommandEncoder();
