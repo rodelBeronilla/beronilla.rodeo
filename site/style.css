@@ -182,6 +182,14 @@ html[data-theme="light"] .i-moon { display: block; }
 .field-hint::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: var(--signal); flex: none; }
 .field-hint.is-on { display: inline-flex; }
 
+/* One arrival: meta, name, tagline, buttons, then the hints, while the lattice releases */
+.js .meta, .js .tag, .js .hero-cta, .js .field-hint.is-on, .js .scroll-hint { animation: arrive .9s var(--ease-out) both; }
+.js .meta { animation-delay: .1s; }
+.js .tag { animation-delay: .8s; }
+.js .hero-cta { animation-delay: 1s; }
+.js .field-hint.is-on, .js .scroll-hint { animation-delay: 1.7s; }
+@keyframes arrive { from { opacity: 0; translate: 0 14px; filter: blur(6px); } }
+
 .scroll-hint {
   position: absolute; z-index: 2; right: clamp(1.1rem, 5vw, 4rem); bottom: 2rem; display: none; align-items: center; gap: .6rem;
   color: var(--muted); text-decoration: none;
@@ -314,8 +322,14 @@ html[data-theme="light"] .i-moon { display: block; }
 
 /* Timeline */
 .tl { list-style: none; margin: .25rem 0 0; padding: 0; display: grid; gap: 0; }
-.tl li { display: grid; grid-template-columns: 6.2rem 1fr; gap: 1rem; padding: .9rem 0; border-top: 1px solid var(--line); position: relative; }
+.tl li { display: grid; grid-template-columns: 6.2rem 1fr; gap: 1rem; padding: .9rem 0 .9rem 1.5rem; border-top: 1px solid var(--line); position: relative; }
 .tl li:first-child { border-top: 0; padding-top: .25rem; }
+/* The path is a sequence, so it gets a thread and a node per step */
+.tl li::before { content: ""; position: absolute; left: .18rem; top: 1.2rem; width: .55rem; height: .55rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px color-mix(in oklch, var(--accent) 16%, transparent); }
+.tl li:first-child::before { top: .55rem; }
+.tl li::after { content: ""; position: absolute; left: .44rem; top: 2.1rem; bottom: -.25rem; width: 1px; background: var(--line-2); }
+.tl li:first-child::after { top: 1.45rem; }
+.tl li:last-child::after { display: none; }
 .tl-when { color: var(--muted); padding-top: .25rem; }
 .tl-what { color: var(--fg-2); font-size: .97rem; }
 .tl-what b { color: var(--fg); font-weight: 700; }
@@ -412,5 +426,6 @@ html[data-theme="light"] .i-moon { display: block; }
   .name .ch { transition: none; }
   .pulse, .ball, .scroll-hint i::after { animation: none; }
   .js .hero-inner, .js .tile, .js .top::before, .js .mark::after { animation: none; }
+  .js .meta, .js .tag, .js .hero-cta, .js .field-hint.is-on, .js .scroll-hint { animation: none; }
   .tile, .btn, .mark, .arrow, .cmdk, .cmdk::backdrop, .fw-pop, .chip::after, .sky-done, .sky-sun { transition: none; }
 }

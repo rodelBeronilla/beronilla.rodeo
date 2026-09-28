@@ -210,14 +210,19 @@
   var vbTile = document.querySelector(".t-vb"), ball = vbTile ? vbTile.querySelector(".ball") : null;
   var B = null;
   if (ball && fine && !reduce) {
-    B = { x: 0, y: 0, vx: 0, vy: 0, w: 0, h: 0, r: 0, hx: 0, hy: 0, gx: 0, gy: 0, drag: false, hover: false, live: false, raf: 0, last: 0, px: 0, py: 0, pt: 0 };
-    var placeBall = function () { ball.style.translate = (B.x - B.r).toFixed(1) + "px " + (B.y - B.r).toFixed(1) + "px"; };
+    B = { x: 0, y: 0, vx: 0, vy: 0, w: 0, h: 0, r: 0, hx: 0, hy: 0, gx: 0, gy: 0, spin: 0, drag: false, hover: false, live: false, raf: 0, last: 0, px: 0, py: 0, pt: 0 };
+    var placeBall = function () {
+      ball.style.translate = (B.x - B.r).toFixed(1) + "px " + (B.y - B.r).toFixed(1) + "px";
+      ball.style.rotate = B.spin.toFixed(1) + "deg";
+    };
     var vbMeasure = function () {
       var tr = vbTile.getBoundingClientRect();
       B.w = tr.width; B.h = tr.height;
       if (!B.live) {
-        var br = ball.getBoundingClientRect();
-        B.r = br.width / 2; B.hx = br.left - tr.left + B.r; B.hy = br.top - tr.top + B.r; B.x = B.hx; B.y = B.hy;
+        var cs = getComputedStyle(ball);
+        B.r = ball.offsetWidth / 2;
+        B.hx = B.w - (parseFloat(cs.right) || 0) - B.r; B.hy = (parseFloat(cs.top) || 0) + B.r;
+        B.x = B.hx; B.y = B.hy;
       }
     };
     var vbFrame = function (now) {
@@ -234,6 +239,7 @@
         if (B.y < B.r) { B.y = B.r; B.vy = Math.abs(B.vy) * 0.55; }
         if (B.y > B.h - B.r) { B.y = B.h - B.r; B.vy = -Math.abs(B.vy) * 0.55; }
       }
+      B.spin += (B.vx / Math.max(1, B.r)) * dt * 57.3;
       placeBall();
       var moving = Math.hypot(B.vx, B.vy) > 3 || Math.hypot(B.x - B.hx, B.y - B.hy) > 0.5;
       if (B.drag || B.hover || moving) B.raf = requestAnimationFrame(vbFrame);
