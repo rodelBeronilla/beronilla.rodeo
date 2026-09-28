@@ -28,7 +28,7 @@ Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 
 
 ## Active Sprint
 
-v3 on branch `ai/feat/site-v2-order-from-noise` (2026-09-28): the field gained an interaction vocabulary (slow hover settles, fast movement stirs, click or tap pulses, scroll flicks shake, theme toggle pulses, idle sweep with a lit beam), live telemetry, a scrollable frameworks strip with Popover API explainers on anchor positioning, a live Toronto daylight arc, a volleyball physics toy, and a scroll progress ring on the mark. Preview live at /v2/, awaiting owner review before promotion.
+v4 on branch `ai/feat/site-v2-order-from-noise` (2026-09-28): persistence-buffer trails, per-particle depth, choreographed arrival, adaptive quality. v3 before it: the field gained an interaction vocabulary (slow hover settles, fast movement stirs, click or tap pulses, scroll flicks shake, theme toggle pulses, idle sweep with a lit beam), live telemetry, a scrollable frameworks strip with Popover API explainers on anchor positioning, a live Toronto daylight arc, a volleyball physics toy, and a scroll progress ring on the mark. Preview live at /v2/, awaiting owner review before promotion.
 
 Promote: `cp projects/webapp-hosting/site/* C:/srv/beronilla.rodeo/site/ && rm -rf C:/srv/beronilla.rodeo/site/v2`
 Roll back: `git checkout main -- site` then the same copy.
@@ -41,7 +41,8 @@ Roll back: `git checkout main -- site` then the same copy.
 | Choose hosting provider | Done (2026-09-28): existing plex-stack Caddy |
 | Deploy workflow | Manual copy (2026-09-28); preview path at /v2/; no CI yet |
 | Site v2, order from noise | Built and previewed (2026-09-28) |
-| Site v3, interaction vocabulary and live tiles | Built and previewed (2026-09-28); awaiting review |
+| Site v3, interaction vocabulary and live tiles | Built and previewed (2026-09-28) |
+| Site v4, light and composure | Built and previewed (2026-09-28); awaiting review |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
