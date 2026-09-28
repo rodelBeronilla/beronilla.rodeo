@@ -24,14 +24,11 @@ Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 
 | Environment | URL | Trigger |
 |-------------|-----|---------|
 | Production | https://beronilla.rodeo (www redirects to apex) | Copy files into `C:/srv/beronilla.rodeo/site` |
-| Preview | https://beronilla.rodeo/v2/ (unlinked path in the production docroot, same headers and CSP) | Copy `site/` into `C:/srv/beronilla.rodeo/site/v2/` |
+| Preview | none (create `C:/srv/beronilla.rodeo/site/v2/` again when one is wanted) | Copy `site/` into the preview folder |
 
 ## Active Sprint
 
-v4 on branch `ai/feat/site-v2-order-from-noise` (2026-09-28): persistence-buffer trails, per-particle depth, choreographed arrival, adaptive quality. v3 before it: the field gained an interaction vocabulary (slow hover settles, fast movement stirs, click or tap pulses, scroll flicks shake, theme toggle pulses, idle sweep with a lit beam), live telemetry, a scrollable frameworks strip with Popover API explainers on anchor positioning, a live Toronto daylight arc, a volleyball physics toy, and a scroll progress ring on the mark. Preview live at /v2/, awaiting owner review before promotion.
-
-Promote: `cp projects/webapp-hosting/site/* C:/srv/beronilla.rodeo/site/ && rm -rf C:/srv/beronilla.rodeo/site/v2`
-Roll back: `git checkout main -- site` then the same copy.
+v5 is in production at https://beronilla.rodeo/ (2026-09-28): WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
 
 ## Milestones
 
@@ -42,7 +39,8 @@ Roll back: `git checkout main -- site` then the same copy.
 | Deploy workflow | Manual copy (2026-09-28); preview path at /v2/; no CI yet |
 | Site v2, order from noise | Built and previewed (2026-09-28) |
 | Site v3, interaction vocabulary and live tiles | Built and previewed (2026-09-28) |
-| Site v4, light and composure | Built and previewed (2026-09-28); awaiting review |
+| Site v4, light and composure | Done (2026-09-28) |
+| Site v5, mobile experience and motion | In production (2026-09-28) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
@@ -59,8 +57,8 @@ None.
 
 ## Next Actions
 
-1. Owner reviews https://beronilla.rodeo/v2/ and promotes or requests changes.
-2. Merge the v2 branch to `main` after promotion.
+1. Watch the field on real phones (Android tilt, iOS Safari WebGPU) and adjust constants if needed.
+2. Optional: a deploy script in `scripts/` that copies `site/` to the docroot and smoke-tests the root.
 3. Create the GitHub remote and push `main`.
 4. Optional: a deploy script in `scripts/` that syncs `site/` to the docroot (and to /v2/ for previews).
 5. Apply repo baseline: branch protection on `main`, squash-only merges, Dependabot weekly, CODEOWNERS enforced.
