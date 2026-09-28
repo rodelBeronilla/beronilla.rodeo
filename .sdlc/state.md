@@ -28,7 +28,7 @@ Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 
 
 ## Active Sprint
 
-v5 is in production at https://beronilla.rodeo/ (2026-09-28): WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
+v6 is in production at https://beronilla.rodeo/ (2026-09-28): WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion, scroll-state header, sibling-index staggers, invoker commands, opt-in sound, P3 colour. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
 
 ## Milestones
 
@@ -40,7 +40,8 @@ v5 is in production at https://beronilla.rodeo/ (2026-09-28): WebGPU field with 
 | Site v2, order from noise | Built and previewed (2026-09-28) |
 | Site v3, interaction vocabulary and live tiles | Built and previewed (2026-09-28) |
 | Site v4, light and composure | Done (2026-09-28) |
-| Site v5, mobile experience and motion | In production (2026-09-28) |
+| Site v5, mobile experience and motion | Done (2026-09-28) |
+| Site v6, platform polish and restraint | In production (2026-09-28) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
