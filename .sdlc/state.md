@@ -24,11 +24,14 @@ Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 
 | Environment | URL | Trigger |
 |-------------|-----|---------|
 | Production | https://beronilla.rodeo (www redirects to apex) | Copy files into `C:/srv/beronilla.rodeo/site` |
-| Staging | none yet | n/a |
+| Preview | https://beronilla.rodeo/v2/ (unlinked path in the production docroot, same headers and CSP) | Copy `site/` into `C:/srv/beronilla.rodeo/site/v2/` |
 
 ## Active Sprint
 
-None yet.
+v2 "order from noise" (branch `ai/feat/site-v2-order-from-noise`, committed 2026-09-28): WebGPU particle hero with WebGL fallback, Custom Highlight API in the palette, cross-document view transitions, corner-shape, text-box, reading-flow, scroll-driven header. Preview live at /v2/, awaiting owner review before promotion.
+
+Promote: `cp projects/webapp-hosting/site/* C:/srv/beronilla.rodeo/site/ && rm -rf C:/srv/beronilla.rodeo/site/v2`
+Roll back: `git checkout main -- site` then the same copy.
 
 ## Milestones
 
@@ -36,7 +39,8 @@ None yet.
 |-----------|--------|
 | Repo scaffold | Done (2026-09-28) |
 | Choose hosting provider | Done (2026-09-28): existing plex-stack Caddy |
-| Deploy workflow | Manual copy (2026-09-28); no CI yet |
+| Deploy workflow | Manual copy (2026-09-28); preview path at /v2/; no CI yet |
+| Site v2, order from noise | Built and previewed (2026-09-28); awaiting review |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
@@ -45,7 +49,7 @@ N/A — no sprints completed.
 
 ## Blockers
 
-- None. Note: the CSP in the Caddyfile pins the hash of the single inline script in `index.html`; editing that script means updating the hash.
+- None. Notes: the CSP pins the hash of the single inline script in `index.html`, so editing that script means updating the hash. WGSL reserves common words (`target`, `filter`, `pass`, `set`, `smooth`); a reserved identifier fails the shader silently and the hero goes black, which now drops to the WebGL fallback via the uncapturederror handler.
 
 ## Tech Debt
 
@@ -53,7 +57,8 @@ None.
 
 ## Next Actions
 
-1. Decide whether this repo should hold the site source (`site/`) so a deploy is a git pull plus copy.
-2. Create the GitHub remote and push `main`.
-3. Optional: a deploy script in `scripts/` that verifies the bundle hash and syncs `site/`.
-4. Apply repo baseline: branch protection on `main`, squash-only merges, Dependabot weekly, CODEOWNERS enforced.
+1. Owner reviews https://beronilla.rodeo/v2/ and promotes or requests changes.
+2. Merge the v2 branch to `main` after promotion.
+3. Create the GitHub remote and push `main`.
+4. Optional: a deploy script in `scripts/` that syncs `site/` to the docroot (and to /v2/ for previews).
+5. Apply repo baseline: branch protection on `main`, squash-only merges, Dependabot weekly, CODEOWNERS enforced.
