@@ -31,7 +31,11 @@
   function heroPoint(cx, cy) { var r = hero.getBoundingClientRect(); return [(cx - r.left) / r.width, 1 - (cy - r.top) / r.height]; }
   function aspect() { return renderer && renderer.aspect ? renderer.aspect() : 1; }
   function touched() { sweep.next = performance.now() + 14000; }
-  function firePulse(nx, ny) { if (reduce) return; pulse.x = nx; pulse.y = ny; pulse.t = performance.now(); kick(); }
+  function firePulse(nx, ny) {
+    if (reduce) return;
+    pulse.x = nx; pulse.y = ny; pulse.t = performance.now(); kick();
+    document.dispatchEvent(new CustomEvent("field:pulsed"));
+  }
   function startSweep() { if (reduce || sweep.active) return; sweep.active = true; sweep.start = performance.now(); kick(); }
 
   new MutationObserver(function () { lightTarget = themeIsLight() ? 1 : 0; kick(); })

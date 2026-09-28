@@ -5,6 +5,31 @@
   var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   function buzz(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) { /* ignore */ } } }
 
+  /* Sound is off until a visitor turns it on from the palette; then confirmations are tiny synthesized notes */
+  var sound = { on: false, ctx: null };
+  try { sound.on = localStorage.getItem("sound") === "on"; } catch (e) { /* ignore */ }
+  function chime(freq, dur, gain) {
+    if (!sound.on) return;
+    try {
+      if (!sound.ctx) sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var c = sound.ctx;
+      if (c.state === "suspended") c.resume();
+      var o = c.createOscillator(), g = c.createGain(), t = c.currentTime, d = dur || 0.09;
+      o.type = "sine"; o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain || 0.07, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + d + 0.02);
+    } catch (e) { /* no audio, no problem */ }
+  }
+  function setSound(on) {
+    sound.on = on;
+    try { localStorage.setItem("sound", on ? "on" : "off"); } catch (e) { /* ignore */ }
+    if (on) { chime(660, 0.08); setTimeout(function () { chime(880, 0.12); }, 90); }
+  }
+  document.addEventListener("field:pulsed", function () { chime(520, 0.16, 0.05); });
+
   /* Theme, with a circular reveal through the View Transitions API; the field pulses from the same point */
   var themeBtn = document.getElementById("theme-btn");
   function labelTheme() {
@@ -18,6 +43,7 @@
       labelTheme();
     };
     document.dispatchEvent(new CustomEvent("field:pulse", { detail: { x: x, y: y } }));
+    chime(next === "light" ? 784 : 587, 0.14, 0.05);
     if (!document.startViewTransition || reduce) { apply(); return; }
     var vt = document.startViewTransition(apply);
     vt.ready.then(function () {
@@ -307,8 +333,8 @@
         var x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height;
         t.style.setProperty("--mx", (x * 100).toFixed(1) + "%");
         t.style.setProperty("--my", (y * 100).toFixed(1) + "%");
-        t.style.setProperty("--rx", ((0.5 - y) * 5).toFixed(2) + "deg");
-        t.style.setProperty("--ry", ((x - 0.5) * 5).toFixed(2) + "deg");
+        t.style.setProperty("--rx", ((0.5 - y) * 3.5).toFixed(2) + "deg");
+        t.style.setProperty("--ry", ((x - 0.5) * 3.5).toFixed(2) + "deg");
         if (t === vbTile) vbGravity(x, y);
       }, { passive: true });
       t.addEventListener("pointerleave", function () { t.style.setProperty("--rx", "0deg"); t.style.setProperty("--ry", "0deg"); });
@@ -383,6 +409,7 @@
     { t: "Settle the field", k: "hero", run: function () { fieldAction("field:settle", "Field settled"); } },
     { t: "Run a sweep", k: "hero", run: function () { fieldAction("field:sweep", "Sweep running"); } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(innerWidth - 40, 40); } },
+    { t: "Toggle sound", k: "appearance", run: function () { setSound(!sound.on); toast(sound.on ? "Sound on" : "Sound off"); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
     { t: "Open LinkedIn", k: "link", run: function () { window.open("https://ca.linkedin.com/in/rodel-beronilla", "_blank", "noopener"); } },
@@ -433,7 +460,7 @@
   }
   function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); input.focus(); }
   function closeCmd() { if (dlg && dlg.open) dlg.close(); if (canHighlight) CSS.highlights.delete("cmdk-match"); }
-  function runSel() { var a = filtered[sel]; closeCmd(); if (a) { buzz(5); setTimeout(a.run, 60); } }
+  function runSel() { var a = filtered[sel]; closeCmd(); if (a) { buzz(5); chime(660, 0.07, 0.04); setTimeout(a.run, 60); } }
   if (dlg) {
     ["cmd-open", "dock-menu"].forEach(function (id) { var b = document.getElementById(id); if (b) b.addEventListener("click", openCmd); });
     input.addEventListener("input", filter);
