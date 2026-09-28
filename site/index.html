@@ -65,7 +65,7 @@
           <a class="btn" href="https://ca.linkedin.com/in/rodel-beronilla" rel="me">LinkedIn</a>
         </div>
       </div>
-      <p class="field-hint mono" id="field-hint">Move the cursor. Noise settles into order.</p>
+      <p class="field-hint mono" id="field-hint">Hover slowly to settle. Move fast to stir. Click to pulse.</p>
       <a class="scroll-hint mono" href="#profile" aria-label="Scroll to profile"><span>Scroll</span><i aria-hidden="true"></i></a>
     </section>
 
@@ -93,7 +93,14 @@
           <div class="tile-in">
             <p class="label mono">Toronto</p>
             <p class="big mono" id="clock">--:--:--</p>
+            <svg class="sky" id="sky" viewBox="0 0 200 108" aria-hidden="true">
+              <line class="sky-horizon" x1="6" y1="80" x2="194" y2="80"/>
+              <path class="sky-track" d="M28 80 A72 72 0 0 1 172 80"/>
+              <path class="sky-done" id="sky-done" d="M28 80 A72 72 0 0 1 172 80"/>
+              <circle class="sky-sun" id="sky-sun" r="5" cx="28" cy="80"/>
+            </svg>
             <p class="sub" id="clock-sub">Local time</p>
+            <p class="sub mono" id="sky-times"></p>
           </div>
         </article>
 
@@ -128,11 +135,28 @@
         <article class="tile t-fw">
           <div class="tile-in">
             <p class="label mono">Frameworks and standards</p>
-            <div class="marquee" aria-label="ISO/IEC 27001:2022, ISO/IEC 27002:2022, ISO/IEC 27017, SOC 2 Type 2, NIST SP 800-53, NIST SP 800-171, PHIPA, PIPEDA, HIPAA">
-              <div class="marquee-track" id="marquee">
-                <span>ISO/IEC 27001:2022</span><span>ISO/IEC 27002:2022</span><span>ISO/IEC 27017</span><span>SOC 2 Type 2</span><span>NIST SP 800-53</span><span>NIST SP 800-171</span><span>PHIPA</span><span>PIPEDA</span><span>HIPAA</span>
+            <div class="marquee" id="marquee" role="group" aria-label="Frameworks and standards. Select one for a summary.">
+              <div class="marquee-track">
+                <button class="chip" type="button" popovertarget="fw-27001">ISO/IEC 27001:2022</button>
+                <button class="chip" type="button" popovertarget="fw-27002">ISO/IEC 27002:2022</button>
+                <button class="chip" type="button" popovertarget="fw-27017">ISO/IEC 27017</button>
+                <button class="chip" type="button" popovertarget="fw-soc2">SOC 2 Type 2</button>
+                <button class="chip" type="button" popovertarget="fw-80053">NIST SP 800-53</button>
+                <button class="chip" type="button" popovertarget="fw-800171">NIST SP 800-171</button>
+                <button class="chip" type="button" popovertarget="fw-phipa">PHIPA</button>
+                <button class="chip" type="button" popovertarget="fw-pipeda">PIPEDA</button>
+                <button class="chip" type="button" popovertarget="fw-hipaa">HIPAA</button>
               </div>
             </div>
+            <div class="fw-pop" id="fw-27001" popover><b>ISO/IEC 27001:2022</b>The international standard for an information security management system. Certification follows an accredited audit against the Annex A controls the organization declares applicable.</div>
+            <div class="fw-pop" id="fw-27002" popover><b>ISO/IEC 27002:2022</b>The companion guidance to 27001: how to implement each control, organized into organizational, people, physical and technological themes.</div>
+            <div class="fw-pop" id="fw-27017" popover><b>ISO/IEC 27017</b>Cloud-specific security controls layered on ISO 27002, with responsibilities split between cloud providers and their customers.</div>
+            <div class="fw-pop" id="fw-soc2" popover><b>SOC 2 Type 2</b>An independent auditor's report on how a service organization's controls operated over a period, against the AICPA Trust Services Criteria.</div>
+            <div class="fw-pop" id="fw-80053" popover><b>NIST SP 800-53</b>The US federal catalogue of security and privacy controls, used well beyond government as a baseline to build and assess against.</div>
+            <div class="fw-pop" id="fw-800171" popover><b>NIST SP 800-171</b>Requirements for protecting controlled unclassified information in non-federal systems, and the basis of CMMC for defence suppliers.</div>
+            <div class="fw-pop" id="fw-phipa" popover><b>PHIPA</b>Ontario's Personal Health Information Protection Act: how health information custodians may collect, use and disclose personal health information.</div>
+            <div class="fw-pop" id="fw-pipeda" popover><b>PIPEDA</b>Canada's federal private-sector privacy law, the Personal Information Protection and Electronic Documents Act, built on ten fair information principles.</div>
+            <div class="fw-pop" id="fw-hipaa" popover><b>HIPAA</b>The US Health Insurance Portability and Accountability Act; its Privacy and Security Rules set the baseline for protected health information.</div>
           </div>
         </article>
 
@@ -211,6 +235,7 @@
               <li>Variable font kinetics</li>
               <li>Scroll-driven animations</li>
               <li>View Transitions, in page and across pages</li>
+              <li>Popover API with anchor positioning</li>
               <li>Command palette, ⌘K, Custom Highlight API</li>
               <li>Strict CSP, no trackers</li>
             </ul>

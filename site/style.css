@@ -1,5 +1,7 @@
 /* beronilla.rodeo */
 
+@property --scroll { syntax: "<number>"; inherits: false; initial-value: 0; }
+
 :root {
   color-scheme: dark;
   --bg:        light-dark(oklch(0.975 0.006 85), oklch(0.16 0.012 280));
@@ -55,12 +57,28 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
   padding: .9rem clamp(1rem, 4vw, 2rem);
   background: linear-gradient(to bottom, color-mix(in oklch, var(--bg) 70%, transparent), transparent);
 }
+/* A solid, blurred backing fades in as the page scrolls past the hero */
+.top::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0;
+  background: color-mix(in oklch, var(--bg) 78%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
 .mark {
+  position: relative;
   display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: 12px;
   background: var(--fg); color: var(--bg); font-weight: 800; letter-spacing: -0.04em; text-decoration: none; font-size: .95rem;
   transition: transform .3s var(--spring);
 }
 .mark:hover { transform: rotate(-6deg) scale(1.06); }
+/* Reading progress as a ring around the mark */
+.mark::after {
+  content: ""; position: absolute; inset: -5px; border-radius: 16px; padding: 2px; pointer-events: none; opacity: 0;
+  background: conic-gradient(var(--accent) calc(var(--scroll) * 100%), transparent 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+}
 .topnav {
   display: none; gap: 1.5rem; align-items: center; padding: 0 1.25rem; height: 2.5rem; border-radius: 999px;
   border: 1px solid var(--line-2); background: color-mix(in oklch, var(--bg) 60%, transparent);
@@ -70,6 +88,8 @@ a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid 
 .topnav a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: -4px; height: 2px; background: var(--accent); transition: right .3s var(--ease-out); }
 .topnav a:hover { color: var(--fg); }
 .topnav a:hover::after { right: 0; }
+.topnav a[aria-current="true"] { color: var(--fg); }
+.topnav a[aria-current="true"]::after { right: 0; }
 @media (min-width: 46rem) { .topnav { display: flex; } }
 
 .top-actions { display: flex; align-items: center; gap: .5rem; }
@@ -115,7 +135,11 @@ html[data-theme="light"] .i-moon { display: block; }
   position: relative; z-index: 2; width: 100%; max-width: 84rem; margin: 0 auto;
   padding: 2rem clamp(1.1rem, 5vw, 4rem) clamp(5rem, 12vh, 8rem);
 }
-.meta { display: inline-flex; align-items: center; gap: .6rem; color: var(--fg-2); margin: 0 0 1.25rem; }
+.meta {
+  display: inline-flex; align-items: center; gap: .6rem; color: var(--fg-2); margin: 0 0 1.25rem;
+  padding: .3rem .75rem .3rem .55rem; border-radius: 999px; border: 1px solid var(--line);
+  background: color-mix(in oklch, var(--bg) 62%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
 .pulse { width: .55rem; height: .55rem; border-radius: 50%; background: var(--signal); box-shadow: 0 0 0 0 color-mix(in oklch, var(--signal) 60%, transparent); animation: pulse 2.2s ease-out infinite; }
 @keyframes pulse { to { box-shadow: 0 0 0 14px transparent; } }
 
@@ -150,6 +174,14 @@ html[data-theme="light"] .i-moon { display: block; }
 .btn.primary { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 .btn.primary:hover { background: color-mix(in oklch, var(--fg) 88%, var(--accent)); }
 
+/* Hero hint, shown only when the WebGPU field is live */
+.field-hint {
+  position: absolute; z-index: 2; left: clamp(1.1rem, 5vw, 4rem); bottom: 2rem; max-width: min(75%, 34rem);
+  display: none; align-items: center; gap: .6rem; margin: 0; color: var(--muted);
+}
+.field-hint::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: var(--signal); flex: none; }
+.field-hint.is-on { display: inline-flex; }
+
 .scroll-hint {
   position: absolute; z-index: 2; right: clamp(1.1rem, 5vw, 4rem); bottom: 2rem; display: none; align-items: center; gap: .6rem;
   color: var(--muted); text-decoration: none;
@@ -162,13 +194,17 @@ html[data-theme="light"] .i-moon { display: block; }
 @supports (animation-timeline: scroll()) {
   .js .hero-inner { animation: heroOut linear both; animation-timeline: scroll(root); animation-range: 0 85vh; }
   @keyframes heroOut { to { translate: 0 -10vh; scale: .94; opacity: 0; } }
+  .js .top::before { animation: topBack linear both; animation-timeline: scroll(root); animation-range: 40px 220px; }
+  @keyframes topBack { to { opacity: 1; } }
+  .js .mark::after { animation: markRing linear both; animation-timeline: scroll(root); }
+  @keyframes markRing { from { --scroll: 0; opacity: 0; } 6% { opacity: 1; } to { --scroll: 1; opacity: 1; } }
 }
 
 /* Bento */
 .profile { position: relative; max-width: 84rem; margin: 0 auto; padding: 0 clamp(1.1rem, 5vw, 4rem) 5rem; }
 .bento { display: grid; gap: .9rem; grid-template-columns: 1fr; grid-auto-rows: minmax(9rem, auto); }
 @media (min-width: 46rem) {
-  .bento { grid-template-columns: repeat(2, 1fr); }
+  .bento { grid-template-columns: repeat(2, 1fr); reading-flow: grid-order; }
   .t-about, .t-xp, .t-fw, .t-tl, .t-contact { grid-column: span 2; }
   .t-tech { order: -1; }
   .t-about, .t-now, .t-time, .t-xp, .t-fw, .t-tl, .t-p1, .t-p2, .t-p3, .t-edu, .t-vb { order: -2; }
@@ -176,6 +212,7 @@ html[data-theme="light"] .i-moon { display: block; }
 @media (min-width: 64rem) {
   .bento {
     grid-template-columns: repeat(4, 1fr);
+    reading-flow: grid-rows;
     grid-template-areas:
       "about about now time"
       "about about xp xp"
@@ -216,6 +253,16 @@ html[data-theme="light"] .i-moon { display: block; }
   @keyframes rise { from { opacity: 0; translate: 0 32px; scale: .985; } }
 }
 
+/* Squircle corners where the browser draws them; plain rounding elsewhere */
+@supports (corner-shape: squircle) {
+  .tile, .cmdk-in, .xp-icon, .mark, .cmd-key, .fw-pop { corner-shape: squircle; }
+}
+
+/* Cap-height trimming: headings sit on exact metrics instead of font leading */
+@supports (text-box: trim-both cap alphabetic) {
+  h2, h3, .big { text-box: trim-both cap alphabetic; padding-block: .06em; }
+}
+
 /* Expertise list */
 .xp { list-style: none; margin: .25rem 0 0; padding: 0; display: grid; gap: .1rem; }
 .xp li { display: grid; grid-template-columns: 2.4rem 1fr; grid-template-rows: auto auto; column-gap: .9rem; padding: .85rem 0; border-top: 1px solid var(--line); }
@@ -225,13 +272,45 @@ html[data-theme="light"] .i-moon { display: block; }
 .xp-t { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em; }
 .xp-d { color: var(--fg-2); font-size: .95rem; }
 
-/* Marquee */
-.marquee { overflow: hidden; margin-top: auto; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent); }
-.marquee-track { display: flex; gap: 2.5rem; width: max-content; padding: .6rem 0; animation: mq 34s linear infinite; }
-.marquee-track span { white-space: nowrap; font-weight: 700; font-size: clamp(1.3rem, 5cqw, 2rem); letter-spacing: -0.02em; display: inline-flex; align-items: center; gap: 2.5rem; }
-.marquee-track span::after { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); }
-@keyframes mq { to { translate: -50% 0; } }
-.t-fw:hover .marquee-track { animation-play-state: paused; }
+/* Toronto daylight arc */
+.sky { width: 100%; height: auto; display: block; margin: .3rem 0 .1rem; overflow: visible; }
+.sky-track, .sky-done, .sky-horizon { fill: none; stroke-linecap: round; }
+.sky-track { stroke: var(--line-2); stroke-width: 2; }
+.sky-done { stroke: var(--accent); stroke-width: 2.5; transition: stroke-dashoffset 1s var(--ease-out); }
+.sky-horizon { stroke: var(--line); stroke-width: 1; }
+.sky-sun { fill: var(--signal); filter: drop-shadow(0 0 6px color-mix(in oklch, var(--signal) 70%, transparent)); transition: cx 1s var(--ease-out), cy 1s var(--ease-out); }
+.sky.is-night .sky-sun { fill: var(--muted); filter: none; }
+.sky.is-night .sky-done { opacity: 0; }
+
+/* Frameworks strip: auto-scrolls, pauses under the pointer, scrubs by wheel or touch; each chip opens a popover */
+.marquee {
+  overflow-x: auto; overflow-y: hidden; margin-top: auto; scrollbar-width: none; scroll-snap-type: x proximity; overscroll-behavior-x: contain;
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.marquee::-webkit-scrollbar { display: none; }
+.marquee-track { display: flex; gap: 2.5rem; width: max-content; padding: .6rem 0; }
+.chip {
+  display: inline-flex; align-items: center; gap: 2.5rem; white-space: nowrap; padding: .2rem .15rem; margin: 0; border: 0; border-radius: 10px;
+  background: none; color: var(--fg); font: inherit; font-weight: 700; font-size: clamp(1.3rem, 5cqw, 2rem); letter-spacing: -0.02em; cursor: pointer;
+  scroll-snap-align: start; text-decoration: underline transparent; text-decoration-thickness: 3px; text-underline-offset: .18em; transition: text-decoration-color .25s;
+}
+.chip::after { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); flex: none; transition: scale .35s var(--spring), background .25s; }
+.chip:hover, .chip:focus-visible, .chip.is-open { text-decoration-color: var(--accent); }
+.chip:hover::after, .chip:focus-visible::after, .chip.is-open::after { scale: 1.7; background: var(--signal); }
+.chip:focus-visible { outline-offset: 2px; }
+.fw-pop {
+  position: fixed; inset: auto; margin: 0; width: min(24rem, calc(100vw - 2rem)); padding: .85rem 1rem; border: 1px solid var(--line-2); border-radius: 16px;
+  background: var(--bg-2); color: var(--fg-2); box-shadow: var(--shadow); font-size: .95rem; line-height: 1.45;
+  opacity: 0; translate: 0 8px;
+  transition: opacity .18s ease, translate .3s var(--spring), display .3s allow-discrete, overlay .3s allow-discrete;
+}
+.fw-pop:popover-open { opacity: 1; translate: 0 0; }
+@starting-style { .fw-pop:popover-open { opacity: 0; translate: 0 8px; } }
+.fw-pop b { display: block; color: var(--fg); margin-bottom: .15rem; }
+@supports (position-anchor: --a) {
+  .fw-pop { position-area: block-start span-inline-end; position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline; margin-block-end: .6rem; }
+}
 
 /* Timeline */
 .tl { list-style: none; margin: .25rem 0 0; padding: 0; display: grid; gap: 0; }
@@ -249,7 +328,7 @@ html[data-theme="light"] .i-moon { display: block; }
 .link-tile:hover .arrow { background: var(--fg); color: var(--bg); transform: translate(2px, -2px); }
 .t-p1 h3, .t-p2 h3, .t-p3 h3 { margin-top: auto; }
 
-/* Volleyball tile */
+/* Volleyball tile: the ball bounces on its own, and becomes a physics toy under a fine pointer */
 .t-vb { position: relative; }
 .ball {
   position: absolute; right: 1.25rem; top: 1.25rem; width: 3.2rem; height: 3.2rem; border-radius: 50%;
@@ -259,6 +338,8 @@ html[data-theme="light"] .i-moon { display: block; }
   animation: bounce 2.6s var(--ease-out) infinite;
 }
 @keyframes bounce { 0%, 100% { translate: 0 0; } 50% { translate: 0 -14px; } }
+.ball.is-live { top: 0; left: 0; right: auto; animation: none; cursor: grab; touch-action: none; will-change: translate; transition: scale .25s var(--spring); box-shadow: 0 10px 24px oklch(0 0 0 / .25); }
+.ball.is-held { cursor: grabbing; scale: 1.1; }
 
 /* Tech tile */
 .tech { list-style: none; margin: .2rem 0 0; padding: 0; display: grid; gap: .45rem; color: var(--fg-2); }
@@ -294,6 +375,8 @@ html[data-theme="light"] .i-moon { display: block; }
 .cmdk-list li[aria-selected="true"], .cmdk-list li:hover { background: var(--line); }
 .cmdk-list .empty { color: var(--muted); font-weight: 500; cursor: default; }
 .cmdk-hint { display: flex; gap: 1.2rem; padding: .7rem 1.25rem; border-top: 1px solid var(--line); color: var(--muted); margin: 0; }
+/* Matched characters painted through the CSS Custom Highlight API */
+::highlight(cmdk-match) { color: var(--accent); text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: 2px; }
 
 .fab {
   position: fixed; right: 1.1rem; bottom: calc(env(safe-area-inset-bottom, 0px) + 1.1rem); z-index: 40;
@@ -312,6 +395,11 @@ html[data-theme="light"] .i-moon { display: block; }
 ::view-transition-old(root) { z-index: 1; }
 ::view-transition-new(root) { z-index: 2; }
 
+/* 404 to home: cross-document view transition */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
 /* 404 */
 .notfound { min-height: 70svh; display: grid; align-content: center; max-width: 84rem; margin: 0 auto; padding: 6rem clamp(1.1rem, 5vw, 4rem); }
 .notfound h1 { font-size: clamp(3rem, 12vw, 8rem); font-weight: 700; letter-spacing: -0.045em; line-height: .95; margin-bottom: 1rem; }
@@ -322,64 +410,7 @@ html[data-theme="light"] .i-moon { display: block; }
   html { scroll-behavior: auto; }
   .js .name .ch { animation: none; }
   .name .ch { transition: none; }
-  .pulse, .marquee-track, .ball, .scroll-hint i::after { animation: none; }
-  .marquee-track { flex-wrap: wrap; width: auto; }
-  .js .hero-inner, .js .tile { animation: none; }
-  .tile, .btn, .mark, .arrow, .cmdk, .cmdk::backdrop { transition: none; }
+  .pulse, .ball, .scroll-hint i::after { animation: none; }
+  .js .hero-inner, .js .tile, .js .top::before, .js .mark::after { animation: none; }
+  .tile, .btn, .mark, .arrow, .cmdk, .cmdk::backdrop, .fw-pop, .chip::after, .sky-done, .sky-sun { transition: none; }
 }
-
-/* ---------- v2: order from noise ---------- */
-
-/* Hero hint, shown only when the WebGPU field is live on a fine pointer */
-.field-hint {
-  position: absolute; z-index: 2; left: clamp(1.1rem, 5vw, 4rem); bottom: 2rem;
-  display: none; align-items: center; gap: .6rem; margin: 0; color: var(--muted);
-}
-.field-hint::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: var(--signal); }
-.field-hint.is-on { display: inline-flex; }
-@media (max-width: 46rem) { .field-hint.is-on { display: none; } }
-
-/* Header: a solid, blurred backing fades in as the page scrolls past the hero */
-.top::before {
-  content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0;
-  background: color-mix(in oklch, var(--bg) 78%, transparent);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-}
-@supports (animation-timeline: scroll()) {
-  .js .top::before { animation: topBack linear both; animation-timeline: scroll(root); animation-range: 40px 220px; }
-  @keyframes topBack { to { opacity: 1; } }
-}
-
-/* Top nav: the section in view carries the underline */
-.topnav a[aria-current="true"] { color: var(--fg); }
-.topnav a[aria-current="true"]::after { right: 0; }
-
-/* Command palette: matched characters painted through the CSS Custom Highlight API */
-::highlight(cmdk-match) { color: var(--accent); text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: 2px; }
-
-/* Squircle corners where the browser draws them; plain rounding elsewhere */
-@supports (corner-shape: squircle) {
-  .tile, .cmdk-in, .xp-icon, .mark, .cmd-key { corner-shape: squircle; }
-}
-
-/* Cap-height trimming: headings sit on exact metrics instead of font leading */
-@supports (text-box: trim-both cap alphabetic) {
-  h2, h3, .big { text-box: trim-both cap alphabetic; padding-block: .06em; }
-}
-
-/* Keyboard and reader order follow the visual bento, not the source order */
-@media (min-width: 46rem) { .bento { reading-flow: grid-order; } }
-@media (min-width: 64rem) { .bento { reading-flow: grid-rows; } }
-
-/* 404 to home: cross-document view transition */
-@media (prefers-reduced-motion: no-preference) {
-  @view-transition { navigation: auto; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .js .top::before { animation: none; }
-}
-
-/* The meta line keeps its legibility over a dense lattice */
-.meta { padding: .3rem .75rem .3rem .55rem; border-radius: 999px; border: 1px solid var(--line); background: color-mix(in oklch, var(--bg) 62%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
