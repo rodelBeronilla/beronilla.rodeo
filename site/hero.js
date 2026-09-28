@@ -1,113 +1,58 @@
+/* beronilla.rodeo hero: a particle field that settles from noise into a lattice.
+   WebGPU compute when the browser has it; the original WebGL shader otherwise. */
 (function () {
   "use strict";
-  var canvas = document.getElementById("shader");
-  if (!canvas) return;
+  var original = document.getElementById("shader");
+  if (!original) return;
+  var root = document.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power", preserveDrawingBuffer: false });
-  if (!gl) { canvas.remove(); return; }
+  var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+  var hero = original.parentElement;
 
-  var VS = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
-  var FS = [
-    "precision highp float;",
-    "uniform vec2 u_res;uniform float u_time;uniform vec2 u_mouse;uniform float u_scroll;uniform float u_light;",
-    "vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}",
-    "vec2 mod289(vec2 x){return x-floor(x*(1.0/289.0))*289.0;}",
-    "vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}",
-    "float snoise(vec2 v){",
-    " const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);",
-    " vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);",
-    " vec2 i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0);",
-    " vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod289(i);",
-    " vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0));",
-    " vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);m=m*m;m=m*m;",
-    " vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 ox=floor(x+0.5);vec3 a0=x-ox;",
-    " m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);",
-    " vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;return 130.0*dot(m,g);}",
-    "float fbm(vec2 p){float f=0.0;float a=0.5;for(int i=0;i<3;i++){f+=a*snoise(p);p=p*1.9+vec2(1.7,9.2);a*=0.5;}return f;}",
-    "vec3 pal(float t){return 0.5+0.4*cos(6.28318*(vec3(0.8,0.9,1.0)*t+vec3(0.0,0.15,0.3)));}",
-    "void main(){",
-    " vec2 uv=(gl_FragCoord.xy-0.5*u_res)/min(u_res.x,u_res.y);",
-    " vec2 m=(u_mouse-0.5*u_res)/min(u_res.x,u_res.y);",
-    " float t=u_time*0.05;",
-    " vec2 p=uv*0.9;p.y+=u_scroll*0.4;",
-    " vec2 q=vec2(fbm(p+vec2(0.0,t*0.6)),fbm(p+vec2(3.1,1.7)-t*0.4));",
-    " vec2 r=vec2(fbm(p+1.6*q+vec2(1.7,9.2)+t*0.25),fbm(p+1.6*q+vec2(8.3,2.8)-t*0.2));",
-    " float f=fbm(p+1.4*r)*0.5+0.5;",
-    " float d=length(uv-m);f+=0.18*exp(-d*d*4.0);",
-    " vec3 col=pal(f*0.7+0.1+u_scroll*0.1);",
-    " float lum=dot(col,vec3(0.299,0.587,0.114));col=mix(vec3(lum),col,0.75);",
-    " col+=0.12*pow(clamp(r.x*0.5+0.5,0.0,1.0),6.0);",
-    " vec3 dark=col*0.62+0.05;vec3 light=mix(col,vec3(1.0),0.6);col=mix(dark,light,u_light);",
-    " float vig=smoothstep(1.35,0.3,length(uv*vec2(0.85,1.1)));",
-    " vec3 base=mix(vec3(0.07,0.07,0.09),vec3(0.975,0.97,0.96),u_light);",
-    " col=mix(base,col,vig*0.9);",
-    " gl_FragColor=vec4(col,1.0);}"
-  ].join("\n");
+  function themeIsLight() { return root.getAttribute("data-theme") === "light"; }
+  function smooth(a, b, x) { var t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
 
-  function shader(type, src) {
-    var s = gl.createShader(type);
-    gl.shaderSource(s, src); gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(s)); return null; }
-    return s;
-  }
-  var vs = shader(gl.VERTEX_SHADER, VS), fs = shader(gl.FRAGMENT_SHADER, FS);
-  if (!vs || !fs) { canvas.remove(); return; }
-  var prog = gl.createProgram();
-  gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
-  if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) { canvas.remove(); return; }
-  gl.useProgram(prog);
+  /* Shared state: pointer, theme, scroll, and the "order" of the field */
+  var pointer = { x: 0.5, y: 0.35, tx: 0.5, ty: 0.35, active: false };
+  var light = themeIsLight() ? 1 : 0, lightTarget = light;
+  var scroll = 0, lens = 0, settleK = 0, settleUntil = 0;
+  var t0 = performance.now(), last = t0;
+  var visible = true, running = false, raf = 0, renderer = null;
 
-  var buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  var loc = gl.getAttribLocation(prog, "p");
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+  new MutationObserver(function () { lightTarget = themeIsLight() ? 1 : 0; kick(); })
+    .observe(root, { attributes: true, attributeFilter: ["data-theme"] });
 
-  var U = {};
-  ["u_res", "u_time", "u_mouse", "u_scroll", "u_light"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
-
-  var scale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.6;
-  var W = 0, H = 0;
-  function resize() {
-    var r = canvas.getBoundingClientRect();
-    W = Math.max(1, Math.round(r.width * scale));
-    H = Math.max(1, Math.round(r.height * scale));
-    if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; gl.viewport(0, 0, W, H); }
-  }
-
-  var mouse = [0.5, 0.35], target = [0.5, 0.35];
-  var light = 0, lightTarget = 0, scroll = 0, start = performance.now();
-  var visible = true, running = false, raf = 0;
-
-  function themeIsLight() { return document.documentElement.getAttribute("data-theme") === "light"; }
-  lightTarget = light = themeIsLight() ? 1 : 0;
-  new MutationObserver(function () { lightTarget = themeIsLight() ? 1 : 0; kick(); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-
-  var hero = canvas.parentElement;
   hero.addEventListener("pointermove", function (e) {
-    var r = canvas.getBoundingClientRect();
-    target = [(e.clientX - r.left) / r.width, 1 - (e.clientY - r.top) / r.height];
+    var r = hero.getBoundingClientRect();
+    pointer.tx = (e.clientX - r.left) / r.width;
+    pointer.ty = 1 - (e.clientY - r.top) / r.height;
+    pointer.active = true;
+    kick();
   }, { passive: true });
+  hero.addEventListener("pointerleave", function () { pointer.active = false; kick(); });
+  hero.addEventListener("pointerdown", function () { pointer.active = true; kick(); }, { passive: true });
+  document.addEventListener("field:settle", function () { settleUntil = performance.now() + 3600; kick(); });
 
   function frame(now) {
     raf = 0;
-    resize();
-    mouse[0] += (target[0] - mouse[0]) * 0.06;
-    mouse[1] += (target[1] - mouse[1]) * 0.06;
+    if (!renderer) return;
+    var dt = Math.min(1 / 30, Math.max(0, (now - last) / 1000));
+    last = now;
+    pointer.x += (pointer.tx - pointer.x) * 0.12;
+    pointer.y += (pointer.ty - pointer.y) * 0.12;
     light += (lightTarget - light) * 0.08;
     var sc = Math.min(1, Math.max(0, window.scrollY / Math.max(1, window.innerHeight)));
     scroll += (sc - scroll) * 0.1;
-    gl.uniform2f(U.u_res, W, H);
-    gl.uniform1f(U.u_time, reduce ? 12.0 : (now - start) / 1000);
-    gl.uniform2f(U.u_mouse, mouse[0] * W, mouse[1] * H);
-    gl.uniform1f(U.u_scroll, scroll);
-    gl.uniform1f(U.u_light, light);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-    var settling = Math.abs(light - lightTarget) > 0.005 || Math.abs(sc - scroll) > 0.002;
+    lens += ((pointer.active && !reduce ? 1 : 0) - lens) * 0.08;
+    settleK += ((now < settleUntil ? 1 : 0) - settleK) * 0.06;
+    var secs = (now - t0) / 1000;
+    var intro = reduce ? 1 : 1 - smooth(0.6, 2.6, secs);
+    var order = Math.max(intro, smooth(0.02, 0.55, scroll), settleK);
+    renderer.render(now, dt, { order: order, lens: lens, light: light, scroll: scroll, secs: secs, pointer: pointer });
+    var settling = Math.abs(light - lightTarget) > 0.005 || Math.abs(sc - scroll) > 0.002 || settleK > 0.01 || (renderer.needsFrames && renderer.needsFrames());
     if ((!reduce && visible && running) || settling) raf = requestAnimationFrame(frame);
   }
-  function kick() { if (!raf) raf = requestAnimationFrame(frame); }
+  function kick() { if (!raf && renderer) raf = requestAnimationFrame(frame); }
 
   if ("IntersectionObserver" in window) {
     new IntersectionObserver(function (en) {
@@ -115,11 +60,343 @@
       running = visible && !document.hidden;
       if (running) kick();
     }, { threshold: 0.02 }).observe(hero);
-  } else { running = true; }
+  }
   document.addEventListener("visibilitychange", function () { running = visible && !document.hidden; if (running) kick(); });
-  window.addEventListener("resize", function () { resize(); kick(); }, { passive: true });
-  window.addEventListener("scroll", function () { if (reduce) kick(); }, { passive: true });
+  window.addEventListener("resize", function () { if (renderer) renderer.resize(); kick(); }, { passive: true });
+  window.addEventListener("scroll", function () { kick(); }, { passive: true });
 
-  running = true;
-  kick();
+  function announce(kind, detail) {
+    root.setAttribute("data-field", kind);
+    var el = document.getElementById("uh-field");
+    if (el) el.textContent = detail;
+    var hint = document.getElementById("field-hint");
+    if (hint && kind === "webgpu" && fine && !reduce) hint.classList.add("is-on");
+  }
+
+  /* ---------- WebGPU: compute-driven particles ---------- */
+  var WGSL = [
+    "struct U {",
+    "  res: vec2f, pointer: vec2f,",
+    "  time: f32, dt: f32, order: f32, light: f32,",
+    "  cols: f32, rows: f32, count: f32, lens: f32,",
+    "  size: f32, seed: f32, aspect: f32, pad: f32,",
+    "};",
+    "@group(0) @binding(0) var<uniform> u: U;",
+    "@group(0) @binding(1) var<storage, read_write> P: array<vec4f>;",
+    "fn hash21(p: vec2f) -> f32 {",
+    "  var p3 = fract(vec3f(p.x, p.y, p.x) * 0.1031);",
+    "  p3 = p3 + dot(p3, vec3f(p3.y, p3.z, p3.x) + 33.33);",
+    "  return fract((p3.x + p3.y) * p3.z);",
+    "}",
+    "fn grad(i: vec2f) -> vec2f { let a = hash21(i) * 6.2831853; return vec2f(cos(a), sin(a)); }",
+    "fn gnoise(p: vec2f) -> f32 {",
+    "  let i = floor(p); let f = fract(p); let w = f * f * (3.0 - 2.0 * f);",
+    "  let a = dot(grad(i), f);",
+    "  let b = dot(grad(i + vec2f(1.0, 0.0)), f - vec2f(1.0, 0.0));",
+    "  let c = dot(grad(i + vec2f(0.0, 1.0)), f - vec2f(0.0, 1.0));",
+    "  let d = dot(grad(i + vec2f(1.0, 1.0)), f - vec2f(1.0, 1.0));",
+    "  return mix(mix(a, b, w.x), mix(c, d, w.x), w.y);",
+    "}",
+    "fn curl(p: vec2f) -> vec2f {",
+    "  let e = 0.03;",
+    "  let dx = gnoise(p + vec2f(e, 0.0)) - gnoise(p - vec2f(e, 0.0));",
+    "  let dy = gnoise(p + vec2f(0.0, e)) - gnoise(p - vec2f(0.0, e));",
+    "  return vec2f(dy, -dx) / (2.0 * e);",
+    "}",
+    "@compute @workgroup_size(64)",
+    "fn step(@builtin(global_invocation_id) gid: vec3u) {",
+    "  let i = gid.x;",
+    "  if (f32(i) >= u.count) { return; }",
+    "  let p = P[i];",
+    "  let cols = u32(u.cols);",
+    "  let cx = f32(i % cols); let cy = f32(i / cols);",
+    "  let home = vec2f(((cx + 0.5) / u.cols * 2.0 - 1.0) * u.aspect, (cy + 0.5) / u.rows * 2.0 - 1.0);",
+    "  let pos = p.xy;",
+    "  var vel = p.zw;",
+    "  let sx = 2.0 * u.aspect / u.cols; let sy = 2.0 / u.rows;",
+    "  let nearest = vec2f((floor((pos.x + u.aspect) / sx) + 0.5) * sx - u.aspect, (floor((pos.y + 1.0) / sy) + 0.5) * sy - 1.0);",
+    "  let m = vec2f((u.pointer.x / u.res.x * 2.0 - 1.0) * u.aspect, u.pointer.y / u.res.y * 2.0 - 1.0);",
+    "  let lens = u.lens * (1.0 - smoothstep(0.0, 0.5, distance(pos, m)));",
+    "  let order = clamp(u.order + lens * (1.0 - u.order), 0.0, 1.0);",
+    "  let t = u.time * 0.09;",
+    "  let flow = curl(pos * 1.3 + vec2f(t, -0.6 * t) + vec2f(u.seed, u.seed * 0.37)) * 0.9;",
+    "  let goal = mix(nearest, home, u.order);",
+    "  let spring = (goal - pos) * 9.0;",
+    "  let reach = u.lens * (1.0 - smoothstep(0.15, 0.95, distance(pos, m)));",
+    "  let gather = (m - pos) * 1.4 * reach;",
+    "  let acc = mix(flow, spring, order) + gather * (1.0 - order);",
+    "  let damp = pow(mix(0.95, 0.78, order), u.dt * 60.0);",
+    "  vel = vel * damp + acc * u.dt;",
+    "  var np = pos + vel * u.dt;",
+    "  let lim = u.aspect + 0.06;",
+    "  if (np.x < -lim) { np.x = np.x + 2.0 * lim; }",
+    "  if (np.x > lim) { np.x = np.x - 2.0 * lim; }",
+    "  if (np.y < -1.06) { np.y = np.y + 2.12; }",
+    "  if (np.y > 1.06) { np.y = np.y - 2.12; }",
+    "  P[i] = vec4f(np, vel);",
+    "}"
+  ].join("\n");
+
+  var WGSL_DRAW = [
+    "struct U {",
+    "  res: vec2f, pointer: vec2f,",
+    "  time: f32, dt: f32, order: f32, light: f32,",
+    "  cols: f32, rows: f32, count: f32, lens: f32,",
+    "  size: f32, seed: f32, aspect: f32, pad: f32,",
+    "};",
+    "struct VOut { @builtin(position) pos: vec4f, @location(0) uv: vec2f, @location(1) calm: f32 };",
+    "@group(0) @binding(0) var<uniform> u: U;",
+    "@group(0) @binding(1) var<storage, read> P: array<vec4f>;",
+    "@vertex fn vmain(@builtin(vertex_index) vi: u32, @builtin(instance_index) ii: u32) -> VOut {",
+    "  let p = P[ii];",
+    "  var corners = array<vec2f, 6>(vec2f(-1.0, -1.0), vec2f(1.0, -1.0), vec2f(-1.0, 1.0), vec2f(-1.0, 1.0), vec2f(1.0, -1.0), vec2f(1.0, 1.0));",
+    "  let c = corners[vi];",
+    "  let ndc = vec2f(p.x / u.aspect, p.y);",
+    "  let sz = vec2f(u.size / u.res.x, u.size / u.res.y) * 2.0;",
+    "  var o: VOut;",
+    "  o.pos = vec4f(ndc + c * sz, 0.0, 1.0);",
+    "  o.uv = c;",
+    "  let sx = 2.0 * u.aspect / u.cols; let sy = 2.0 / u.rows;",
+    "  let nearest = vec2f((floor((p.x + u.aspect) / sx) + 0.5) * sx - u.aspect, (floor((p.y + 1.0) / sy) + 0.5) * sy - 1.0);",
+    "  let near = 1.0 - smoothstep(0.0, 0.4 * sy, distance(p.xy, nearest));",
+    "  let still = 1.0 - smoothstep(0.02, 0.15, length(p.zw));",
+    "  o.calm = near * still;",
+    "  return o;",
+    "}",
+    "@fragment fn fmain(v: VOut) -> @location(0) vec4f {",
+    "  let r = length(v.uv);",
+    "  if (r > 1.0) { discard; }",
+    "  let soft = smoothstep(1.0, 0.3, r);",
+    "  let noisy = mix(vec3f(0.71, 0.64, 1.0), vec3f(0.42, 0.25, 0.84), u.light);",
+    "  let calm = mix(vec3f(0.56, 0.89, 0.35), vec3f(0.18, 0.50, 0.14), u.light);",
+    "  let col = mix(noisy, calm, v.calm);",
+    "  let a = soft * mix(0.42, 0.9, v.calm) * mix(1.0, 0.72, u.light);",
+    "  return vec4f(col * a, a);",
+    "}"
+  ].join("\n");
+
+  function startGPU(canvas) {
+    if (!navigator.gpu || typeof navigator.gpu.requestAdapter !== "function") return Promise.resolve(null);
+    return navigator.gpu.requestAdapter({ powerPreference: "low-power" }).then(function (adapter) {
+      if (!adapter || adapter.isFallbackAdapter) return null;
+      return adapter.requestDevice().then(function (device) {
+        var ctx = canvas.getContext("webgpu");
+        if (!ctx) return null;
+        var format = navigator.gpu.getPreferredCanvasFormat();
+        ctx.configure({ device: device, format: format, alphaMode: "opaque" });
+
+        var scale = Math.min(window.devicePixelRatio || 1, 2);
+        var W = 1, H = 1, aspect = 1, cols = 1, rows = 1, count = 0;
+        var rect = canvas.getBoundingClientRect();
+        var N = Math.min(90000, Math.max(6000, Math.round(rect.width * rect.height * 0.02)));
+        var seed = Math.random() * 100;
+
+        var ubuf = device.createBuffer({ size: 64, usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST });
+        var pbuf = device.createBuffer({ size: N * 16, usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_DST, mappedAtCreation: true });
+        function layout() {
+          aspect = W / H;
+          cols = Math.max(1, Math.round(Math.sqrt(N * aspect)));
+          rows = Math.max(1, Math.floor(N / cols));
+          count = cols * rows;
+        }
+        function resize() {
+          var r = canvas.getBoundingClientRect();
+          var w = Math.max(1, Math.round(r.width * scale)), h = Math.max(1, Math.round(r.height * scale));
+          if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
+          W = w; H = h; layout();
+        }
+        resize();
+        (function seedHomes() {
+          var a = new Float32Array(pbuf.getMappedRange());
+          var c0 = cols, r0 = Math.ceil(N / c0);
+          for (var i = 0; i < N; i++) {
+            var cx = i % c0, cy = Math.floor(i / c0);
+            a[i * 4] = ((cx + 0.5) / c0 * 2 - 1) * aspect;
+            a[i * 4 + 1] = (cy + 0.5) / r0 * 2 - 1;
+            a[i * 4 + 2] = 0; a[i * 4 + 3] = 0;
+          }
+          pbuf.unmap();
+        })();
+
+        var cLayout = device.createBindGroupLayout({ entries: [
+          { binding: 0, visibility: GPUShaderStage.COMPUTE, buffer: { type: "uniform" } },
+          { binding: 1, visibility: GPUShaderStage.COMPUTE, buffer: { type: "storage" } }
+        ] });
+        var rLayout = device.createBindGroupLayout({ entries: [
+          { binding: 0, visibility: GPUShaderStage.VERTEX | GPUShaderStage.FRAGMENT, buffer: { type: "uniform" } },
+          { binding: 1, visibility: GPUShaderStage.VERTEX, buffer: { type: "read-only-storage" } }
+        ] });
+        var cPipe = device.createComputePipeline({
+          layout: device.createPipelineLayout({ bindGroupLayouts: [cLayout] }),
+          compute: { module: device.createShaderModule({ code: WGSL }), entryPoint: "step" }
+        });
+        var drawMod = device.createShaderModule({ code: WGSL_DRAW });
+        var rPipe = device.createRenderPipeline({
+          layout: device.createPipelineLayout({ bindGroupLayouts: [rLayout] }),
+          vertex: { module: drawMod, entryPoint: "vmain" },
+          fragment: { module: drawMod, entryPoint: "fmain", targets: [{ format: format, blend: {
+            color: { srcFactor: "one", dstFactor: "one-minus-src-alpha", operation: "add" },
+            alpha: { srcFactor: "one", dstFactor: "one-minus-src-alpha", operation: "add" }
+          } }] },
+          primitive: { topology: "triangle-list" }
+        });
+        var cGroup = device.createBindGroup({ layout: cLayout, entries: [{ binding: 0, resource: { buffer: ubuf } }, { binding: 1, resource: { buffer: pbuf } }] });
+        var rGroup = device.createBindGroup({ layout: rLayout, entries: [{ binding: 0, resource: { buffer: ubuf } }, { binding: 1, resource: { buffer: pbuf } }] });
+        var uni = new Float32Array(16);
+        var lost = false;
+        device.lost.then(function () { lost = true; });
+        device.addEventListener("uncapturederror", function (e) {
+          console.warn("WebGPU error, falling back to WebGL:", e.error && e.error.message);
+          lost = true;
+        });
+
+        return {
+          kind: "webgpu",
+          count: function () { return count; },
+          resize: resize,
+          needsFrames: function () { return false; },
+          isLost: function () { return lost; },
+          render: function (now, dt, s) {
+            if (lost) return;
+            uni[0] = W; uni[1] = H;
+            uni[2] = s.pointer.x * W; uni[3] = s.pointer.y * H;
+            uni[4] = reduce ? 12 : s.secs; uni[5] = reduce ? 1 / 60 : dt;
+            uni[6] = s.order; uni[7] = s.light;
+            uni[8] = cols; uni[9] = rows; uni[10] = count; uni[11] = s.lens;
+            uni[12] = 1.5 * scale; uni[13] = seed; uni[14] = aspect; uni[15] = 0;
+            device.queue.writeBuffer(ubuf, 0, uni);
+            var enc = device.createCommandEncoder();
+            var cp = enc.beginComputePass();
+            cp.setPipeline(cPipe); cp.setBindGroup(0, cGroup);
+            cp.dispatchWorkgroups(Math.ceil(count / 64));
+            cp.end();
+            var L = s.light;
+            var rp = enc.beginRenderPass({ colorAttachments: [{
+              view: ctx.getCurrentTexture().createView(), loadOp: "clear", storeOp: "store",
+              clearValue: { r: 0.07 + (0.975 - 0.07) * L, g: 0.07 + (0.97 - 0.07) * L, b: 0.09 + (0.96 - 0.09) * L, a: 1 }
+            }] });
+            rp.setPipeline(rPipe); rp.setBindGroup(0, rGroup);
+            rp.draw(6, count);
+            rp.end();
+            device.queue.submit([enc.finish()]);
+          }
+        };
+      });
+    }).catch(function () { return null; });
+  }
+
+  /* ---------- WebGL fallback: the original flowing-noise shader ---------- */
+  function startGL(canvas) {
+    var gl = canvas.getContext("webgl", { antialias: false, alpha: false, depth: false, stencil: false, powerPreference: "low-power", preserveDrawingBuffer: false });
+    if (!gl) return null;
+    var VS = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
+    var FS = [
+      "precision highp float;",
+      "uniform vec2 u_res;uniform float u_time;uniform vec2 u_mouse;uniform float u_scroll;uniform float u_light;",
+      "vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}",
+      "vec2 mod289(vec2 x){return x-floor(x*(1.0/289.0))*289.0;}",
+      "vec3 permute(vec3 x){return mod289(((x*34.0)+1.0)*x);}",
+      "float snoise(vec2 v){",
+      " const vec4 C=vec4(0.211324865405187,0.366025403784439,-0.577350269189626,0.024390243902439);",
+      " vec2 i=floor(v+dot(v,C.yy));vec2 x0=v-i+dot(i,C.xx);",
+      " vec2 i1=(x0.x>x0.y)?vec2(1.0,0.0):vec2(0.0,1.0);",
+      " vec4 x12=x0.xyxy+C.xxzz;x12.xy-=i1;i=mod289(i);",
+      " vec3 p=permute(permute(i.y+vec3(0.0,i1.y,1.0))+i.x+vec3(0.0,i1.x,1.0));",
+      " vec3 m=max(0.5-vec3(dot(x0,x0),dot(x12.xy,x12.xy),dot(x12.zw,x12.zw)),0.0);m=m*m;m=m*m;",
+      " vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 ox=floor(x+0.5);vec3 a0=x-ox;",
+      " m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);",
+      " vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;return 130.0*dot(m,g);}",
+      "float fbm(vec2 p){float f=0.0;float a=0.5;for(int i=0;i<3;i++){f+=a*snoise(p);p=p*1.9+vec2(1.7,9.2);a*=0.5;}return f;}",
+      "vec3 pal(float t){return 0.5+0.4*cos(6.28318*(vec3(0.8,0.9,1.0)*t+vec3(0.0,0.15,0.3)));}",
+      "void main(){",
+      " vec2 uv=(gl_FragCoord.xy-0.5*u_res)/min(u_res.x,u_res.y);",
+      " vec2 m=(u_mouse-0.5*u_res)/min(u_res.x,u_res.y);",
+      " float t=u_time*0.05;",
+      " vec2 p=uv*0.9;p.y+=u_scroll*0.4;",
+      " vec2 q=vec2(fbm(p+vec2(0.0,t*0.6)),fbm(p+vec2(3.1,1.7)-t*0.4));",
+      " vec2 r=vec2(fbm(p+1.6*q+vec2(1.7,9.2)+t*0.25),fbm(p+1.6*q+vec2(8.3,2.8)-t*0.2));",
+      " float f=fbm(p+1.4*r)*0.5+0.5;",
+      " float d=length(uv-m);f+=0.18*exp(-d*d*4.0);",
+      " vec3 col=pal(f*0.7+0.1+u_scroll*0.1);",
+      " float lum=dot(col,vec3(0.299,0.587,0.114));col=mix(vec3(lum),col,0.75);",
+      " col+=0.12*pow(clamp(r.x*0.5+0.5,0.0,1.0),6.0);",
+      " vec3 dark=col*0.62+0.05;vec3 light=mix(col,vec3(1.0),0.6);col=mix(dark,light,u_light);",
+      " float vig=smoothstep(1.35,0.3,length(uv*vec2(0.85,1.1)));",
+      " vec3 base=mix(vec3(0.07,0.07,0.09),vec3(0.975,0.97,0.96),u_light);",
+      " col=mix(base,col,vig*0.9);",
+      " gl_FragColor=vec4(col,1.0);}"
+    ].join("\n");
+    function shader(type, src) {
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) { console.warn(gl.getShaderInfoLog(s)); return null; }
+      return s;
+    }
+    var vs = shader(gl.VERTEX_SHADER, VS), fs = shader(gl.FRAGMENT_SHADER, FS);
+    if (!vs || !fs) return null;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) return null;
+    gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, "p");
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    var U = {};
+    ["u_res", "u_time", "u_mouse", "u_scroll", "u_light"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
+    var scale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.6;
+    var W = 0, H = 0;
+    function resize() {
+      var r = canvas.getBoundingClientRect();
+      W = Math.max(1, Math.round(r.width * scale));
+      H = Math.max(1, Math.round(r.height * scale));
+      if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; gl.viewport(0, 0, W, H); }
+    }
+    return {
+      kind: "webgl",
+      resize: resize,
+      needsFrames: function () { return false; },
+      isLost: function () { return gl.isContextLost(); },
+      render: function (now, dt, s) {
+        resize();
+        gl.uniform2f(U.u_res, W, H);
+        gl.uniform1f(U.u_time, reduce ? 12.0 : s.secs);
+        gl.uniform2f(U.u_mouse, s.pointer.x * W, s.pointer.y * H);
+        gl.uniform1f(U.u_scroll, s.scroll);
+        gl.uniform1f(U.u_light, s.light);
+        gl.drawArrays(gl.TRIANGLES, 0, 3);
+      }
+    };
+  }
+
+  /* ---------- Boot: try WebGPU on a fresh canvas, else WebGL on the original ---------- */
+  function bootGL() {
+    renderer = startGL(original);
+    if (!renderer) { original.remove(); root.setAttribute("data-field", "none"); return; }
+    announce("webgl", "WebGL shader (WebGPU where available)");
+    running = true; kick();
+  }
+  var gpuCanvas = document.createElement("canvas");
+  gpuCanvas.className = original.className;
+  gpuCanvas.id = "shader";
+  gpuCanvas.setAttribute("aria-hidden", "true");
+  original.id = "shader-gl";
+  original.parentNode.insertBefore(gpuCanvas, original);
+  startGPU(gpuCanvas).then(function (r) {
+    if (r) {
+      original.remove();
+      renderer = r;
+      announce("webgpu", "WebGPU particle field, " + r.count().toLocaleString("en-CA") + " particles");
+      running = true; kick();
+      var watch = setInterval(function () {
+        if (r.isLost()) { clearInterval(watch); renderer = null; gpuCanvas.replaceWith(original); original.id = "shader"; bootGL(); }
+      }, 2000);
+    } else {
+      gpuCanvas.remove();
+      original.id = "shader";
+      bootGL();
+    }
+  });
 })();

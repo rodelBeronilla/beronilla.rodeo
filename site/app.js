@@ -116,6 +116,29 @@
     });
   }
 
+  /* Top nav: mark the section in view */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#']"));
+  if (navLinks.length && "IntersectionObserver" in window) {
+    var byId = {};
+    navLinks.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+    var current = null;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var a = byId[en.target.id];
+        if (!a || a === current) return;
+        if (current) current.removeAttribute("aria-current");
+        a.setAttribute("aria-current", "true");
+        current = a;
+      });
+    }, { rootMargin: "-35% 0px -55% 0px", threshold: 0 });
+    Object.keys(byId).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
+    var top = document.getElementById("top");
+    if (top) new IntersectionObserver(function (en) {
+      if (en[0].isIntersecting && current) { current.removeAttribute("aria-current"); current = null; }
+    }, { rootMargin: "-60% 0px 0px 0px" }).observe(top);
+  }
+
   /* Command palette */
   var dlg = document.getElementById("cmdk"), input = document.getElementById("cmdk-input"), list = document.getElementById("cmdk-list");
   function go(id) { var el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); }
@@ -127,6 +150,12 @@
     { t: "Work and expertise", k: "section", run: function () { go("work"); } },
     { t: "Projects", k: "section", run: function () { go("projects"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
+    { t: "Settle the field", k: "hero", run: function () {
+      if (root.getAttribute("data-field") !== "webgpu") { toast("Needs a browser with WebGPU"); return; }
+      window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      document.dispatchEvent(new CustomEvent("field:settle"));
+      toast("Field settled");
+    } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(innerWidth - 40, 40); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
@@ -134,11 +163,30 @@
     { t: "Open GitHub", k: "link", run: function () { window.open("https://github.com/rodelBeronilla", "_blank", "noopener"); } },
     { t: "Back to top", k: "section", run: function () { window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); } }
   ];
-  var filtered = actions.slice(), sel = 0;
+  var filtered = actions.slice(), sel = 0, query = "";
+  var canHighlight = typeof CSS !== "undefined" && "highlights" in CSS && typeof Highlight === "function";
+  function paintMatches() {
+    if (!canHighlight) return;
+    if (!query) { CSS.highlights.delete("cmdk-match"); return; }
+    var ranges = [];
+    Array.prototype.slice.call(list.querySelectorAll("li[role='option']")).forEach(function (li) {
+      var node = li.firstChild;
+      if (!node || node.nodeType !== 3) return;
+      var text = node.data.toLowerCase(), from = 0, at;
+      while ((at = text.indexOf(query, from)) !== -1) {
+        var r = new Range(); r.setStart(node, at); r.setEnd(node, at + query.length); ranges.push(r);
+        from = at + query.length;
+      }
+    });
+    var hl = new Highlight();
+    ranges.forEach(function (r) { hl.add(r); });
+    CSS.highlights.set("cmdk-match", hl);
+  }
   function render() {
     list.innerHTML = "";
     if (!filtered.length) {
-      var li = document.createElement("li"); li.className = "empty"; li.textContent = "No matches"; list.appendChild(li); return;
+      var li = document.createElement("li"); li.className = "empty"; li.textContent = "No matches"; list.appendChild(li);
+      paintMatches(); return;
     }
     filtered.forEach(function (a, idx) {
       var li = document.createElement("li");
@@ -150,14 +198,15 @@
       li.addEventListener("pointermove", function () { if (sel !== idx) { sel = idx; render(); } });
       list.appendChild(li);
     });
+    paintMatches();
   }
   function filter() {
-    var v = input.value.trim().toLowerCase();
-    filtered = v ? actions.filter(function (a) { return (a.t + " " + a.k).toLowerCase().indexOf(v) !== -1; }) : actions.slice();
+    query = input.value.trim().toLowerCase();
+    filtered = query ? actions.filter(function (a) { return (a.t + " " + a.k).toLowerCase().indexOf(query) !== -1; }) : actions.slice();
     sel = 0; render();
   }
   function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); input.focus(); }
-  function closeCmd() { if (dlg && dlg.open) dlg.close(); }
+  function closeCmd() { if (dlg && dlg.open) dlg.close(); if (canHighlight) CSS.highlights.delete("cmdk-match"); }
   function runSel() { var a = filtered[sel]; closeCmd(); if (a) setTimeout(a.run, 60); }
   if (dlg) {
     document.getElementById("cmd-open").addEventListener("click", openCmd);
@@ -169,6 +218,7 @@
       else if (e.key === "Enter") { e.preventDefault(); runSel(); }
     });
     dlg.addEventListener("click", function (e) { if (e.target === dlg) closeCmd(); });
+    dlg.addEventListener("close", function () { if (canHighlight) CSS.highlights.delete("cmdk-match"); });
     document.addEventListener("keydown", function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); dlg.open ? closeCmd() : openCmd(); }
     });

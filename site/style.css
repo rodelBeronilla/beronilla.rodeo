@@ -327,3 +327,59 @@ html[data-theme="light"] .i-moon { display: block; }
   .js .hero-inner, .js .tile { animation: none; }
   .tile, .btn, .mark, .arrow, .cmdk, .cmdk::backdrop { transition: none; }
 }
+
+/* ---------- v2: order from noise ---------- */
+
+/* Hero hint, shown only when the WebGPU field is live on a fine pointer */
+.field-hint {
+  position: absolute; z-index: 2; left: clamp(1.1rem, 5vw, 4rem); bottom: 2rem;
+  display: none; align-items: center; gap: .6rem; margin: 0; color: var(--muted);
+}
+.field-hint::before { content: ""; width: .45rem; height: .45rem; border-radius: 50%; background: var(--signal); }
+.field-hint.is-on { display: inline-flex; }
+@media (max-width: 46rem) { .field-hint.is-on { display: none; } }
+
+/* Header: a solid, blurred backing fades in as the page scrolls past the hero */
+.top::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; opacity: 0;
+  background: color-mix(in oklch, var(--bg) 78%, transparent);
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+}
+@supports (animation-timeline: scroll()) {
+  .js .top::before { animation: topBack linear both; animation-timeline: scroll(root); animation-range: 40px 220px; }
+  @keyframes topBack { to { opacity: 1; } }
+}
+
+/* Top nav: the section in view carries the underline */
+.topnav a[aria-current="true"] { color: var(--fg); }
+.topnav a[aria-current="true"]::after { right: 0; }
+
+/* Command palette: matched characters painted through the CSS Custom Highlight API */
+::highlight(cmdk-match) { color: var(--accent); text-decoration: underline; text-underline-offset: .15em; text-decoration-thickness: 2px; }
+
+/* Squircle corners where the browser draws them; plain rounding elsewhere */
+@supports (corner-shape: squircle) {
+  .tile, .cmdk-in, .xp-icon, .mark, .cmd-key { corner-shape: squircle; }
+}
+
+/* Cap-height trimming: headings sit on exact metrics instead of font leading */
+@supports (text-box: trim-both cap alphabetic) {
+  h2, h3, .big { text-box: trim-both cap alphabetic; padding-block: .06em; }
+}
+
+/* Keyboard and reader order follow the visual bento, not the source order */
+@media (min-width: 46rem) { .bento { reading-flow: grid-order; } }
+@media (min-width: 64rem) { .bento { reading-flow: grid-rows; } }
+
+/* 404 to home: cross-document view transition */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition { navigation: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .top::before { animation: none; }
+}
+
+/* The meta line keeps its legibility over a dense lattice */
+.meta { padding: .3rem .75rem .3rem .55rem; border-radius: 999px; border: 1px solid var(--line); background: color-mix(in oklch, var(--bg) 62%, transparent); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
