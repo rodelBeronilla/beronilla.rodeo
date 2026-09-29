@@ -13,7 +13,12 @@
   <meta property="og:title" content="Rodel Beronilla">
   <meta property="og:description" content="Cyber security consultant. ISO 27001, SOC 2 and audit readiness for healthcare technology. Toronto.">
   <meta property="og:url" content="https://beronilla.rodeo/">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://beronilla.rodeo/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Rodel Beronilla, cyber security consultant. A field of particles settling from noise into order.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://beronilla.rodeo/og.png">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,6 +34,11 @@
 </head>
 <body>
   <a class="skip" href="#profile">Skip to content</a>
+
+  <div class="field-bg" id="field-bg" aria-hidden="true">
+    <canvas class="shader" id="shader" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+  </div>
 
   <header class="top">
     <div class="top-in">
@@ -53,8 +63,6 @@
 
   <main>
     <section class="hero" id="top">
-      <canvas class="shader" id="shader" aria-hidden="true"></canvas>
-      <div class="grain" aria-hidden="true"></div>
       <div class="hero-inner">
         <p class="meta mono"><span class="pulse" aria-hidden="true"></span><span class="meta-full">Cyber security consultant, TELUS Health, Toronto</span><span class="meta-short" aria-hidden="true">Security consultant, TELUS Health</span></p>
         <h1 class="name" id="name" aria-label="Rodel Beronilla">
@@ -251,6 +259,7 @@
   <footer class="foot">
     <p>&copy; 2026 Rodel Beronilla</p>
     <p class="mono">No analytics. No trackers. Nothing to accept.</p>
+    <p class="mono"><button type="button" class="linkish" id="print-link">Print or save as PDF</button></p>
     <p class="mono colophon">WebGPU with a WebGL fallback, scroll-driven animations, View Transitions. No frameworks, no build step.</p>
   </footer>
 

@@ -10,7 +10,8 @@
   var root = document.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-  var hero = original.parentElement;
+  var fieldBox = original.parentElement;                      /* fixed backdrop behind the whole page */
+  var hero = document.querySelector(".hero") || fieldBox;      /* the first screen: sweeps, intro, hints */
 
   function themeIsLight() { return root.getAttribute("data-theme") === "light"; }
   function smooth(a, b, x) { var t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); }
@@ -28,7 +29,7 @@
   var fps = { frames: 0, since: t0, value: 0, low: 0 };
   var vendorName = "";
 
-  function heroPoint(cx, cy) { var r = hero.getBoundingClientRect(); return [(cx - r.left) / r.width, 1 - (cy - r.top) / r.height]; }
+  function heroPoint(cx, cy) { var r = fieldBox.getBoundingClientRect(); return [(cx - r.left) / r.width, 1 - (cy - r.top) / r.height]; }
   function aspect() { return renderer && renderer.aspect ? renderer.aspect() : 1; }
   function touched() { sweep.next = performance.now() + 14000; }
   function firePulse(nx, ny) {
@@ -41,7 +42,8 @@
   new MutationObserver(function () { lightTarget = themeIsLight() ? 1 : 0; kick(); })
     .observe(root, { attributes: true, attributeFilter: ["data-theme"] });
 
-  hero.addEventListener("pointermove", function (e) {
+  /* The field answers the pointer anywhere on the page; pulses come from the first screen only */
+  window.addEventListener("pointermove", function (e) {
     var p = heroPoint(e.clientX, e.clientY), now = performance.now();
     if (pointer.lastMove) {
       var dt = Math.max(8, now - pointer.lastMove) / 1000, a = aspect();
@@ -51,11 +53,12 @@
     pointer.tx = p[0]; pointer.ty = p[1]; pointer.lastMove = now; pointer.active = true;
     touched(); kick();
   }, { passive: true });
-  hero.addEventListener("pointerleave", function () { pointer.active = false; pointer.vx = 0; pointer.vy = 0; kick(); });
-  hero.addEventListener("pointerdown", function (e) {
+  document.documentElement.addEventListener("pointerleave", function () { pointer.active = false; pointer.vx = 0; pointer.vy = 0; kick(); });
+  window.addEventListener("pointerdown", function (e) {
     var p = heroPoint(e.clientX, e.clientY);
     pointer.tx = p[0]; pointer.ty = p[1]; pointer.active = true;
-    if (!e.target.closest("a, button, input")) {
+    var t = e.target && e.target.closest ? e.target : null;
+    if (t && t.closest(".hero") && !t.closest("a, button, input")) {
       firePulse(p[0], p[1]);
       if (e.pointerType === "touch" && navigator.vibrate) { try { navigator.vibrate(6); } catch (err) { /* ignore */ } }
     }

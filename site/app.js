@@ -193,6 +193,7 @@
     var frag = document.createDocumentFragment();
     chips.forEach(function (c, idx) {
       c.style.anchorName = "--fw-" + idx;
+      c.setAttribute("aria-describedby", c.getAttribute("popovertarget"));
       var k = c.cloneNode(true);
       k.setAttribute("aria-hidden", "true"); k.setAttribute("tabindex", "-1");
       k.style.anchorName = "--fw-" + idx + "-b";
@@ -410,6 +411,7 @@
     { t: "Run a sweep", k: "hero", run: function () { fieldAction("field:sweep", "Sweep running"); } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(innerWidth - 40, 40); } },
     { t: "Toggle sound", k: "appearance", run: function () { setSound(!sound.on); toast(sound.on ? "Sound on" : "Sound off"); } },
+    { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
     { t: "Open LinkedIn", k: "link", run: function () { window.open("https://ca.linkedin.com/in/rodel-beronilla", "_blank", "noopener"); } },
@@ -475,6 +477,9 @@
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); dlg.open ? closeCmd() : openCmd(); }
     });
   }
+
+  var printLink = document.getElementById("print-link");
+  if (printLink) printLink.addEventListener("click", function () { window.print(); });
 
   /* Tiny toast for copy actions */
   var toastEl = null, toastTimer = null;
