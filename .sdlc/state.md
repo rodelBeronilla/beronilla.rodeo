@@ -15,7 +15,7 @@ Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 
 | Command | Description |
 |---------|-------------|
 | `sha256sum selfhost.zip` | Verify a new bundle against the published hash before deploying |
-| copy `site/` over `C:/srv/beronilla.rodeo/site` | Deploy: files are served live, no restart needed |
+| `python scripts/deploy.py` | Deploy: copies `site/`, stamps `?v=<hash>` on asset links, smoke-tests the root |
 | `docker exec caddy caddy reload --config /etc/caddy/Caddyfile` (run in plex-stack) | Apply a Caddyfile change without downtime |
 | `curl -sI https://beronilla.rodeo/` | Smoke test: 200 plus security headers |
 
@@ -28,7 +28,7 @@ Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 
 
 ## Active Sprint
 
-v6 is in production at https://beronilla.rodeo/ (2026-09-28): WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion, scroll-state header, sibling-index staggers, invoker commands, opt-in sound, P3 colour. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
+v7 is in production at https://beronilla.rodeo/ (2026-09-28): field as a fixed backdrop, frosted tiles, rebalanced grid, OG card, print resume, versioned deploys. v6 before it: WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion, scroll-state header, sibling-index staggers, invoker commands, opt-in sound, P3 colour. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
 
 ## Milestones
 
@@ -41,7 +41,8 @@ v6 is in production at https://beronilla.rodeo/ (2026-09-28): WebGPU field with 
 | Site v3, interaction vocabulary and live tiles | Built and previewed (2026-09-28) |
 | Site v4, light and composure | Done (2026-09-28) |
 | Site v5, mobile experience and motion | Done (2026-09-28) |
-| Site v6, platform polish and restraint | In production (2026-09-28) |
+| Site v6, platform polish and restraint | Done (2026-09-28) |
+| Site v7, living surface and journeys | In production (2026-09-28) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
@@ -50,7 +51,7 @@ N/A — no sprints completed.
 
 ## Blockers
 
-- None. Notes: the CSP pins the hash of the single inline script in `index.html`, so editing that script means updating the hash. WGSL reserves common words (`target`, `filter`, `pass`, `set`, `smooth`); a reserved identifier fails the shader silently and the hero goes black, which now drops to the WebGL fallback via the uncapturederror handler.
+- None. Notes: Caddy sends `Cache-Control: no-cache` for pages and a week for versioned assets (plex-stack Caddyfile). The CSP pins the hash of the single inline script in `index.html`, so editing that script means updating the hash. WGSL reserves common words (`target`, `filter`, `pass`, `set`, `smooth`); a reserved identifier fails the shader silently and the hero goes black, which now drops to the WebGL fallback via the uncapturederror handler.
 
 ## Tech Debt
 
@@ -59,7 +60,7 @@ None.
 ## Next Actions
 
 1. Watch the field on real phones (Android tilt, iOS Safari WebGPU) and adjust constants if needed.
-2. Optional: a deploy script in `scripts/` that copies `site/` to the docroot and smoke-tests the root.
+2. Regenerate `site/og.png` (scratch `ogimage.py`) whenever the hero changes materially.
 3. Create the GitHub remote and push `main`.
 4. Optional: a deploy script in `scripts/` that syncs `site/` to the docroot (and to /v2/ for previews).
 5. Apply repo baseline: branch protection on `main`, squash-only merges, Dependabot weekly, CODEOWNERS enforced.
