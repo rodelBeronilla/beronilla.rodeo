@@ -28,7 +28,7 @@ Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 
 
 ## Active Sprint
 
-v7 is in production at https://beronilla.rodeo/ (2026-09-28): field as a fixed backdrop, frosted tiles, rebalanced grid, OG card, print resume, versioned deploys. v6 before it: WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion, scroll-state header, sibling-index staggers, invoker commands, opt-in sound, P3 colour. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
+v8 is in production at https://beronilla.rodeo/ (2026-09-28): the field plus one editorial sheet with sticky kickers (bento and toys removed for cohesion), OG card, print resume, versioned deploys. v7 before it: field as a fixed backdrop, frosted tiles, rebalanced grid. v6 before it: WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion, scroll-state header, sibling-index staggers, invoker commands, opt-in sound, P3 colour. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
 
 ## Milestones
 
@@ -42,7 +42,8 @@ v7 is in production at https://beronilla.rodeo/ (2026-09-28): field as a fixed b
 | Site v4, light and composure | Done (2026-09-28) |
 | Site v5, mobile experience and motion | Done (2026-09-28) |
 | Site v6, platform polish and restraint | Done (2026-09-28) |
-| Site v7, living surface and journeys | In production (2026-09-28) |
+| Site v7, living surface and journeys | Done (2026-09-28) |
+| Site v8, one sheet | In production (2026-09-28) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
