@@ -86,8 +86,8 @@
 
   function telemetry() {
     if (!renderer || renderer.kind !== "webgpu") return;
-    var el = document.getElementById("uh-field");
-    if (el) el.textContent = "WebGPU field, " + renderer.count().toLocaleString("en-CA") + " particles, " + fps.value + " fps" + (vendorName ? ", " + vendorName + " GPU" : "");
+    var el = document.getElementById("colophon-live");
+    if (el) el.textContent = "Drawn with WebGPU: " + renderer.count().toLocaleString("en-CA") + " particles at " + fps.value + " fps" + (vendorName ? " on your " + vendorName + " GPU" : "") + ".";
     /* Grace under pressure: a GPU that cannot hold the frame rate gets a lighter field, quietly */
     var secs = (performance.now() - t0) / 1000;
     if (running && visible && !document.hidden && secs > 4 && fps.value < 38) fps.low++; else fps.low = 0;
@@ -162,7 +162,7 @@
 
   function announce(kind, detail) {
     root.setAttribute("data-field", kind);
-    var el = document.getElementById("uh-field");
+    var el = document.getElementById("colophon-live");
     if (el) el.textContent = detail;
     var hint = document.getElementById("field-hint");
     if (hint && kind === "webgpu" && !reduce) {
@@ -571,7 +571,7 @@
   function bootGL() {
     renderer = startGL(original);
     if (!renderer) { original.remove(); root.setAttribute("data-field", "none"); return; }
-    announce("webgl", "WebGL shader (WebGPU where available)");
+    announce("webgl", "Drawn with WebGL; WebGPU where the browser has it.");
     running = true; kick();
   }
   var gpuCanvas = document.createElement("canvas");
@@ -584,7 +584,7 @@
     if (r) {
       original.remove();
       renderer = r;
-      announce("webgpu", "WebGPU field, " + r.count().toLocaleString("en-CA") + " particles" + (vendorName ? ", " + vendorName + " GPU" : ""));
+      announce("webgpu", "Drawn with WebGPU: " + r.count().toLocaleString("en-CA") + " particles" + (vendorName ? " on your " + vendorName + " GPU" : "") + ".");
       running = true; kick();
       var watch = setInterval(function () {
         if (r.isLost()) { clearInterval(watch); renderer = null; gpuCanvas.replaceWith(original); original.id = "shader"; bootGL(); }
