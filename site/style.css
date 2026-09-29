@@ -361,10 +361,10 @@ html[data-theme="light"] .i-moon { display: block; }
 /* Short viewports (laptops at 1366x650, landscape phones): the first screen still fits */
 @media (max-height: 720px) and (min-width: 46rem) {
   :root { --fs-name: clamp(3rem, 8vw, 6rem); }
-  .hero { padding-top: calc(env(safe-area-inset-top, 0px) + 4.5rem); }
-  .hero-inner { padding-bottom: 7.6rem; }
-  .meta { margin-bottom: 1.25rem; }
-  .tag { margin: 1.25rem 0 1.5rem; }
+  .hero { padding-top: calc(env(safe-area-inset-top, 0px) + 4.1rem); }
+  .hero-inner { padding-bottom: 8.1rem; }
+  .meta { margin-bottom: 1.1rem; }
+  .tag { margin: 1.1rem 0 1.4rem; }
   .field-hint, .scroll-hint { bottom: 6.2rem; }
 }
 
