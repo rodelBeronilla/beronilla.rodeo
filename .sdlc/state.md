@@ -43,7 +43,8 @@ v8 is in production at https://beronilla.rodeo/ (2026-09-28): the field plus one
 | Site v5, mobile experience and motion | Done (2026-09-28) |
 | Site v6, platform polish and restraint | Done (2026-09-28) |
 | Site v7, living surface and journeys | Done (2026-09-28) |
-| Site v8, one sheet | In production (2026-09-28) |
+| Site v8, one sheet | Done (2026-09-28) |
+| Site v8.1, fundamentals audit (contrast, scale, semantics, touch, viewports) | In production (2026-09-28) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
@@ -62,6 +63,7 @@ None.
 
 1. Watch the field on real phones (Android tilt, iOS Safari WebGPU) and adjust constants if needed.
 2. Regenerate `site/og.png` (scratch `ogimage.py`) whenever the hero changes materially.
+3. Regression: scratch `v9test.py` runs the ten-viewport matrix (overflow, targets, popover bounds, outline, 404) against any URL via `SITE_URL`.
 3. Create the GitHub remote and push `main`.
 4. Optional: a deploy script in `scripts/` that syncs `site/` to the docroot (and to /v2/ for previews).
 5. Apply repo baseline: branch protection on `main`, squash-only merges, Dependabot weekly, CODEOWNERS enforced.
