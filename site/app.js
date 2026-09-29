@@ -30,8 +30,14 @@
   }
   document.addEventListener("field:pulsed", function () { chime(520, 0.16, 0.05); });
 
-  /* Theme, with a circular reveal through the View Transitions API; the field pulses from the same point */
+  /* Theme, with a circular reveal through the View Transitions API; the field pulses from the same point.
+     The browser chrome (address bar, status bar) follows the toggle, not only the system setting. */
   var themeBtn = document.getElementById("theme-btn");
+  function paintChrome() {
+    var dark = root.getAttribute("data-theme") !== "light";
+    Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function (m) { m.setAttribute("content", dark ? "#0f0f13" : "#f5f4f0"); });
+  }
+  paintChrome();
   function labelTheme() {
     var dark = root.getAttribute("data-theme") !== "light";
     themeBtn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
@@ -40,7 +46,7 @@
     var apply = function () {
       root.setAttribute("data-theme", next);
       try { localStorage.setItem("theme", next); } catch (e) { /* ignore */ }
-      labelTheme();
+      labelTheme(); paintChrome();
     };
     document.dispatchEvent(new CustomEvent("field:pulse", { detail: { x: x, y: y } }));
     chime(next === "light" ? 784 : 587, 0.14, 0.05);
@@ -57,6 +63,12 @@
   function toggleTheme(x, y) {
     var next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
     setTheme(next, x, y);
+  }
+  /* The key cap says what the keyboard actually has */
+  var keyCap = document.getElementById("cmd-key");
+  if (keyCap) {
+    var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
+    if (!/mac|iphone|ipad|ipod/i.test(plat)) keyCap.textContent = "Ctrl K";
   }
   if (themeBtn) {
     labelTheme();
