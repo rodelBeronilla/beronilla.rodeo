@@ -219,7 +219,7 @@
   }
   var actions = [
     { t: "About", k: "section", run: function () { go("about"); } },
-    { t: "Work", k: "section", run: function () { go("work"); } },
+    { t: "Skills", k: "section", run: function () { go("skills"); } },
     { t: "Built", k: "section", run: function () { go("built"); } },
     { t: "Path", k: "section", run: function () { go("path"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
