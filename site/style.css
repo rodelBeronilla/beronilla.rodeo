@@ -301,6 +301,14 @@ html[data-theme="light"] .i-moon { display: block; }
 .tl-what p { color: var(--fg-2); font-size: var(--fs-2); }
 @media (max-width: 40rem) { .tl li { grid-template-columns: 1fr; gap: .15rem; } .tl-when { padding-top: 0; } }
 
+/* How I work: a stated position, then why it matters */
+.rules { list-style: none; margin: 0; padding: 0; display: grid; }
+.rules li { padding: 1.15rem 0; border-top: 1px solid var(--line); }
+.rules li:first-child { border-top: 0; padding-top: 0; }
+.rules li:last-child { padding-bottom: 0; }
+.rules h3 { color: var(--fg); max-width: 30ch; margin-bottom: .3rem; }
+.rules p { color: var(--fg-2); font-size: var(--fs-2); max-width: 62ch; }
+
 /* Built: each thing gets room to say what it is and why it exists */
 .built { list-style: none; margin: 0; padding: 0; display: grid; }
 .built li { padding: 1.3rem 0; border-top: 1px solid var(--line); min-width: 0; }
@@ -460,7 +468,8 @@ html[data-theme="light"] .i-moon { display: block; }
   .kicker, .facts dt, .tl-when { color: #666; }
   .statement, h3, .facts dd b { color: #111; }
   .lead { font-size: 12pt; color: #111; }
-  .sec-body > p:not(.lead):not(.statement), .xp-d, .tl-what p, .facts dd, .built p { color: #222; }
+  .sec-body > p:not(.lead):not(.statement), .xp-d, .tl-what p, .facts dd, .built p, .rules p { color: #222; }
+  .rules li { border-top-color: #ddd; padding: .5rem 0; break-inside: avoid; }
   .standards { border-top-color: #ddd; }
   .standards-label, .built-meta { color: #666; }
   .built li { border-top-color: #ddd; padding: .55rem 0; break-inside: avoid; }

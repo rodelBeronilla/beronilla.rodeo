@@ -220,8 +220,10 @@
   var actions = [
     { t: "About", k: "section", run: function () { go("about"); } },
     { t: "Skills", k: "section", run: function () { go("skills"); } },
+    { t: "How I work", k: "section", run: function () { go("how"); } },
     { t: "Built", k: "section", run: function () { go("built"); } },
     { t: "Path", k: "section", run: function () { go("path"); } },
+    { t: "Off the clock", k: "section", run: function () { go("life"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
     { t: "Settle the field", k: "field", run: function () { fieldAction("field:settle", "Field settled"); } },
     { t: "Run a sweep", k: "field", run: function () { fieldAction("field:sweep", "Sweep running"); } },

@@ -158,14 +158,39 @@
         </div>
       </section>
 
+      <section class="sec" id="how">
+        <div class="sec-head"><h2 class="kicker">How I work</h2><p class="kicker-sub">Four rules I actually keep.</p></div>
+        <div class="sec-body">
+          <ul class="rules">
+            <li>
+              <h3>A green dashboard is not evidence.</h3>
+              <p>Every service I run can report healthy while the system quietly fails at the job it exists to do. So I go and look at the thing that shows work actually happening — the metric, the record, the response — and I ask other people for the same.</p>
+            </li>
+            <li>
+              <h3>"We've always done it this way" is not an argument.</h3>
+              <p>Neither is "that was already decided." I'll take a good reason over precedent every time, and that includes arguing against decisions I made myself last year. The point is to be right at the end, not consistent along the way.</p>
+            </li>
+            <li>
+              <h3>Don't experiment on people who are using it.</h3>
+              <p>When something is live and someone depends on it, investigation stays read-only until there's a plan and a way back. Curiosity is not a good reason to restart something at dinner time, and "let's see what happens" is not a test.</p>
+            </li>
+            <li>
+              <h3>One change, one reason.</h3>
+              <p>If I find a second problem while fixing the first, it gets written down rather than folded in. Changes that quietly do two things are the ones nobody can review, and the ones nobody can undo when they go wrong at three in the morning.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
       <section class="sec" id="built">
         <div class="sec-head"><h2 class="kicker">Built</h2><p class="kicker-sub">Things I made and still look after.</p></div>
         <div class="sec-body">
           <ul class="built">
             <li>
-              <h3>A server that runs my household</h3>
-              <p class="built-meta">Docker Compose, Python, Prometheus, Grafana, restic</p>
-              <p>Twenty-six services on one machine in my house: media for the family and friends, five Python services I wrote and test, network paths that fail closed instead of leaking, metrics and alerting over all of it, encrypted backups, and a watchdog living outside Docker so something survives when everything else stops. I'm the only person on call, so it has to make sense to me at two in the morning.</p>
+              <h3>A server that runs my household, and my friends'</h3>
+              <p class="built-meta">Dell PowerEdge, Docker Compose, Python, Prometheus, Grafana, restic</p>
+              <p>Twenty-six services on a retired enterprise box in my house, serving family and friends across several time zones. Python services I wrote and test, network paths that fail closed rather than leak, metrics and alerting over all of it, encrypted backups, and a watchdog living outside Docker so something survives when everything else stops.</p>
+              <p>I'm the only person on call. Someone I know is usually watching something on it right now, which turns out to be a stricter test than any staging environment I've been given at work: there is no maintenance window that nobody notices. Next job is moving it off Docker and onto the bare metal, so twenty-eight cores stop pretending to be a laptop.</p>
             </li>
             <li>
               <h3>This page</h3>
@@ -197,6 +222,14 @@
             <li><span class="tl-when">earlier</span><div class="tl-what"><h3>Celestica</h3><p>ISO standards and NIST 800-171 compliance in electronics manufacturing.</p></div></li>
             <li><span class="tl-when">2020</span><div class="tl-what"><h3>Ontario Tech University</h3><p>Bachelor of Information Technology (Honours), Networking and IT Security.</p></div></li>
           </ol>
+        </div>
+      </section>
+
+      <section class="sec" id="life">
+        <div class="sec-head"><h2 class="kicker">Off the clock</h2></div>
+        <div class="sec-body">
+          <p class="lead">Volleyball, outside hitter, in a league most weeks. It's the one thing I do where thinking harder actively makes me worse at it.</p>
+          <p>Otherwise: Valorant, on the same machine that serves everyone else's films, which means I have spent real evenings working out which of the two was stealing frames from the other. That argument taught me more about scheduling contended resources than any course has. I also like the fact that a page about me is drawn by that same machine, a few feet from where I'm sitting.</p>
         </div>
       </section>
 
