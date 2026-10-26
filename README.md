@@ -1,25 +1,46 @@
-# webapp-hosting
+# beronilla.rodeo
 
-Management repo for hosting a web app: deployment config, environment definitions, operational docs, and runbooks.
+The source of [beronilla.rodeo](https://beronilla.rodeo), my personal site, and the small amount of tooling that deploys it.
 
-## Layout
+It is five static files. No framework, no build step, no bundler, no dependencies, and nothing to install before you can read it. The page you get is the files in `site/`, served as they are.
 
-| Path | Purpose |
-|------|---------|
-| `.github/workflows/` | CI and deploy pipelines |
-| `.github/CODEOWNERS` | Required reviewers for protected paths |
-| `docs/` | Architecture notes, runbooks, ADRs |
-| `scripts/` | Deploy / validation helper scripts |
-| `.sdlc/state.md` | Project state: vision, sprint, blockers, next actions |
+## What's interesting in here
 
-## Branching
+The background is a particle field running on the GPU, written by hand in WebGPU with a WebGL fallback for browsers that lack it. Tens of thousands of particles drift in curl noise and settle into a lattice where your cursor rests, on scroll, or on a slow sweep when nobody has touched the page for a while. It renders through a persistence buffer so motion leaves light behind, and it quietly reduces its own particle count if the machine cannot hold the frame rate.
 
-- `main` — production. Protected; PRs only.
-- `preprod` — staging. Feature branches merge here first; CI must pass and the preview must be validated before a PR to `main`.
-- Feature branches: `ai/feat/{issue#}-short-name`, `ai/fix/{issue#}-short-name`, `ai/refactor/{issue#}-short-name`.
+The rest of the page is deliberately quiet so that one flourish means something: a single typeface, one accent colour, and a layout that is mostly space and type.
 
-## Getting started
+| Path | What it is |
+|------|------------|
+| `site/index.html` | The page |
+| `site/style.css` | All of the styling |
+| `site/hero.js` | The particle field: WebGPU compute and render, WebGL fallback |
+| `site/app.js` | Theme switch, command palette, navigation, print view |
+| `site/404.html` | Not-found page, same system |
+| `scripts/deploy.py` | Copies `site/` to the docroot, content-hashes the asset links, smoke-tests the result |
+| `server-config/` | Caddy and nginx configs shipped with the original bundle |
 
-1. Fill in the hosting target and app source in `.sdlc/state.md`.
-2. Add the deploy workflow under `.github/workflows/`.
-3. Configure branch protection, Dependabot, and squash-only merges on GitHub.
+## Running it
+
+Any static server will do:
+
+```bash
+cd site && python3 -m http.server 8080
+```
+
+## Deploying it
+
+The site is served by Caddy on a machine in my house. The deploy script copies the files, stamps each asset link with a hash of its contents so browsers pick up changes immediately, and then checks that the live page and every stamped asset return 200.
+
+```bash
+python scripts/deploy.py                 # defaults to the local docroot
+python scripts/deploy.py /path/to/docroot
+```
+
+Pages are served with `Cache-Control: no-cache` and revalidate cheaply via ETag; the hashed assets are cached for a week.
+
+## Notes
+
+The Content-Security-Policy pins the SHA-256 of the one inline script in `index.html`, the three lines that set the colour theme before first paint. If you edit that script, the hash in the Caddy config has to change with it.
+
+No analytics, no trackers, no cookies. The theme choice is kept in your own browser and never leaves it.

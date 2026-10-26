@@ -52,6 +52,10 @@ v8 is in production at https://beronilla.rodeo/ (2026-09-28): the field plus one
 
 N/A — no sprints completed.
 
+## Remote
+
+Public at https://github.com/rodelBeronilla/beronilla.rodeo (owner's decision, 2026-10-26). Before this the repo had no remote and the site existed only on this machine's C: drive, in the working copy and the docroot: plex-stack #342.
+
 ## Blockers
 
 - None. Notes: Caddy sends `Cache-Control: no-cache` for pages and a week for versioned assets (plex-stack Caddyfile). The CSP pins the hash of the single inline script in `index.html`, so editing that script means updating the hash. WGSL reserves common words (`target`, `filter`, `pass`, `set`, `smooth`); a reserved identifier fails the shader silently and the hero goes black, which now drops to the WebGL fallback via the uncapturederror handler.
@@ -65,6 +69,5 @@ None.
 1. Watch the field on real phones (Android tilt, iOS Safari WebGPU) and adjust constants if needed.
 2. Regenerate `site/og.png` (scratch `ogimage.py`) whenever the hero changes materially.
 3. Regression: scratch `v9test.py` runs the ten-viewport matrix (overflow, targets, popover bounds, outline, 404) against any URL via `SITE_URL`.
-3. Create the GitHub remote and push `main`.
 4. Optional: a deploy script in `scripts/` that syncs `site/` to the docroot (and to /v2/ for previews).
 5. Apply repo baseline: branch protection on `main`, squash-only merges, Dependabot weekly, CODEOWNERS enforced.
