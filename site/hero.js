@@ -85,10 +85,18 @@
   ["wheel", "touchmove", "keydown"].forEach(function (ev) { window.addEventListener(ev, touched, { passive: true }); });
 
   function telemetry() {
-    if (!renderer || renderer.kind !== "webgpu") return;
+    if (!renderer) return;
     var el = document.getElementById("colophon-live");
-    if (el) el.textContent = "Drawn with WebGPU: " + renderer.count().toLocaleString("en-CA") + " particles at " + fps.value + " fps" + (vendorName ? " on your " + vendorName + " GPU" : "") + ".";
-    /* Grace under pressure: a GPU that cannot hold the frame rate gets a lighter field, quietly */
+    if (el) {
+      if (renderer.kind === "webgpu") {
+        el.textContent = "Drawn with WebGPU: " + renderer.count().toLocaleString("en-CA") + " particles at " + fps.value + " fps" + (vendorName ? " on your " + vendorName + " GPU" : "") + ".";
+      } else {
+        el.textContent = "Drawn with WebGL at " + fps.value + " fps; WebGPU where the browser has it.";
+      }
+    }
+    /* Grace under pressure: a GPU that cannot hold the frame rate gets lighter work, quietly.
+       This matters most on the WebGL path, which is the expensive one and is exactly what a
+       machine without WebGPU falls back to. */
     var secs = (performance.now() - t0) / 1000;
     if (running && visible && !document.hidden && secs > 4 && fps.value < 38) fps.low++; else fps.low = 0;
     if (fps.low >= 2 && renderer.degrade) { renderer.degrade(); fps.low = 0; }
@@ -430,11 +438,14 @@
           blitGroup = device.createBindGroup({ layout: bLayout, entries: [{ binding: 0, resource: sampler }, { binding: 1, resource: trailView }] });
         }
         var uni = new Float32Array(28);
-        var lost = false;
+        var lost = false, errors = 0;
         device.lost.then(function () { lost = true; });
+        /* One uncaptured error is not a dead device. Tolerate a few, because falling back
+           means dropping to the expensive shader for the rest of the visit. */
         device.addEventListener("uncapturederror", function (e) {
-          console.warn("WebGPU error, falling back to WebGL:", e.error && e.error.message);
-          lost = true;
+          errors++;
+          console.warn("WebGPU error " + errors + ":", e.error && e.error.message);
+          if (errors >= 4) lost = true;
         });
 
         return {
@@ -501,7 +512,10 @@
       " vec3 x=2.0*fract(p*C.www)-1.0;vec3 h=abs(x)-0.5;vec3 ox=floor(x+0.5);vec3 a0=x-ox;",
       " m*=1.79284291400159-0.85373472095314*(a0*a0+h*h);",
       " vec3 g;g.x=a0.x*x0.x+h.x*x0.y;g.yz=a0.yz*x12.xz+h.yz*x12.yw;return 130.0*dot(m,g);}",
-      "float fbm(vec2 p){float f=0.0;float a=0.5;for(int i=0;i<3;i++){f+=a*snoise(p);p=p*1.9+vec2(1.7,9.2);a*=0.5;}return f;}",
+      /* Two octaves, not three. This shader is the fallback, so it runs on whatever could not
+         offer WebGPU: integrated parts and software rasterisers. It is already five fbm calls
+         per pixel; the third octave tripled that cost for detail nobody sees through the mask. */
+      "float fbm(vec2 p){float f=0.0;float a=0.5;for(int i=0;i<2;i++){f+=a*snoise(p);p=p*1.9+vec2(1.7,9.2);a*=0.5;}return f;}",
       "vec3 pal(float t){return 0.5+0.4*cos(6.28318*(vec3(0.8,0.9,1.0)*t+vec3(0.0,0.15,0.3)));}",
       "void main(){",
       " vec2 uv=(gl_FragCoord.xy-0.5*u_res)/min(u_res.x,u_res.y);",
@@ -541,8 +555,8 @@
     gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
     var U = {};
     ["u_res", "u_time", "u_mouse", "u_scroll", "u_light"].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
-    var scale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.6;
-    var W = 0, H = 0;
+    var scale = Math.min(window.devicePixelRatio || 1, 1.5) * 0.55;
+    var W = 0, H = 0, frozen = false;
     function resize() {
       var r = canvas.getBoundingClientRect();
       W = Math.max(1, Math.round(r.width * scale));
@@ -555,7 +569,14 @@
       resize: resize,
       needsFrames: function () { return false; },
       isLost: function () { return gl.isContextLost(); },
+      /* Render fewer pixels when the machine cannot keep up, and stop animating entirely
+         rather than stutter. A still background beats a page that fights the scroll. */
+      degrade: function () {
+        if (scale > 0.26) { scale = Math.max(0.26, scale * 0.72); return; }
+        frozen = true;
+      },
       render: function (now, dt, s) {
+        if (frozen) return;
         resize();
         gl.uniform2f(U.u_res, W, H);
         gl.uniform1f(U.u_time, reduce ? 12.0 : s.secs);
