@@ -44,7 +44,8 @@ v8 is in production at https://beronilla.rodeo/ (2026-09-28): the field plus one
 | Site v6, platform polish and restraint | Done (2026-09-28) |
 | Site v7, living surface and journeys | Done (2026-09-28) |
 | Site v8, one sheet | Done (2026-09-28) |
-| Site v8.1, fundamentals audit (contrast, scale, semantics, touch, viewports) | In production (2026-09-28) |
+| Site v8.1, fundamentals audit (contrast, scale, semantics, touch, viewports) | Done (2026-09-28) |
+| Site v9, rebuilt around the person: narrative sections, Built, standards demoted | In production (2026-10-26) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
 
 ## Velocity
