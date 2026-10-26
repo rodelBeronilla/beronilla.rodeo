@@ -121,51 +121,7 @@
     }
   }
 
-  /* Toronto clock */
-  var clock = document.getElementById("clock"), clockSub = document.getElementById("clock-sub");
-  if (clock && window.Intl) {
-    var tf = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
-    var df = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto", weekday: "long", timeZoneName: "short" });
-    var tick = function () {
-      var now = new Date();
-      clock.textContent = tf.format(now);
-      var parts = df.formatToParts(now);
-      var wd = "", tz = "";
-      parts.forEach(function (p) { if (p.type === "weekday") wd = p.value; if (p.type === "timeZoneName") tz = p.value; });
-      if (clockSub) clockSub.textContent = "Local time, " + wd + ", " + tz;
-    };
-    tick(); setInterval(tick, 1000);
-  }
 
-  /* Standards: each chip opens a popover anchored to itself */
-  var chips = Array.prototype.slice.call(document.querySelectorAll(".chips .chip"));
-  if (chips.length) {
-    var anchorOK = typeof CSS !== "undefined" && CSS.supports && CSS.supports("position-anchor: --a");
-    var lastInvoker = null;
-    chips.forEach(function (c, idx) {
-      c.style.anchorName = "--fw-" + idx;
-      c.addEventListener("click", function () { lastInvoker = c; });
-    });
-    Array.prototype.slice.call(document.querySelectorAll(".fw-pop")).forEach(function (pop) {
-      var invoker = null;
-      pop.addEventListener("beforetoggle", function (e) {
-        if (e.newState === "open") {
-          invoker = (e.source && e.source.nodeType === 1) ? e.source : lastInvoker;
-          if (invoker && anchorOK) pop.style.positionAnchor = invoker.style.anchorName;
-          if (invoker) invoker.classList.add("is-open");
-        } else if (invoker) {
-          invoker.classList.remove("is-open");
-        }
-      });
-      pop.addEventListener("toggle", function (e) {
-        if (e.newState === "open" && invoker && !anchorOK) {
-          var r = invoker.getBoundingClientRect();
-          pop.style.left = Math.max(8, Math.min(window.innerWidth - pop.offsetWidth - 8, r.left)) + "px";
-          pop.style.top = Math.max(8, r.top - pop.offsetHeight - 10) + "px";
-        }
-      });
-    });
-  }
 
   /* Section in view: underline in the top nav, highlight in the mobile dock */
   var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#'], .dock a[href^='#']"));
@@ -218,11 +174,9 @@
     toast(done);
   }
   var actions = [
-    { t: "About", k: "section", run: function () { go("about"); } },
-    { t: "Skills", k: "section", run: function () { go("skills"); } },
     { t: "How I work", k: "section", run: function () { go("how"); } },
+    { t: "Experience", k: "section", run: function () { go("experience"); } },
     { t: "Built", k: "section", run: function () { go("built"); } },
-    { t: "Path", k: "section", run: function () { go("path"); } },
     { t: "Off the clock", k: "section", run: function () { go("life"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
     { t: "Settle the field", k: "field", run: function () { fieldAction("field:settle", "Field settled"); } },
