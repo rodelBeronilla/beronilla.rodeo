@@ -219,10 +219,9 @@
   }
   var actions = [
     { t: "About", k: "section", run: function () { go("about"); } },
-    { t: "Expertise", k: "section", run: function () { go("work"); } },
-    { t: "Standards", k: "section", run: function () { go("standards"); } },
+    { t: "Work", k: "section", run: function () { go("work"); } },
+    { t: "Built", k: "section", run: function () { go("built"); } },
     { t: "Path", k: "section", run: function () { go("path"); } },
-    { t: "Projects", k: "section", run: function () { go("projects"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
     { t: "Settle the field", k: "field", run: function () { fieldAction("field:settle", "Field settled"); } },
     { t: "Run a sweep", k: "field", run: function () { fieldAction("field:sweep", "Sweep running"); } },
