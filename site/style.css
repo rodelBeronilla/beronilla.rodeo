@@ -103,8 +103,8 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 
 /* experience and certifications, side by side where there is room */
 .xp-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: start; }
-.xp-roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.7rem, 1.6vh, 1.4rem) clamp(1.5rem, 2.5vw, 2.5rem); align-items: start; }
-.xp-roles > li { padding: .7rem 0 0; border-top: 1px solid var(--line); }
+.xp-roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.5rem, 1.4vh, 1.3rem) clamp(1.5rem, 2.5vw, 2.5rem); align-items: start; }
+.xp-roles > li { padding: .6rem 0 0; border-top: 1px solid var(--line); }
 .tl-what p { font-size: .9rem; }
 .xp-side { display: grid; gap: clamp(1.25rem, 2.5vh, 2rem); border-left: 1px solid var(--line); padding-left: clamp(1.25rem, 2.5vw, 2.5rem); }
 .xp-block .kicker-sub { margin-bottom: .9rem; }
@@ -117,7 +117,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .tl-what h3 { font-size: 1.02rem; font-weight: 620; }
 .tl-what p { color: var(--fg-2); margin-top: .15rem; font-size: .94rem; }
 .tl-what sup { font-size: .65em; line-height: 0; }
-.skills { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .6rem; }
+.skills { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .55rem; }
 .skills li { font-size: .73rem; line-height: 1; padding: .35rem .5rem; border: 1px solid var(--line-2); border-radius: 4px; color: var(--fg-2); }
 
 /* inside the experience page every entry stacks its date above the name,
@@ -191,7 +191,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .notfound { width: var(--wrap); margin: 0 auto; padding: clamp(3rem, 10vw, 7rem) var(--gutter); }
 .notfound h1 { font-size: clamp(2.2rem, 6vw, 4rem); letter-spacing: -.03em; margin: .5rem 0 1rem; }
 
-@media (max-height: 800px) and (min-width: 56rem) { :root { --page-pad: 1.2rem; } }
+@media (max-height: 820px) and (min-width: 56rem) { :root { --page-pad: 1rem; } }
 
 @media (max-width: 86rem) {
   .sec { grid-template-columns: minmax(7rem, 9rem) minmax(0, 1fr); }
