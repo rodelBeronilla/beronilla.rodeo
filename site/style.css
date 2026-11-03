@@ -12,6 +12,7 @@
   --accent: light-dark(#0b6b73, #5fd0d8);
   --mark:   light-dark(#9a4d00, #ffb454);
   --violet: light-dark(#4f46c8, #a49cff);
+  --edu:    light-dark(#3f7033, #8fcf7a);
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --ease: cubic-bezier(.2, .75, .25, 1);
@@ -136,11 +137,12 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .dot { position: absolute; top: 0; left: 0; width: 16px; height: 16px; border-radius: 50%; opacity: 0; transition: transform .6s var(--ease), opacity .4s linear; }
 .is-in .dot { opacity: 1; }
 .no-anim .dot, .no-anim.pivot-plot { transition: none; }
-.c0 { background: var(--muted); }
+.c0 { background: var(--edu); }
 .c1 { background: var(--mark); }
 .c2 { background: var(--violet); }
 .c3 { background: var(--accent); }
-.c1.both { background: linear-gradient(135deg, var(--mark) 0 50%, var(--muted) 50% 100%); }
+.c4 { background: var(--muted); }
+.c1.both { background: linear-gradient(135deg, var(--mark) 0 50%, var(--edu) 50% 100%); }
 .cgap { background: none; box-shadow: inset 0 0 0 2px var(--line-2); }
 .pivot-note { margin-top: 1rem; font-size: clamp(.74rem, .3vw + .68rem, .8rem); line-height: 1.5; color: var(--muted); text-wrap: pretty; }
 

@@ -169,6 +169,7 @@
   if (plot) {
     var now = new Date();
     var ORGS = [
+      { name: "High school", kind: "Study", c: 4, from: [2015, 1], to: [2015, 6] },
       { name: "Ontario Tech", kind: "Study", c: 0, from: [2015, 9], to: [2020, 5] },
       { name: "Celestica", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
       { name: "Rogers", kind: "Employed", c: 2, from: [2020, 7], to: [2024, 10] },
@@ -187,8 +188,8 @@
       var lead = on.length ? on[on.length - 1] : null;
       recs.push({
         y: y, m: m,
-        org: lead ? lead.name : "Between roles",
-        kind: lead ? lead.kind : "Between roles",
+        org: lead ? lead.name : "Between",
+        kind: lead ? lead.kind : "Between",
         c: lead ? lead.c : null,
         both: on.length > 1
       });
