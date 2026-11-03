@@ -26,7 +26,7 @@ html[data-theme="light"] { color-scheme: light; }
 html[data-theme="dark"]  { color-scheme: dark; }
 *, *::before, *::after { box-sizing: inherit; }
 
-html { scroll-padding-top: var(--top-h); scroll-snap-type: y proximity; -webkit-text-size-adjust: 100%; }
+html { scroll-padding-top: var(--top-h); scroll-snap-type: y mandatory; -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
   font: clamp(1rem, .25vw + .95rem, 1.1rem)/1.6 var(--sans);
@@ -63,6 +63,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   display: flex; align-items: center;
   padding: var(--page-pad) 0;
   scroll-snap-align: start;
+  scroll-snap-stop: always;
   border-top: 1px solid var(--line-2);
 }
 .page:first-of-type { border-top: 0; scroll-margin-top: 0; }

@@ -316,6 +316,39 @@
     });
   }
 
+  /* Up and down move a whole section. A section taller than the window is stepped
+     through a screen at a time first, so nothing below the fold gets skipped. */
+  var pages = Array.prototype.slice.call(document.querySelectorAll(".page"));
+  if (pages.length) {
+    var stops = function () {
+      var h = document.querySelector(".top").offsetHeight;
+      var list = pages.map(function (el) {
+        return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - h));
+      });
+      list.push(Math.round(document.documentElement.scrollHeight - window.innerHeight));
+      return list.sort(function (a, b) { return a - b; });
+    };
+    document.addEventListener("keydown", function (e) {
+      if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || e.shiftKey) return;
+      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
+      if (dlg && dlg.open) return;
+      var t = e.target;
+      if (t && t.closest && t.closest("input, textarea, select, [contenteditable]")) return;
+      var down = e.key === "ArrowDown";
+      var y = Math.round(window.scrollY), vh = window.innerHeight, list = stops(), target = null, i;
+      if (down) {
+        for (i = 0; i < list.length; i++) if (list[i] > y + 4) { target = list[i]; break; }
+        if (target !== null && target > y + vh) target = y + Math.round(vh * 0.88);
+      } else {
+        for (i = list.length - 1; i >= 0; i--) if (list[i] < y - 4) { target = list[i]; break; }
+        if (target !== null && target < y - vh) target = y - Math.round(vh * 0.88);
+      }
+      if (target === null) return;
+      e.preventDefault();
+      window.scrollTo({ top: target, behavior: reduce ? "auto" : "smooth" });
+    });
+  }
+
   var printLink = document.getElementById("print-link");
   if (printLink) printLink.addEventListener("click", function () { window.print(); });
 
