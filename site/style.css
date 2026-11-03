@@ -95,7 +95,11 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .statement-lg { font-size: clamp(2.4rem, 5vw + .8rem, 5rem); }
 .lead { font-size: clamp(1.02rem, .4vw + .9rem, 1.25rem); color: var(--fg-2); max-width: 46rem; text-wrap: pretty; }
 .rules { margin-top: clamp(1.5rem, 4vh, 3rem); display: grid; gap: clamp(1rem, 2.5vh, 2.25rem) clamp(1.5rem, 3vw, 3rem); grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); }
-.rules.interests { grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+.facets { margin-top: clamp(1.25rem, 3vh, 2.5rem); display: grid; gap: clamp(.9rem, 2.2vh, 1.75rem); }
+.facets > li { display: grid; grid-template-columns: minmax(5rem, 8rem) minmax(0, 1fr); gap: 0 clamp(1.5rem, 3vw, 3rem); border-top: 1px solid var(--line-2); padding-top: .8rem; }
+.facets h3 { font: 600 .85rem var(--mono); letter-spacing: .02em; color: var(--accent); }
+.facets p { color: var(--fg-2); max-width: 52rem; text-wrap: pretty; }
+@media (max-width: 56rem) { .facets > li { grid-template-columns: minmax(0, 1fr); gap: .3rem; } }
 
 /* principles: each one carries the places it was formed, in the colours of the career grid */
 .tenets { margin-top: clamp(1.25rem, 3vh, 2.5rem); display: grid; gap: clamp(1rem, 2.5vh, 2rem) clamp(1.5rem, 3vw, 3.5rem); grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr)); }
@@ -119,7 +123,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 /* experience and certifications, side by side where there is room */
 .xp-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: start; }
 .xp-roles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.5rem, 1.4vh, 1.3rem) clamp(1.5rem, 2.5vw, 2.5rem); align-items: start; }
-.xp-roles > li { padding: .5rem 0 0; border-top: 1px solid var(--line); }
+.xp-roles > li { padding: .45rem 0 0; border-top: 1px solid var(--line); }
 .tl-what p { font-size: .89rem; }
 .xp-side { display: grid; gap: clamp(1rem, 2vh, 1.75rem); border-left: 1px solid var(--line); padding-left: clamp(1.25rem, 2.5vw, 2.5rem); }
 .xp-block .kicker-sub { margin-bottom: .9rem; }
@@ -130,7 +134,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .tl > li:first-child { border-top: 0; padding-top: 0; }
 .tl-when { font: .8rem/1.7 var(--mono); color: var(--muted); }
 .tl-what h3 { font-size: 1.02rem; font-weight: 620; }
-.tl-what p { color: var(--fg-2); margin-top: .15rem; font-size: .92rem; line-height: 1.5; }
+.tl-what p { color: var(--fg-2); margin-top: .12rem; font-size: .92rem; line-height: 1.48; }
 .tl-what sup { font-size: .65em; line-height: 0; }
 .skills { display: flex; flex-wrap: wrap; gap: .3rem; margin-top: .55rem; }
 .skills li { font-size: .72rem; line-height: 1; padding: .3rem .45rem; border: 1px solid var(--line-2); border-radius: 4px; color: var(--fg-2); }
@@ -138,7 +142,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 /* inside the experience page every entry stacks its date above the name,
    because the columns are too narrow to spare a date gutter */
 .xp-grid .tl > li { grid-template-columns: minmax(0, 1fr); gap: .1rem; }
-.xp-side .tl > li { padding: .5rem 0 0; }
+.xp-side .tl > li { padding: .45rem 0 0; }
 .xp-side .tl > li:first-child { border-top: 1px solid var(--line); }
 
 /* projects */
