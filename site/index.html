@@ -40,6 +40,7 @@
         <a href="#projects">Projects</a>
         <a href="#interests">Interests</a>
         <a href="#contact">Contact</a>
+        <span class="nav-ind" aria-hidden="true"></span>
       </nav>
       <div class="top-actions">
         <button class="cmd-btn" id="cmd-open" type="button" commandfor="cmdk" command="show-modal" aria-haspopup="dialog" aria-controls="cmdk">
@@ -61,7 +62,7 @@
           <h1 class="name"><span>Rodel</span><span>Beronilla</span></h1>
           <p class="tag">I love the &ldquo;<em>boring</em>&rdquo; work. Data, repetition, or something new: point me at it and I will follow it all the way down.</p>
           <div class="cta">
-            <a class="btn primary" href="#how">Principles</a>
+            <a class="btn primary" href="#experience">Experience</a>
             <a class="btn" href="#contact">Get in touch</a>
           </div>
         </div>
@@ -113,32 +114,38 @@
       </div>
     </section>
 
-    <section class="page" id="experience">
-      <div class="page-in sec">
-        <div class="sec-head"><h2 class="kicker">Experience</h2><p class="kicker-sub">The full version lives on LinkedIn.</p></div>
-        <div class="sec-body xp-grid">
-          <ol class="tl xp-roles">
-            <li><span class="tl-when">Nov 2024 to now</span><div class="tl-what"><h3>TELUS Health Solutions Inc.</h3><p class="tl-role">Security Consultant I</p><p>I hold the assurance line for a health business. I run the internal assessments behind our certifications, keep evidence ready before an auditor asks, and catch what a proposed change does to our obligations while it’s still a proposal. The pipelines and reporting I built let a small team keep pace.</p><ul class="skills" aria-label="Skills and competencies"><li>ISO 27001</li><li>SOC 2</li><li>Audit readiness</li><li>PHIPA and PIPEDA</li><li>Quebec Law 25</li><li>Google Apps Script</li><li>Python</li><li>Power BI</li></ul></div></li>
-            <li><span class="tl-when">Jul 2021 to Oct 2024</span><div class="tl-what"><h3>Rogers Communications</h3><p class="tl-role">Technology Solutions Designer</p><p>I owned network solutions from the requirement through to the approved design. That meant finding out what was really being asked for, proving it could be built, costing and scheduling it defensibly, and settling the security requirements early enough that they shaped the design instead of ambushing it.</p><ul class="skills" aria-label="Skills and competencies"><li>Solution design</li><li>Security architecture</li><li>Requirements analysis</li><li>Risk assessment</li><li>Cost and schedule estimation</li><li>Stakeholder workshops</li></ul></div></li>
-            <li><span class="tl-when">Jul 2020 to Jul 2021</span><div class="tl-what"><h3>Rogers Communications</h3><p class="tl-role">Technology New Graduate</p><p>Three four month rotations: Technology Service Design, Data Networks Engineering, and Device Accreditation. I automated the Android test flows that had been run by hand, and wrote the documentation for a wireless geo-location build. Service Design is the one I came back to.</p><ul class="skills" aria-label="Skills and competencies"><li>Test automation</li><li>Android</li><li>Technical documentation</li></ul></div></li>
-            <li><span class="tl-when">May 2018 to Aug 2019</span><div class="tl-what"><h3>Celestica International</h3><p class="tl-role">Cyber Security and IT Risk Management Intern</p><p>I worked on the security governance programme at a manufacturer whose clients came with regulations attached. I chased audit findings until they closed, shared a multi-factor rollout across sites, led the account and access validations, and ran the phishing and awareness programme with the reporting that showed whether it worked.</p><ul class="skills" aria-label="Skills and competencies"><li>Identity and access</li><li>Multi-factor authentication</li><li>Security awareness</li><li>Phishing campaigns</li><li>NIST SP 800-171</li><li>Python</li></ul></div></li>
-          </ol>
-          <div class="xp-side">
-            <div class="xp-block" id="education">
-              <h3 class="kicker">Education</h3>
-              <ol class="tl">
-                <li><span class="tl-when">Sep 2015 to Apr 2020</span><div class="tl-what"><h3>Ontario Tech University</h3><p>Bachelor of Information Technology (Honours), Networking and Information Technology Security. Dean&rsquo;s List 2015, President&rsquo;s List 2020.</p><ul class="skills" aria-label="Skills and competencies"><li>Penetration testing</li><li>Digital forensics</li><li>Cryptography</li><li>Routing and switching</li><li>SQL</li><li>Linux hardening</li></ul></div></li>
-              </ol>
-            </div>
-            <div class="xp-block" id="certifications">
-              <h3 class="kicker">Certifications</h3>
-              <ol class="tl">
-                <li><span class="tl-when">Nov 2026</span><div class="tl-what"><h3>Certified Information Systems Security Professional (CISSP)</h3><p>ISC<sup>2</sup>. <a href="https://www.credly.com/badges/d0cca9c0-13dc-4911-b00d-494c27513bf5/public_url" target="_blank" rel="noopener noreferrer">Verify on Credly</a></p></div></li>
-                <li><span class="tl-when">Oct 2026</span><div class="tl-what"><h3>SQL (Advanced)</h3><p>HackerRank. <a href="https://www.hackerrank.com/certificates/8c44d48ef649" target="_blank" rel="noopener noreferrer">Verify on HackerRank</a></p></div></li>
-              </ol>
-            </div>
+    <section class="page stage" id="experience">
+      <div class="page-in xp-stage">
+        <div class="xp-head">
+          <div class="sec-head"><h2 class="kicker">Experience</h2><p class="kicker-sub">Scroll through, oldest first.</p></div>
+          <div class="rail" aria-hidden="true"><i class="rail-line"></i><i class="rail-fill"></i><span class="rail-dot c1"></span><span class="rail-dot c2"></span><span class="rail-dot c2"></span><span class="rail-dot c3"></span></div>
+        </div>
+        <ol class="tl xp-roles" id="xp-roles">
+            <li data-i="0" data-end="2019"><span class="tl-when">May 2018 to Aug 2019</span><div class="tl-what"><h3>Celestica International</h3><p class="tl-role">Cyber Security and IT Risk Management Intern</p><p>I worked on the security governance programme at a manufacturer whose clients came with regulations attached. I chased audit findings until they closed, shared a multi-factor rollout across sites, led the account and access validations, and ran the phishing and awareness programme with the reporting that showed whether it worked.</p><ul class="skills" aria-label="Skills and competencies"><li>Identity and access</li><li>Multi-factor authentication</li><li>Security awareness</li><li>Phishing campaigns</li><li>NIST SP 800-171</li><li>Python</li></ul></div></li>
+            <li data-i="1" data-end="2021"><span class="tl-when">Jul 2020 to Jul 2021</span><div class="tl-what"><h3>Rogers Communications</h3><p class="tl-role">Technology New Graduate</p><p>Three four month rotations: Technology Service Design, Data Networks Engineering, and Device Accreditation. I automated the Android test flows that had been run by hand, and wrote the documentation for a wireless geo-location build. Service Design is the one I came back to.</p><ul class="skills" aria-label="Skills and competencies"><li>Test automation</li><li>Android</li><li>Technical documentation</li></ul></div></li>
+            <li data-i="2" data-end="2024"><span class="tl-when">Jul 2021 to Oct 2024</span><div class="tl-what"><h3>Rogers Communications</h3><p class="tl-role">Technology Solutions Designer</p><p>I owned network solutions from the requirement through to the approved design. That meant finding out what was really being asked for, proving it could be built, costing and scheduling it defensibly, and settling the security requirements early enough that they shaped the design instead of ambushing it.</p><ul class="skills" aria-label="Skills and competencies"><li>Solution design</li><li>Security architecture</li><li>Requirements analysis</li><li>Risk assessment</li><li>Cost and schedule estimation</li><li>Stakeholder workshops</li></ul></div></li>
+            <li data-i="3" data-end="2026"><span class="tl-when">Nov 2024 to now</span><div class="tl-what"><h3>TELUS Health Solutions Inc.</h3><p class="tl-role">Security Consultant I</p><p>I hold the assurance line for a health business. I run the internal assessments behind our certifications, keep evidence ready before an auditor asks, and catch what a proposed change does to our obligations while it’s still a proposal. The pipelines and reporting I built let a small team keep pace.</p><ul class="skills" aria-label="Skills and competencies"><li>ISO 27001</li><li>SOC 2</li><li>Audit readiness</li><li>PHIPA and PIPEDA</li><li>Quebec Law 25</li><li>Google Apps Script</li><li>Python</li><li>Power BI</li></ul></div></li>
+        </ol>
+        <div class="xp-side">
+          <div class="xp-block" id="education">
+            <h3 class="kicker">Education</h3>
+            <ol class="tl">
+              <li class="cred" data-year="2020"><span class="tl-when">Sep 2015 to Apr 2020 <small class="cred-tag">in progress</small></span><div class="tl-what"><h3>Ontario Tech University</h3><p>Bachelor of Information Technology (Honours), Networking and Information Technology Security.</p><p class="honours"><span class="cred" data-year="2015">Dean&rsquo;s List 2015</span>, <span class="cred" data-year="2020">President&rsquo;s List 2020</span>.</p><ul class="skills" aria-label="Skills and competencies"><li>Penetration testing</li><li>Digital forensics</li><li>Cryptography</li><li>Routing and switching</li><li>SQL</li><li>Linux hardening</li></ul></div></li>
+            </ol>
           </div>
+          <div class="xp-block" id="certifications">
+            <h3 class="kicker">Certifications</h3>
+            <ol class="tl">
+              <li class="cred" data-year="2026"><span class="tl-when">Nov 2026 <small class="cred-tag">later</small></span><div class="tl-what"><h3>Certified Information Systems Security Professional (CISSP)</h3><p>ISC<sup>2</sup>. <a href="https://www.credly.com/badges/d0cca9c0-13dc-4911-b00d-494c27513bf5/public_url" target="_blank" rel="noopener noreferrer">Verify on Credly</a></p></div></li>
+              <li class="cred" data-year="2026"><span class="tl-when">Oct 2026 <small class="cred-tag">later</small></span><div class="tl-what"><h3>SQL (Advanced)</h3><p>HackerRank. <a href="https://www.hackerrank.com/certificates/8c44d48ef649" target="_blank" rel="noopener noreferrer">Verify on HackerRank</a></p></div></li>
+            </ol>
+          </div>
+        </div>
       </div>
+      <div class="xp-stop" data-i="0"></div>
+      <div class="xp-stop" data-i="1"></div>
+      <div class="xp-stop" data-i="2"></div>
+      <div class="xp-stop" data-i="3"></div>
     </section>
 
     <section class="page" id="projects">
@@ -177,62 +184,22 @@
 
     <section class="page" id="interests">
       <div class="page-in sec">
-        <div class="sec-head"><h2 class="kicker">Interests</h2><p class="kicker-sub">Each one goes deeper. Keep clicking.</p></div>
+        <div class="sec-head"><h2 class="kicker">Interests</h2><p class="kicker-sub">Pick one and go in.</p></div>
         <div class="sec-body">
-          <ul class="holes">
-            <li class="hole" data-depth="0">
-              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Volleyball</span><span class="hole-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
-              <ol class="hole-levels">
-                <li><div>I play outside hitter.</div></li>
-                <li><div>I also run my team’s lineups and rotations.</div></li>
-                <li><div>Which is why <a href="#projects">volleyball-tactics</a> exists.</div></li>
-              </ol>
-            </li>
-            <li class="hole" data-depth="0">
-              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Basketball</span><span class="hole-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
-              <ol class="hole-levels">
-                <li><div>Raptors, and the Tempo.</div></li>
-                <li><div>Fantasy in both leagues, every season.</div></li>
-                <li><div>Enough that I built <a href="#projects">FantasyScout</a> to get better numbers than the apps give you.</div></li>
-              </ol>
-            </li>
-            <li class="hole" data-depth="0">
-              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Photography</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
-              <ol class="hole-levels">
-                <li><div>Street, mostly.</div></li>
-                <li><div>Portraits and landscapes when the light is right.</div></li>
-              </ol>
-            </li>
-            <li class="hole" data-depth="0">
-              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Games</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
-              <ol class="hole-levels">
-                <li><div>Board games when there’s a table.</div></li>
-                <li><div>Competitive shooters when there isn’t.</div></li>
-              </ol>
-            </li>
-            <li class="hole" data-depth="0">
-              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Film and TV</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
-              <ol class="hole-levels">
-                <li><div>Sci-fi and fantasy, crime and thrillers.</div></li>
-                <li><div>Comedy, action and horror too. Not picky, just particular.</div></li>
-              </ol>
-            </li>
-            <li class="hole" data-depth="0">
-              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Baseball and fights</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
-              <ol class="hole-levels">
-                <li><div>Blue Jays.</div></li>
-                <li><div>UFC and PFL.</div></li>
-              </ol>
-            </li>
-            <li class="hole" data-depth="0">
-              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Work, off the clock</span><span class="hole-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
-              <ol class="hole-levels">
-                <li><div>Data pipelines, AI security and governance, compliance.</div></li>
-                <li><div>The tooling that ties those together is the part I actually enjoy.</div></li>
-                <li><div>The <a href="#projects">OSCAL platform</a> is where that’s headed.</div></li>
-              </ol>
-            </li>
-          </ul>
+          <div class="field-wrap">
+            <ul class="ifield" id="ifield">
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Volleyball</span><span class="node-flavour">Outside hitter.</span></button><ol class="node-levels"><li>I play outside hitter and run my team’s lineups and rotations.</li><li class="ph">Placeholder: how I got into volleyball.</li><li>The lineups got drawn on scrap paper before every match until I built <a href="#projects">volleyball-tactics</a>.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Basketball</span><span class="node-flavour">Raptors, and the Tempo.</span></button><ol class="node-levels"><li>I follow the Raptors and the Tempo and play fantasy in both leagues; <a href="#projects">FantasyScout</a> is the numbers side of that.</li><li class="ph">Placeholder: how I got into basketball.</li><li>I got to two Tempo games this year: against the Lynx during the Carnival Celebration Game, and against the Fever during the mascot unveiling.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Baseball</span><span class="node-flavour">Blue Jays.</span></button><ol class="node-levels"><li>A fan, not a player.</li><li class="ph">Placeholder: how I got into baseball.</li><li class="ph">Placeholder: a specific baseball story.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">MMA</span><span class="node-flavour">UFC and PFL.</span></button><ol class="node-levels"><li>A fan of both promotions.</li><li class="ph">Placeholder: how I got into mma.</li><li class="ph">Placeholder: a specific mma story.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Photography</span><span class="node-flavour">Street, mostly.</span></button><ol class="node-levels"><li>Street first, portraits and landscapes when the light is right.</li><li class="ph">Placeholder: how I got into photography.</li><li class="ph">Placeholder: a specific photography story.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Board games</span><span class="node-flavour">When there’s a table.</span></button><ol class="node-levels"><li>Whatever’s on the table.</li><li class="ph">Placeholder: how I got into board games.</li><li class="ph">Placeholder: a specific board games story.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Shooters</span><span class="node-flavour">Competitive ones, when there’s time.</span></button><ol class="node-levels"><li>Competitive when there’s time, casual when there isn’t.</li><li class="ph">Placeholder: how I got into shooters.</li><li class="ph">Placeholder: a specific shooters story.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Film and TV</span><span class="node-flavour">Sci-fi and fantasy, crime and thrillers.</span></button><ol class="node-levels"><li>Sci-fi and fantasy, crime and thrillers, comedy, action, horror.</li><li class="ph">Placeholder: how I got into film and tv.</li><li class="ph">Placeholder: a specific film and tv story.</li></ol></li>
+              <li class="node"><button type="button" class="node-top" aria-expanded="false"><span class="node-name">Work, off the clock</span><span class="node-flavour">Data engineering and analytics.</span></button><ol class="node-levels"><li>Data engineering and analytics, AI security and governance, compliance, and the security tooling that joins them.</li><li class="ph">Placeholder: how I got into work, off the clock.</li><li>The next thing is the <a href="#projects">OSCAL assessment platform</a>.</li></ol></li>
+            </ul>
+            <div class="focus" id="ifocus" hidden></div>
+          </div>
         </div>
       </div>
     </section>
