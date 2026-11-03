@@ -79,7 +79,7 @@
     { t: "Built", k: "section", run: function () { go("built"); } },
     { t: "Off the clock", k: "section", run: function () { go("life"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
-    { t: "Shuffle and sort the dots", k: "page", run: function () { var b = document.getElementById("matrix-again"); window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); if (b) b.click(); } },
+    { t: "Group the months by year", k: "page", run: function () { var b = document.querySelector('.pivot-ctrl button[data-view="year"]'); window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); if (b) b.click(); } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(); } },
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
@@ -162,73 +162,114 @@
   } catch (e) { /* keep the static text */ }
 
 
-  /* Dot matrix: 138 dots, one per month of study or work, shuffled and then sorted by a real quicksort, swap by swap */
-  var cv = document.getElementById("matrix-cv");
-  if (cv && cv.getContext) {
-    var ctx = cv.getContext("2d"), COLS = 23, ROWS = 6;
-    var counts = [57, 16, 52, 13], items = [], pair = [-1, -1], swaps = [], step = 0, raf = 0, W = 0, H = 0;
-    var sws = Array.prototype.slice.call(document.querySelectorAll(".legend .sw"));
-    var statusEl = document.getElementById("matrix-status");
-    var base = "Each dot is one month of study or work, 138 in all.";
-    function fresh() {
-      items = [];
-      counts.forEach(function (n, c) { for (var i = 0; i < n; i++) items.push(c); });
-      for (var i = items.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = items[i]; items[i] = items[j]; items[j] = t; }
-    }
-    function plan() {
-      var a = items.slice(); swaps = [];
-      (function qs(lo, hi) {
-        if (lo >= hi) return;
-        var p = a[(lo + hi) >> 1], i = lo, j = hi;
-        while (i <= j) {
-          while (a[i] < p) i++;
-          while (a[j] > p) j--;
-          if (i <= j) { if (i !== j && a[i] !== a[j]) swaps.push([i, j]); var t = a[i]; a[i] = a[j]; a[j] = t; i++; j--; }
-        }
-        qs(lo, j); qs(i, hi);
-      })(0, a.length - 1);
-    }
-    function size() {
-      var r = cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
-      W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
-      cv.width = Math.round(W * d); cv.height = Math.round(H * d); ctx.setTransform(d, 0, 0, d, 0, 0);
-    }
-    function draw() {
-      var cols = sws.map(function (s) { return getComputedStyle(s).backgroundColor; });
-      var ring = getComputedStyle(document.body).color;
-      var cw = W / COLS, ch = H / ROWS, rad = Math.min(cw, ch) * 0.3;
-      ctx.clearRect(0, 0, W, H);
-      for (var k = 0; k < items.length; k++) {
-        var x = (k % COLS + 0.5) * cw, y = (Math.floor(k / COLS) + 0.5) * ch, hot = k === pair[0] || k === pair[1];
-        ctx.fillStyle = cols[items[k]];
-        ctx.beginPath(); ctx.arc(x, y, hot ? rad * 1.25 : rad, 0, 6.2832); ctx.fill();
-        if (hot) { ctx.strokeStyle = ring; ctx.lineWidth = 1.5; ctx.stroke(); }
+  /* The pivot: every month of study or work is one record, regrouped on demand.
+     A dot holds its colour across groupings, so a regrouping shows where the months came from. */
+  var plot = document.getElementById("pivot-plot");
+  if (plot) {
+    var now = new Date();
+    var SPANS = [
+      { org: "Ontario Tech", kind: "Study", c: 0, from: [2015, 9], to: [2020, 5] },
+      { org: "Celestica", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
+      { org: "Rogers", kind: "Employed", c: 2, from: [2020, 7], to: [2024, 10] },
+      { org: "TELUS Health", kind: "Employed", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
+    ];
+    var recs = [];
+    SPANS.forEach(function (s) {
+      var y = s.from[0], m = s.from[1];
+      while (y < s.to[0] || (y === s.to[0] && m <= s.to[1])) {
+        recs.push({ org: s.org, kind: s.kind, c: s.c, y: y });
+        m++; if (m > 12) { m = 1; y++; }
       }
+    });
+    var years = [];
+    recs.forEach(function (r) { if (years.indexOf(r.y) === -1) years.push(r.y); });
+    years.sort(function (a, b) { return a - b; });
+    var VIEWS = {
+      org: { keys: SPANS.map(function (s) { return s.org; }), of: function (r) { return r.org; } },
+      year: { keys: years, of: function (r) { return r.y; } },
+      kind: { keys: ["Study", "Internship", "Employed"], of: function (r) { return r.kind; } }
+    };
+    var total = document.getElementById("pivot-n");
+    if (total) total.textContent = String(recs.length);
+
+    var nodes = recs.map(function (r) {
+      var d = document.createElement("i");
+      d.className = "dot c" + r.c;
+      d.setAttribute("aria-hidden", "true");
+      plot.appendChild(d);
+      return d;
+    });
+    var labelLayer = [];
+    var view = "org", W = 0, metrics = null;
+
+    function measure() {
+      W = plot.clientWidth || 360;
+      var small = W < 400;
+      var m = { size: small ? 6 : 7, pitch: small ? 10 : 13, labelW: small ? 92 : 120, gap: small ? 9 : 11 };
+      m.perLine = Math.max(1, Math.floor((W - m.labelW) / m.pitch));
+      metrics = m;
+      nodes.forEach(function (d) { d.style.width = m.size + "px"; d.style.height = m.size + "px"; });
     }
-    function sorted() { for (var k = 1; k < items.length; k++) if (items[k - 1] > items[k]) return false; return true; }
-    function run(animate) {
-      cancelAnimationFrame(raf); fresh(); plan(); step = 0; pair = [-1, -1];
-      if (!animate) {
-        swaps.forEach(function (s) { var t = items[s[0]]; items[s[0]] = items[s[1]]; items[s[1]] = t; });
-        draw(); statusEl.textContent = base; return;
-      }
-      var per = Math.max(1, Math.ceil(swaps.length / 150));
-      statusEl.textContent = "Sorting " + items.length + " records by where the month was spent.";
-      (function frame() {
-        for (var n = 0; n < per && step < swaps.length; n++, step++) {
-          var s = swaps[step], t = items[s[0]]; items[s[0]] = items[s[1]]; items[s[1]] = t; pair = s;
-        }
-        if (step >= swaps.length) { pair = [-1, -1]; draw(); statusEl.textContent = base; return; }
-        draw(); raf = requestAnimationFrame(frame);
-      })();
+    /* Lay a grouping out on paper first: the plot keeps the tallest view's height so nothing jumps */
+    function plan(name) {
+      var v = VIEWS[name], m = metrics, y = 0, out = { groups: [], at: [] };
+      v.keys.forEach(function (key) {
+        var members = [];
+        recs.forEach(function (r, i) { if (v.of(r) === key) members.push(i); });
+        if (!members.length) return;
+        out.groups.push({ text: String(key), count: members.length, y: y });
+        members.forEach(function (idx, n) {
+          out.at[idx] = [m.labelW + (n % m.perLine) * m.pitch, y + Math.floor(n / m.perLine) * m.pitch];
+        });
+        y += Math.ceil(members.length / m.perLine) * m.pitch + m.gap;
+      });
+      out.height = Math.max(0, y - m.gap) + m.size;
+      return out;
     }
-    size();
-    window.addEventListener("resize", function () { size(); draw(); });
-    new MutationObserver(function () { draw(); }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
-    var again = document.getElementById("matrix-again");
-    if (again) again.addEventListener("click", function () { run(!reduce); });
-    if (reduce) run(false);
-    else { fresh(); draw(); setTimeout(function () { run(true); }, 700); }
+    function paint(name, animate) {
+      var p = plan(name);
+      if (!animate) plot.classList.add("no-anim");
+      plot.style.height = p.height + "px";
+      labelLayer.forEach(function (el) { el.remove(); });
+      labelLayer = p.groups.map(function (g) {
+        var el = document.createElement("div");
+        el.className = "glabel";
+        el.style.top = (g.y + Math.round(metrics.size / 2) - 5) + "px";
+        el.appendChild(document.createTextNode(g.text + " "));
+        var c = document.createElement("span");
+        c.textContent = String(g.count);
+        el.appendChild(c);
+        plot.appendChild(el);
+        return el;
+      });
+      nodes.forEach(function (d, i) {
+        var at = p.at[i];
+        d.style.transitionDelay = animate ? Math.min(i * 1.1, 180) + "ms" : "0ms";
+        d.style.transform = "translate(" + at[0] + "px, " + at[1] + "px)";
+      });
+      if (!animate) requestAnimationFrame(function () { plot.classList.remove("no-anim"); });
+    }
+    function fit() { measure(); }
+    fit();
+    paint(view, false);
+    requestAnimationFrame(function () { plot.classList.add("is-in"); });
+
+    Array.prototype.forEach.call(document.querySelectorAll(".pivot-ctrl button"), function (b) {
+      b.addEventListener("click", function () {
+        var next = b.getAttribute("data-view");
+        if (next === view) return;
+        view = next;
+        Array.prototype.forEach.call(document.querySelectorAll(".pivot-ctrl button"), function (o) {
+          o.setAttribute("aria-pressed", o === b ? "true" : "false");
+        });
+        paint(view, !reduce);
+      });
+    });
+    var fitRaf = 0;
+    window.addEventListener("resize", function () {
+      clearTimeout(fitRaf);
+      fitRaf = setTimeout(function () { fit(); paint(view, false); }, 120);
+    });
   }
 
   var printLink = document.getElementById("print-link");

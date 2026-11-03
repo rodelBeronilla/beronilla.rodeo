@@ -6,7 +6,9 @@ It is four static files. No framework, no build step, no bundler, no dependencie
 
 ## What's interesting in here
 
-It is built to be fast and quiet. The page is about 13 KB over the wire: system fonts, no images, one stylesheet, one small script, no web-font or third-party requests. The chart at the top is an inline SVG drawn from the same dates as the Experience section, and the footer reads the browser's own timing data to report what the page actually cost to load.
+It is built to be fast and quiet. The page is about 14 KB over the wire: system fonts, no images, one stylesheet, one small script, no web-font or third-party requests. The footer reads the browser's own timing data and reports what the page actually cost to load.
+
+The one interactive thing is the grid of dots in the header. Every month I have spent studying or working is one record, generated in the browser from the same dates as the Experience section, and the three buttons group those records by employer, by year, or by kind of engagement. A dot keeps its colour when the grouping changes, so regrouping shows where each month came from: the internship that overlapped the last two years of the degree, and the year a job changed hands. It is a pivot table that happens to be drawn as dots, and it stops moving as soon as it has arrived.
 
 | Path | What it is |
 |------|------------|
