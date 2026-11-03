@@ -16,6 +16,8 @@ The one interactive thing is the grid of dots in the header. Every calendar mont
 | `site/style.css` | All of the styling |
 | `site/app.js` | Theme switch, command palette, navigation, load-cost readout |
 | `site/404.html` | Not-found page, same system |
+| `site/sent.html` | Where the contact form lands after a successful send |
+| `contact-relay/` | The form backend: a standard-library Python service, its Dockerfile and compose file |
 | `scripts/deploy.py` | Copies `site/` to the docroot, content-hashes the asset links, smoke-tests the result |
 | `server-config/` | Caddy and nginx configs shipped with the original bundle |
 
@@ -37,6 +39,16 @@ python scripts/deploy.py /path/to/docroot
 ```
 
 Pages are served with `Cache-Control: no-cache` and revalidate cheaply via ETag; the hashed assets are cached for a week.
+
+## The contact form
+
+The page has one form, posting to `/contact` on the same origin, so the Content-Security-Policy does not change. Caddy routes that path to `contact-relay/`, a small standard-library Python service that joins the reverse proxy's Docker network, checks the request came from the site, drops anything that filled the honeypot, rate-limits by sender and in total, and sends the message through Gmail SMTP with an app password that lives only in `contact-relay/.env`. The address appears nowhere in the page, the repo or the headers; replies go to the sender's address. A real submission ends on `sent.html`, and anything else gets a one-line page in the same style.
+
+```bash
+cd contact-relay
+cp .env.example .env            # fill in GMAIL_USER and GMAIL_APP_PASSWORD
+docker compose up -d --build    # joins the proxy network as contact-relay:8080
+```
 
 ## Notes
 

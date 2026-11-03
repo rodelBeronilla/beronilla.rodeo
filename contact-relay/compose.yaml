@@ -1,0 +1,26 @@
+# The contact relay for beronilla.rodeo. It joins the reverse proxy's Docker network under the
+# name the Caddyfile route expects (contact-relay:8080) and publishes nothing to the host.
+#
+#   docker compose up -d --build      # from this directory; .env holds the mail credentials
+services:
+  contact-relay:
+    build: .
+    image: webapp-hosting/contact-relay:latest
+    container_name: contact-relay
+    restart: unless-stopped
+    env_file: .env
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 64m
+    logging:
+      driver: json-file
+      options: { max-size: "2m", max-file: "3" }
+    networks:
+      proxy:
+        aliases: [contact-relay]
+
+networks:
+  proxy:
+    external: true
+    name: ${PROXY_NETWORK:-media-net}

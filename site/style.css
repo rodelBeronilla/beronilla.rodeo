@@ -117,8 +117,17 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .rules li { border-top: 1px solid var(--line); padding-top: 1rem; }
 .rules h3, .built h3 { font-size: 1.05rem; font-weight: 620; margin-bottom: .35rem; }
 .rules p, .built p { color: var(--fg-2); font-size: .96rem; text-wrap: pretty; }
-.mailto { margin-top: 1.25rem; font: clamp(1rem, 1vw + .7rem, 1.4rem) var(--mono); }
-.mailto a { color: var(--accent); }
+/* contact form: plain fields, the same radius and rules as the buttons */
+.mailform { margin-top: clamp(1.25rem, 3vh, 2rem); display: grid; gap: .9rem 1.25rem; grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 46rem; }
+.field { display: grid; gap: .3rem; }
+.field-wide, .mailform .cta { grid-column: 1 / -1; }
+.field label { font: 600 .78rem var(--mono); letter-spacing: .02em; color: var(--muted); }
+.field input, .field textarea { font: inherit; color: var(--fg); background: var(--bg-2); border: 1px solid var(--line-2); border-radius: 6px; padding: .6rem .75rem; min-height: 2.75rem; width: 100%; }
+.field textarea { resize: vertical; min-height: 7rem; }
+.field input:focus-visible, .field textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.hp { position: absolute; left: -10000px; top: auto; width: 1px; height: 1px; overflow: hidden; }
+.mailform .cta { margin-top: .25rem; }
+@media (max-width: 44rem) { .mailform { grid-template-columns: minmax(0, 1fr); } }
 
 /* experience and certifications, side by side where there is room */
 .xp-grid { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: clamp(1.5rem, 3vw, 3rem); align-items: start; }

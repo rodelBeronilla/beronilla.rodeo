@@ -25,7 +25,7 @@
   <script src="app.js" defer></script>
 
   <script type="application/ld+json">
-  {"@context":"https://schema.org","@type":"Person","name":"Rodel Beronilla","url":"https://beronilla.rodeo/","jobTitle":"Security Consultant I","email":"mailto:rodel.beronilla@gmail.com","worksFor":{"@type":"Organization","name":"TELUS Health Solutions Inc."},"alumniOf":{"@type":"CollegeOrUniversity","name":"Ontario Tech University"},"address":{"@type":"PostalAddress","addressLocality":"Toronto","addressRegion":"Ontario","addressCountry":"CA"},"sameAs":["https://ca.linkedin.com/in/rodel-beronilla","https://github.com/rodelBeronilla"]}
+  {"@context":"https://schema.org","@type":"Person","name":"Rodel Beronilla","url":"https://beronilla.rodeo/","jobTitle":"Security Consultant I","worksFor":{"@type":"Organization","name":"TELUS Health Solutions Inc."},"alumniOf":{"@type":"CollegeOrUniversity","name":"Ontario Tech University"},"address":{"@type":"PostalAddress","addressLocality":"Toronto","addressRegion":"Ontario","addressCountry":"CA"},"sameAs":["https://ca.linkedin.com/in/rodel-beronilla","https://github.com/rodelBeronilla"]}
   </script>
 </head>
 <body>
@@ -185,7 +185,7 @@
             </li>
             <li>
               <h3>Sport</h3>
-              <p>Volleyball as an outside hitter, and as the one who organises the team, which is where <a href="https://rodelberonilla.github.io/volleyball-tactics/" target="_blank" rel="noopener noreferrer">volleyball-tactics</a> came from. Basketball as a fan of the Raptors and the Tempo, and fantasy in both leagues, which is where <a href="https://fantasyscout.beronilla.rodeo/" target="_blank" rel="noopener noreferrer">FantasyScout</a> came from. Baseball with the Blue Jays, and MMA across the UFC and PFL.</p>
+              <p>Volleyball as an outside hitter, and as the one who organises the team, which is where <a href="https://volleyballtactics.beronilla.rodeo/" target="_blank" rel="noopener noreferrer">volleyball-tactics</a> came from. Basketball as a fan of the Raptors and the Tempo, and fantasy in both leagues, which is where <a href="https://fantasyscout.beronilla.rodeo/" target="_blank" rel="noopener noreferrer">FantasyScout</a> came from. Baseball with the Blue Jays, and MMA across the UFC and PFL.</p>
             </li>
             <li>
               <h3>Elsewhere</h3>
@@ -198,16 +198,21 @@
 
     <section class="page" id="contact">
       <div class="page-in sec">
-        <div class="sec-head"><h2 class="kicker">Contact</h2></div>
+        <div class="sec-head"><h2 class="kicker">Contact</h2><p class="kicker-sub">Straight to my inbox.</p></div>
         <div class="sec-body">
           <p class="statement statement-lg">Say hello.</p>
-          <p class="lead">Email is the best way to reach me. LinkedIn works too, and GitHub is where the building happens.</p>
-          <p class="mailto"><a href="mailto:rodel.beronilla@gmail.com">rodel.beronilla@gmail.com</a></p>
-          <div class="cta">
-            <a class="btn primary" href="mailto:rodel.beronilla@gmail.com">Email me</a>
-            <a class="btn" href="https://ca.linkedin.com/in/rodel-beronilla" rel="me">LinkedIn</a>
-            <a class="btn" href="https://github.com/rodelBeronilla" rel="me">GitHub</a>
-          </div>
+          <p class="lead">This lands in my inbox and I reply from there. LinkedIn works too, and GitHub is where the building happens.</p>
+          <form class="mailform" action="/contact" method="post">
+            <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" type="text" required autocomplete="name" maxlength="120"></div>
+            <div class="field"><label for="c-email">Your email</label><input id="c-email" name="email" type="email" required autocomplete="email" maxlength="200"></div>
+            <div class="field field-wide"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required rows="5" maxlength="4000"></textarea></div>
+            <div class="field hp" aria-hidden="true"><label for="c-site">Website</label><input id="c-site" name="website" type="text" tabindex="-1" autocomplete="off"></div>
+            <div class="cta">
+              <button class="btn primary" type="submit">Send</button>
+              <a class="btn" href="https://ca.linkedin.com/in/rodel-beronilla" rel="me">LinkedIn</a>
+              <a class="btn" href="https://github.com/rodelBeronilla" rel="me">GitHub</a>
+            </div>
+          </form>
         </div>
       </div>
     </section>

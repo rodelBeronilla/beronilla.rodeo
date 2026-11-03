@@ -19,6 +19,8 @@ SITE = ROOT / "site"
 DOCROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "C:/srv/beronilla.rodeo/site")
 URL = "https://beronilla.rodeo/"
 ASSETS = ("style.css", "app.js", "favicon.svg")
+# A browser-shaped agent: an edge bot filter in front of the site refuses the default one.
+UA = {"User-Agent": "Mozilla/5.0 (deploy smoke test; +https://beronilla.rodeo/)"}
 
 
 def digest(name):
@@ -36,7 +38,7 @@ def main():
     for f in SITE.iterdir():
         if f.is_file():
             shutil.copy2(f, DOCROOT / f.name)
-    for page in ("index.html", "404.html"):
+    for page in ("index.html", "404.html", "sent.html"):
         src = SITE / page
         if src.exists():
             (DOCROOT / page).write_text(stamp(src.read_text(encoding="utf-8")), encoding="utf-8", newline="\n")
@@ -44,7 +46,7 @@ def main():
 
     # Smoke test the live site: the page must be fresh and every stamped asset must resolve.
     try:
-        with urllib.request.urlopen(URL, timeout=20) as r:
+        with urllib.request.urlopen(urllib.request.Request(URL, headers=UA), timeout=20) as r:
             html = r.read().decode("utf-8")
             status = r.status
     except Exception as e:  # noqa: BLE001
@@ -56,7 +58,7 @@ def main():
     for link in links:
         target = URL.rstrip("/") + "/" + link.lstrip("/")
         try:
-            with urllib.request.urlopen(target, timeout=20) as r:
+            with urllib.request.urlopen(urllib.request.Request(target, headers=UA), timeout=20) as r:
                 code = r.status
         except Exception as e:  # noqa: BLE001
             code = str(e)

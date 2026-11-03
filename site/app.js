@@ -59,11 +59,9 @@
     { t: "Experience", k: "section", run: function () { go("experience"); } },
     { t: "Projects", k: "section", run: function () { go("projects"); } },
     { t: "Interests", k: "section", run: function () { go("interests"); } },
-    { t: "Contact", k: "section", run: function () { go("contact"); } },
+    { t: "Send a message", k: "section", run: function () { go("contact"); } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(); } },
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
-    { t: "Copy email address", k: "link", run: function () { copy("rodel.beronilla@gmail.com", "Email address"); } },
-    { t: "Email Rodel", k: "link", run: function () { window.location.href = "mailto:rodel.beronilla@gmail.com"; } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
     { t: "Open LinkedIn", k: "link", run: function () { window.open("https://ca.linkedin.com/in/rodel-beronilla", "_blank", "noopener"); } },
@@ -113,7 +111,7 @@
     sel = 0; render();
   }
   var touch = window.matchMedia("(pointer: coarse)").matches || (navigator.maxTouchPoints > 0 && !window.matchMedia("(hover: hover)").matches);
-  function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); if (!touch) input.focus(); }
+  function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); if (touch) input.blur(); else input.focus(); }
   function closeCmd() { if (dlg && dlg.open) dlg.close(); if (canHighlight) CSS.highlights.delete("cmdk-match"); }
   function runSel() { var a = filtered[sel]; closeCmd(); if (a) { setTimeout(a.run, 60); } }
   if (dlg) {
