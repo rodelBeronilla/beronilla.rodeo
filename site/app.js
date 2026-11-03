@@ -582,6 +582,63 @@
       goDeeper();
     });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && openNode && !(dlg && dlg.open)) surfaceUp(); });
+
+    /* The nodes float freely: each drifts at its own speed and bounces off the edges and each other. */
+    if (!reduce && "IntersectionObserver" in window) {
+      var bodies = [], W = 0, H = 0, running = false, last = 0, inView = false, resizeTimer = 0;
+      var nodeEls = Array.prototype.slice.call(field.querySelectorAll(".node"));
+      function place(b) { b.el.style.transform = "translate(" + b.x.toFixed(1) + "px," + b.y.toFixed(1) + "px)"; }
+      function setup() {
+        field.classList.remove("sim");
+        nodeEls.forEach(function (el) { el.style.transform = ""; el.style.width = ""; });
+        var fr = field.getBoundingClientRect();
+        W = fr.width; H = fr.height;
+        bodies = nodeEls.map(function (el, i) {
+          var r = el.getBoundingClientRect(), speed = 14 + Math.random() * 14, a = Math.random() * Math.PI * 2;
+          var old = bodies[i];
+          return { el: el, x: r.left - fr.left, y: r.top - fr.top, w: r.width, h: r.height, vx: old ? old.vx : Math.cos(a) * speed, vy: old ? old.vy : Math.sin(a) * speed };
+        });
+        bodies.forEach(function (b) { b.el.style.width = b.w + "px"; place(b); });
+        field.classList.add("sim");
+      }
+      function step(now) {
+        if (!running) return;
+        var dt = Math.min(0.05, (now - last) / 1000); last = now;
+        if (!field.classList.contains("zoomed")) {
+          bodies.forEach(function (b) {
+            b.x += b.vx * dt; b.y += b.vy * dt;
+            if (b.x < 0) { b.x = 0; b.vx = Math.abs(b.vx); } else if (b.x + b.w > W) { b.x = W - b.w; b.vx = -Math.abs(b.vx); }
+            if (b.y < 0) { b.y = 0; b.vy = Math.abs(b.vy); } else if (b.y + b.h > H) { b.y = H - b.h; b.vy = -Math.abs(b.vy); }
+          });
+          for (var i = 0; i < bodies.length; i++) for (var k = i + 1; k < bodies.length; k++) {
+            var a = bodies[i], c = bodies[k];
+            var ox = Math.min(a.x + a.w, c.x + c.w) - Math.max(a.x, c.x), oy = Math.min(a.y + a.h, c.y + c.h) - Math.max(a.y, c.y);
+            if (ox <= 0 || oy <= 0) continue;
+            var t;
+            if (ox < oy) {
+              var sx = a.x < c.x ? -1 : 1;
+              a.x += sx * ox / 2; c.x -= sx * ox / 2;
+              if ((c.vx - a.vx) * sx > 0) { t = a.vx; a.vx = c.vx; c.vx = t; }
+            } else {
+              var sy = a.y < c.y ? -1 : 1;
+              a.y += sy * oy / 2; c.y -= sy * oy / 2;
+              if ((c.vy - a.vy) * sy > 0) { t = a.vy; a.vy = c.vy; c.vy = t; }
+            }
+          }
+          bodies.forEach(place);
+        }
+        requestAnimationFrame(step);
+      }
+      function start() { if (running || !inView) return; running = true; last = performance.now(); requestAnimationFrame(step); }
+      function stop() { running = false; }
+      setup();
+      new IntersectionObserver(function (entries) {
+        inView = entries[0].isIntersecting;
+        if (inView) start(); else stop();
+      }, { threshold: 0.05 }).observe(field);
+      window.addEventListener("resize", function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(setup, 150); });
+      document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); else start(); });
+    }
   }
 
   /* Experience: the panel pins while four stops scroll past; each stop is one role, oldest first */

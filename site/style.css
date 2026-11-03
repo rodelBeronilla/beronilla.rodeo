@@ -106,24 +106,40 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 /* interests: a field of nine things, each one a zoom into the next fact */
 .field-wrap { position: relative; }
 .ifield { position: relative; height: min(34rem, calc(100svh - var(--top-h) - 2 * var(--page-pad) - 1rem)); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(3, minmax(0, 1fr)); transition: transform .5s var(--ease), opacity .4s var(--ease); }
-.node { align-self: center; justify-self: center; max-width: 16rem; animation: drift-a 11s ease-in-out infinite alternate; }
-.node:nth-child(1) { justify-self: start; align-self: start; margin: 6% 0 0 4%; animation-name: drift-b; animation-duration: 12s; }
-.node:nth-child(2) { align-self: start; margin-top: 14%; animation-duration: 9s; }
-.node:nth-child(3) { justify-self: end; align-self: start; margin: 2% 8% 0 0; animation-name: drift-c; animation-duration: 13s; }
-.node:nth-child(4) { justify-self: start; margin-left: 12%; animation-name: drift-c; animation-duration: 10s; }
-.node:nth-child(5) { margin-top: 10%; animation-duration: 14s; }
-.node:nth-child(6) { justify-self: end; margin-right: 2%; animation-name: drift-b; animation-duration: 9.5s; }
-.node:nth-child(7) { justify-self: start; align-self: end; margin: 0 0 4% 6%; animation-duration: 12.5s; }
-.node:nth-child(8) { align-self: end; margin-bottom: 12%; animation-name: drift-c; animation-duration: 10.5s; }
-.node:nth-child(9) { justify-self: end; align-self: end; margin: 0 4% 2% 0; animation-name: drift-b; animation-duration: 13.5s; }
-@keyframes drift-a { from { transform: translate(-6px, 4px); } to { transform: translate(6px, -5px); } }
-@keyframes drift-b { from { transform: translate(5px, 6px); } to { transform: translate(-7px, -3px); } }
-@keyframes drift-c { from { transform: translate(-4px, -7px); } to { transform: translate(7px, 5px); } }
+.node { --ax: 30px; --ay: 22px; align-self: center; justify-self: center; max-width: 16rem; animation: wander-a 26s ease-in-out infinite; will-change: transform; }
+.node:nth-child(1) { justify-self: start; align-self: start; margin: 6% 0 0 4%; animation-name: wander-b; animation-duration: 29s; animation-delay: -7s; }
+.node:nth-child(2) { align-self: start; margin-top: 14%; animation-duration: 23s; animation-delay: -15s; }
+.node:nth-child(3) { justify-self: end; align-self: start; margin: 2% 8% 0 0; animation-name: wander-c; animation-duration: 31s; animation-delay: -3s; }
+.node:nth-child(4) { justify-self: start; margin-left: 12%; animation-name: wander-c; animation-duration: 25s; animation-delay: -19s; }
+.node:nth-child(5) { margin-top: 10%; animation-duration: 33s; animation-delay: -11s; }
+.node:nth-child(6) { justify-self: end; margin-right: 2%; animation-name: wander-b; animation-duration: 24s; animation-delay: -22s; }
+.node:nth-child(7) { justify-self: start; align-self: end; margin: 0 0 4% 6%; animation-duration: 30s; animation-delay: -5s; }
+.node:nth-child(8) { align-self: end; margin-bottom: 12%; animation-name: wander-c; animation-duration: 27s; animation-delay: -13s; }
+.node:nth-child(9) { justify-self: end; align-self: end; margin: 0 4% 2% 0; animation-name: wander-b; animation-duration: 35s; animation-delay: -9s; }
+@keyframes wander-a {
+  0%, 100% { transform: translate(calc(var(--ax) * -.6), calc(var(--ay) * .4)) rotate(-.6deg); }
+  22% { transform: translate(calc(var(--ax) * .3), calc(var(--ay) * -.9)) rotate(.4deg); }
+  48% { transform: translate(calc(var(--ax) * 1), calc(var(--ay) * .2)) rotate(.9deg); }
+  74% { transform: translate(calc(var(--ax) * .1), calc(var(--ay) * 1)) rotate(-.3deg); }
+}
+@keyframes wander-b {
+  0%, 100% { transform: translate(calc(var(--ax) * .8), calc(var(--ay) * .7)) rotate(.5deg); }
+  27% { transform: translate(calc(var(--ax) * -.2), calc(var(--ay) * 1)) rotate(-.4deg); }
+  52% { transform: translate(calc(var(--ax) * -1), calc(var(--ay) * -.1)) rotate(-.9deg); }
+  78% { transform: translate(calc(var(--ax) * .2), calc(var(--ay) * -.8)) rotate(.3deg); }
+}
+@keyframes wander-c {
+  0%, 100% { transform: translate(calc(var(--ax) * -.4), calc(var(--ay) * -1)) rotate(.2deg); }
+  24% { transform: translate(calc(var(--ax) * .9), calc(var(--ay) * -.3)) rotate(.8deg); }
+  50% { transform: translate(calc(var(--ax) * .5), calc(var(--ay) * .9)) rotate(-.5deg); }
+  76% { transform: translate(calc(var(--ax) * -.9), calc(var(--ay) * .4)) rotate(-.8deg); }
+}
 .node-top { display: grid; gap: .15rem; text-align: left; padding: .5rem .6rem; margin: -.5rem -.6rem; border-radius: 6px; }
 .node-top:hover .node-name { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: .2em; }
 .node-name { font-weight: 620; font-size: clamp(1.05rem, .4vw + .9rem, 1.3rem); line-height: 1.2; }
 .node-flavour { color: var(--muted); font-size: .9rem; line-height: 1.4; text-wrap: pretty; }
 .js .node-levels { display: none; }
+.js .ifield.sim .node, .js .ifield.sim .node:nth-child(n) { position: absolute; left: 0; top: 0; margin: 0; animation: none; }
 .js .ifield.zoomed { transform: scale(2.4); opacity: 0; pointer-events: none; }
 .js .ifield.zoomed .node { animation-play-state: paused; }
 .focus { position: absolute; inset: 0; display: grid; align-content: center; justify-items: start; gap: .6rem; max-width: 40rem; margin: 0 auto; opacity: 0; transform: scale(.6); transition: opacity .45s var(--ease), transform .45s var(--ease); pointer-events: none; }
@@ -145,7 +161,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .no-js .node-levels { display: grid; gap: .15rem; padding: .25rem 0 0 .9rem; border-left: 1px solid var(--line-2); color: var(--fg-2); font-size: .95rem; }
 @media (max-width: 56rem) {
   .ifield { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(0, 1fr)); height: min(34rem, calc(100svh - var(--top-h) - 2 * var(--page-pad) - 6rem)); }
-  .node, .node:nth-child(n) { justify-self: start; align-self: center; margin: 0; }
+  .node, .node:nth-child(n) { --ax: 10px; --ay: 16px; justify-self: start; align-self: center; margin: 0; }
   .node:nth-child(even) { justify-self: end; text-align: right; }
   .node:nth-child(even) .node-top { text-align: right; justify-items: end; }
   .focus { max-width: none; }
