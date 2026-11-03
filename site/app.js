@@ -79,6 +79,7 @@
     { t: "Built", k: "section", run: function () { go("built"); } },
     { t: "Off the clock", k: "section", run: function () { go("life"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
+    { t: "Shuffle and sort the dots", k: "page", run: function () { var b = document.getElementById("matrix-again"); window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); if (b) b.click(); } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(); } },
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
@@ -159,6 +160,76 @@
       });
     }
   } catch (e) { /* keep the static text */ }
+
+
+  /* Dot matrix: 138 dots, one per month of study or work, shuffled and then sorted by a real quicksort, swap by swap */
+  var cv = document.getElementById("matrix-cv");
+  if (cv && cv.getContext) {
+    var ctx = cv.getContext("2d"), COLS = 23, ROWS = 6;
+    var counts = [57, 16, 52, 13], items = [], pair = [-1, -1], swaps = [], step = 0, raf = 0, W = 0, H = 0;
+    var sws = Array.prototype.slice.call(document.querySelectorAll(".legend .sw"));
+    var statusEl = document.getElementById("matrix-status");
+    var base = "Each dot is one month of study or work, 138 in all.";
+    function fresh() {
+      items = [];
+      counts.forEach(function (n, c) { for (var i = 0; i < n; i++) items.push(c); });
+      for (var i = items.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = items[i]; items[i] = items[j]; items[j] = t; }
+    }
+    function plan() {
+      var a = items.slice(); swaps = [];
+      (function qs(lo, hi) {
+        if (lo >= hi) return;
+        var p = a[(lo + hi) >> 1], i = lo, j = hi;
+        while (i <= j) {
+          while (a[i] < p) i++;
+          while (a[j] > p) j--;
+          if (i <= j) { if (i !== j && a[i] !== a[j]) swaps.push([i, j]); var t = a[i]; a[i] = a[j]; a[j] = t; i++; j--; }
+        }
+        qs(lo, j); qs(i, hi);
+      })(0, a.length - 1);
+    }
+    function size() {
+      var r = cv.getBoundingClientRect(), d = Math.min(window.devicePixelRatio || 1, 2);
+      W = Math.max(1, Math.round(r.width)); H = Math.max(1, Math.round(r.height));
+      cv.width = Math.round(W * d); cv.height = Math.round(H * d); ctx.setTransform(d, 0, 0, d, 0, 0);
+    }
+    function draw() {
+      var cols = sws.map(function (s) { return getComputedStyle(s).backgroundColor; });
+      var ring = getComputedStyle(document.body).color;
+      var cw = W / COLS, ch = H / ROWS, rad = Math.min(cw, ch) * 0.3;
+      ctx.clearRect(0, 0, W, H);
+      for (var k = 0; k < items.length; k++) {
+        var x = (k % COLS + 0.5) * cw, y = (Math.floor(k / COLS) + 0.5) * ch, hot = k === pair[0] || k === pair[1];
+        ctx.fillStyle = cols[items[k]];
+        ctx.beginPath(); ctx.arc(x, y, hot ? rad * 1.25 : rad, 0, 6.2832); ctx.fill();
+        if (hot) { ctx.strokeStyle = ring; ctx.lineWidth = 1.5; ctx.stroke(); }
+      }
+    }
+    function sorted() { for (var k = 1; k < items.length; k++) if (items[k - 1] > items[k]) return false; return true; }
+    function run(animate) {
+      cancelAnimationFrame(raf); fresh(); plan(); step = 0; pair = [-1, -1];
+      if (!animate) {
+        swaps.forEach(function (s) { var t = items[s[0]]; items[s[0]] = items[s[1]]; items[s[1]] = t; });
+        draw(); statusEl.textContent = base; return;
+      }
+      var per = Math.max(1, Math.ceil(swaps.length / 150));
+      statusEl.textContent = "Sorting " + items.length + " records by where the month was spent.";
+      (function frame() {
+        for (var n = 0; n < per && step < swaps.length; n++, step++) {
+          var s = swaps[step], t = items[s[0]]; items[s[0]] = items[s[1]]; items[s[1]] = t; pair = s;
+        }
+        if (step >= swaps.length) { pair = [-1, -1]; draw(); statusEl.textContent = base; return; }
+        draw(); raf = requestAnimationFrame(frame);
+      })();
+    }
+    size();
+    window.addEventListener("resize", function () { size(); draw(); });
+    new MutationObserver(function () { draw(); }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+    var again = document.getElementById("matrix-again");
+    if (again) again.addEventListener("click", function () { run(!reduce); });
+    if (reduce) run(false);
+    else { fresh(); draw(); setTimeout(function () { run(true); }, 700); }
+  }
 
   var printLink = document.getElementById("print-link");
   if (printLink) printLink.addEventListener("click", function () { window.print(); });

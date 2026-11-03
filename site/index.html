@@ -54,6 +54,7 @@
 
   <main>
     <section class="hero" id="top">
+      <div class="hero-grid">
       <div class="hero-inner">
         <p class="meta"><span class="meta-full">Security, risk and compliance for healthcare at TELUS Health. GTA, remote.</span><span class="meta-short" aria-hidden="true">Security, risk and compliance. TELUS Health.</span></p>
         <h1 class="name" id="name"><span>Rodel</span><span>Beronilla</span></h1>
@@ -63,12 +64,23 @@
           <a class="btn" href="https://ca.linkedin.com/in/rodel-beronilla" rel="me">LinkedIn</a>
         </div>
       </div>
+        <figure class="matrix" id="matrix">
+          <canvas id="matrix-cv" aria-hidden="true"></canvas>
+          <figcaption class="matrix-cap">
+            <span class="matrix-status" id="matrix-status" role="status">Each dot is one month of study or work, 138 in all.</span>
+            <button type="button" class="linkish" id="matrix-again">Shuffle and sort again</button>
+            <ul class="legend" aria-label="Legend">
+              <li><i class="sw d0"></i>Ontario Tech, 57</li><li><i class="sw d1"></i>Celestica, 16</li><li><i class="sw d2"></i>Rogers, 52</li><li><i class="sw d3"></i>TELUS Health, 13</li>
+            </ul>
+          </figcaption>
+        </figure>
+      </div>
         <figure class="chart" aria-labelledby="chart-cap">
           <figcaption class="chart-title" id="chart-cap"><span>Career, 2015 to now. One column per year.</span><span>Dates from the Experience section</span></figcaption>
           <div class="axis" aria-hidden="true"><span></span><div class="axis-years"><span>2015</span><span>2020</span><span>2025</span></div></div>
           <div class="row"><span class="row-name">TELUS Health</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="TELUS Health, Nov 2024 to now"><use href="#g"/><rect class="bar" x="118" y="1" width="13" height="8"/></svg></div>
-          <div class="row"><span class="row-name">Rogers</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Rogers, Jul 2020 to Oct 2024"><use href="#g"/><rect class="bar" x="66" y="1" width="52" height="8"/></svg></div>
-          <div class="row"><span class="row-name">Celestica</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Celestica, May 2018 to Aug 2019"><use href="#g"/><rect class="bar" x="40" y="1" width="16" height="8"/></svg></div>
+          <div class="row"><span class="row-name">Rogers</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Rogers, Jul 2020 to Oct 2024"><use href="#g"/><rect class="bar rog" x="66" y="1" width="52" height="8"/></svg></div>
+          <div class="row"><span class="row-name">Celestica</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Celestica, May 2018 to Aug 2019"><use href="#g"/><rect class="bar cel" x="40" y="1" width="16" height="8"/></svg></div>
           <div class="row"><span class="row-name">Ontario Tech</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Ontario Tech University, Sep 2015 to May 2020"><use href="#g"/><rect class="bar edu" x="8" y="1" width="57" height="8"/></svg></div>
           <div class="row"><span class="row-name">CISSP, SQL (Advanced)</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="CISSP and SQL (Advanced), both Oct 2026"><use href="#g"/><rect class="bar cert" x="129" y="1" width="2" height="8"/></svg></div>
           <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs><g id="g"><path class="grid" d="M0 0V10M12 0V10M24 0V10M36 0V10M48 0V10M60 0V10M72 0V10M84 0V10M96 0V10M108 0V10M120 0V10M132 0V10M144 0V10"/><path class="now" d="M131 0V10"/></g></defs></svg>

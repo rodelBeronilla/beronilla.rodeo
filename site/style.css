@@ -11,6 +11,7 @@
   --line-2: light-dark(#bdbdb4, #3a404c);
   --accent: light-dark(#0b6b73, #5fd0d8);
   --mark:   light-dark(#9a4d00, #ffb454);
+  --violet: light-dark(#4f46c8, #a49cff);
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   --gutter: clamp(1.25rem, 5vw, 4rem);
@@ -78,8 +79,10 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .track { display: block; width: 100%; height: 1.4rem; overflow: visible; }
 .grid { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .bar { fill: var(--accent); }
-.bar.edu { fill: var(--line-2); }
-.bar.cert { fill: var(--mark); }
+.bar.edu { fill: var(--muted); }
+.bar.rog { fill: var(--violet); }
+.bar.cel { fill: var(--mark); }
+.bar.cert { fill: var(--fg); }
 .now { stroke: var(--mark); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .chart-note { margin-top: .6rem; font: .75rem var(--mono); color: var(--muted); }
 
@@ -174,3 +177,24 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   a { text-decoration: none; }
 }
 .defs { position: absolute; }
+
+/* the dot matrix: one dot per month, sorting itself */
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 28rem); gap: 2rem 3rem; align-items: end; }
+.matrix { margin: 0; }
+.matrix canvas { display: block; width: 100%; aspect-ratio: 23 / 6; }
+.matrix-cap { display: grid; gap: .35rem; margin-top: .8rem; font: .75rem/1.5 var(--mono); color: var(--muted); }
+.matrix-cap .linkish { justify-self: start; min-height: 2.75rem; font: inherit; color: var(--fg-2); }
+.legend { display: flex; flex-wrap: wrap; gap: .25rem 1rem; }
+.legend li { display: flex; align-items: center; gap: .4rem; }
+.sw { display: inline-block; width: .65rem; height: .65rem; border-radius: 50%; }
+.d0 { background: var(--muted); }
+.d1 { background: var(--mark); }
+.d2 { background: var(--violet); }
+.d3 { background: var(--accent); }
+
+/* magnet scrolling: each section settles on one screen */
+.hero { min-height: calc(100svh - var(--top-h)); display: flex; flex-direction: column; justify-content: center; }
+.sec { min-height: calc(100svh - var(--top-h)); align-content: center; }
+@media (min-width: 46rem) and (min-height: 38rem) and (pointer: fine) { html { scroll-snap-type: y mandatory; } }
+@media (max-width: 52rem) { .hero-grid { grid-template-columns: minmax(0, 1fr); } .hero { min-height: 0; } .sec { min-height: 0; } }
+@media print { .hero, .sec { min-height: 0; } .matrix { display: none; } }
