@@ -260,7 +260,7 @@ html[data-theme="light"] .i-moon { display: block; }
 
 /* Path: a sequence, so a thread and a node per step */
 .tl { list-style: none; margin: 0; padding: 0; }
-.tl li { display: grid; grid-template-columns: 7rem 1fr; gap: 1.25rem; padding: var(--s3) 0 var(--s3) 1.6rem; border-top: 1px solid var(--line); position: relative; }
+.tl li { display: grid; grid-template-columns: 9.5rem 1fr; gap: 1.25rem; padding: var(--s3) 0 var(--s3) 1.6rem; border-top: 1px solid var(--line); position: relative; }
 .tl li:first-child { border-top: 0; padding-top: 0; }
 .tl li:last-child { padding-bottom: 0; }
 .tl li::before { content: ""; position: absolute; left: .2rem; top: 1.45rem; width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px oklch(from var(--accent) l c h / .16); }
