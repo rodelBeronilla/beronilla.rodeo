@@ -101,19 +101,12 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .facets p { color: var(--fg-2); max-width: 52rem; text-wrap: pretty; }
 @media (max-width: 56rem) { .facets > li { grid-template-columns: minmax(0, 1fr); gap: .3rem; } }
 
-/* principles: each one carries the places it was formed, in the colours of the career grid */
+/* principles */
 .tenets { margin-top: clamp(1.25rem, 3vh, 2.5rem); display: grid; gap: clamp(1rem, 2.5vh, 2rem) clamp(1.5rem, 3vw, 3.5rem); grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr)); }
 .tenets > li { border-top: 1px solid var(--line-2); padding-top: .8rem; }
-.tenet-marks { display: flex; gap: .35rem; margin-bottom: .55rem; }
-.pip { width: .55rem; height: .55rem; border-radius: 50%; display: block; }
-.p-ot { background: var(--edu); }
-.p-wal { background: var(--rose); }
-.p-cel { background: var(--mark); }
-.p-rog { background: var(--violet); }
-.p-tel { background: var(--accent); }
 .tenets h3 { font-size: 1.05rem; font-weight: 620; margin-bottom: .3rem; }
 .tenets p { color: var(--fg-2); font-size: .95rem; text-wrap: pretty; }
-.tenet-from { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid var(--line); font-size: .84rem !important; line-height: 1.5; color: var(--muted) !important; }
+.tenet-why { margin-top: .6rem; font-size: .88rem !important; color: var(--muted) !important; font-style: italic; }
 .rules li { border-top: 1px solid var(--line); padding-top: 1rem; }
 .rules h3, .built h3 { font-size: 1.05rem; font-weight: 620; margin-bottom: .35rem; }
 .rules p, .built p { color: var(--fg-2); font-size: .96rem; text-wrap: pretty; }
@@ -135,7 +128,6 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .xp-roles > li { padding: .45rem 0 0; border-top: 1px solid var(--line); }
 .tl-what p { font-size: .89rem; }
 .xp-side { display: grid; gap: clamp(1rem, 2vh, 1.75rem); border-left: 1px solid var(--line); padding-left: clamp(1.25rem, 2.5vw, 2.5rem); }
-.xp-block .kicker-sub { margin-bottom: .9rem; }
 .xp-block > .kicker { margin-bottom: .6rem; }
 .tl-role { color: var(--fg-2); font-size: .88rem; line-height: 1.4; }
 .tl-what .tl-role + p { margin-top: .3rem; }
@@ -155,8 +147,10 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .xp-side .tl > li:first-child { border-top: 1px solid var(--line); }
 
 /* projects */
-.built { display: grid; gap: clamp(1rem, 2vw, 2.5rem); grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-.built-links { margin-top: .6rem; font-size: .9rem; }
+.built { display: grid; gap: clamp(.9rem, 2vh, 1.6rem) clamp(1.5rem, 3vw, 3rem); grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+.built .skills { margin-top: .6rem; }
+.built-meta a { color: inherit; }
+
 .built > li { border-top: 1px solid var(--line); padding-top: 1rem; }
 .built a { display: block; text-decoration: none; }
 .built a:hover h3 { text-decoration: underline; text-decoration-color: var(--accent); }
@@ -193,11 +187,13 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .c5.both { color: var(--rose); }
 .cgap { background: none; box-shadow: inset 0 0 0 2px var(--line-2); }
 
-/* footer */
-.ground { scroll-snap-align: end; }
-.foot { width: var(--wrap); margin: 0 auto; padding: 2rem var(--gutter) 3rem; border-top: 1px solid var(--line-2); display: grid; gap: .35rem; font-size: .85rem; color: var(--muted); }
+/* footer: part of the last page, so the page ends where the page ends */
+.page-end { flex-direction: column; justify-content: center; }
+.page-end > .page-in { margin: auto 0; }
+.foot { width: var(--wrap); margin: auto auto 0; padding: 1.25rem var(--gutter) 0; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; gap: .25rem 1.5rem; font-size: .8rem; color: var(--muted); }
+.foot p { margin: 0; }
 #colophon-live { font-family: var(--mono); font-size: .8rem; }
-.linkish { padding: 0; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .22em; color: var(--fg-2); min-height: 2.75rem; }
+.linkish { padding: 0; text-decoration: underline; text-decoration-color: var(--line-2); text-underline-offset: .22em; color: var(--fg-2); font-size: inherit; }
 
 /* command palette */
 .cmdk { border: 1px solid var(--line-2); border-radius: 8px; padding: 0; background: var(--bg); color: var(--fg); width: min(34rem, calc(100vw - 2rem)); margin: 12vh auto auto; }
@@ -235,10 +231,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   .xp-roles { grid-template-columns: minmax(0, 1fr); }
 }
 
-@media (max-width: 68rem) {
-  .built { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 44rem) {
+@media (max-width: 52rem) {
   .built { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 62rem) {

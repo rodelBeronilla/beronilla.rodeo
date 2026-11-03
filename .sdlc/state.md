@@ -1,73 +1,66 @@
 # Project State — webapp-hosting
 
-Last updated: 2026-09-28 (site live)
+Last updated: 2026-11-03 (v12 live: contact relay, six one-screen pages)
 
 ## Vision
 
-Single place to manage how the web app is hosted: deployment pipelines, environment configuration, and operational runbooks. Separates hosting concerns from application code.
+Single place to manage how beronilla.rodeo is hosted: the static site, the one small service behind it, the deploy script, and the runbook notes that keep it honest.
 
 ## Stack
 
-Static site (`beronilla.rodeo`, no build step) served by the existing Caddy 2.8 container in `C:/Users/central/plex-stack` (vhost blocks appended to `config/caddy/Caddyfile`; files bind-mounted read-only from `C:/srv/beronilla.rodeo` to `/srv/beronilla.rodeo`). TLS by Let's Encrypt via Caddy. DNS at Cloudflare, DNS-only: apex CNAME to `toli.mov` (flattened, so it follows the dynamic WAN IP through plex-stack's Stack-Watchdog), `www` CNAME to the apex.
+Static site (`site/`, no build step, system fonts, ~15 KB) served by the plex-stack Caddy container from a read-only bind of `C:/srv/beronilla.rodeo/site`. The vhost block lives in plex-stack's `config/caddy/Caddyfile`; it routes `/contact` to `contact-relay`, a standard-library Python service from `contact-relay/` that joins Caddy's `media-net` the same way the volleyball app does, and sends through Gmail SMTP with credentials that exist only in `contact-relay/.env`.
+
+DNS at Cloudflare. As of 2026-11-03 the apex is **proxied** (orange cloud): responses arrive with `Server: cloudflare`, `CF-RAY`, NEL/Report-To headers and an `alt-svc: h3` advertisement, the default Python user agent gets a 403 from the edge, and a Web Analytics beacon is injected into HTML for browsers (blocked by the CSP, visible as a console error). Whether that stays is the owner's call; see Blockers.
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `sha256sum selfhost.zip` | Verify a new bundle against the published hash before deploying |
-| `python scripts/deploy.py` | Deploy: copies `site/`, stamps `?v=<hash>` on asset links, smoke-tests the root |
-| `docker exec caddy caddy reload --config /etc/caddy/Caddyfile` (run in plex-stack) | Apply a Caddyfile change without downtime |
-| `curl -sI https://beronilla.rodeo/` | Smoke test: 200 plus security headers |
+| `python scripts/deploy.py` | Deploy: copies `site/`, stamps `?v=<hash>` on asset links in the three pages, smoke-tests the root with a browser-shaped user agent |
+| `cd contact-relay && docker compose up -d --build` | Build and start the form relay (reads `.env` there) |
+| `docker logs contact-relay --tail 50` | Relay activity: one line per request, never a message body or an address |
+| `MSYS_NO_PATHCONV=1 docker exec caddy caddy validate --config /etc/caddy/Caddyfile` then `... caddy reload ...` | Apply a Caddyfile change without downtime (run from Git Bash; the env var stops path mangling) |
 
 ## Deployment
 
 | Environment | URL | Trigger |
 |-------------|-----|---------|
-| Production | https://beronilla.rodeo (www redirects to apex) | Copy files into `C:/srv/beronilla.rodeo/site` |
-| Preview | none (create `C:/srv/beronilla.rodeo/site/v2/` again when one is wanted) | Copy `site/` into the preview folder |
+| Production | https://beronilla.rodeo (www redirects to apex) | `python scripts/deploy.py` |
+| Preview | none | — |
 
 ## Active Sprint
 
-v8 is in production at https://beronilla.rodeo/ (2026-09-28): the field plus one editorial sheet with sticky kickers (bento and toys removed for cohesion), OG card, print resume, versioned deploys. v7 before it: field as a fixed backdrop, frosted tiles, rebalanced grid. v6 before it: WebGPU field with trails and a full interaction vocabulary, live tiles, mobile dock, scroll-linked motion, scroll-state header, sibling-index staggers, invoker commands, opt-in sound, P3 colour. The feature branch is merged into `main`; the /v2/ preview path is retired. Deploy is a copy of `site/` over the docroot.
+v12 is in production (2026-11-03). Six sections, each sized to one viewport with mandatory scroll snapping and arrow-key paging: Hero with the month pivot, Principles, Experience (roles two-up, education and certifications beside), Projects (FantasyScout, the planned OSCAL platform, this site), Interests, Contact. The contact form posts to the relay; the address is nowhere in the page, the structured data or the command menu. Mobile navigation is the top-bar Menu opening the command palette; the bottom dock is gone.
 
 ## Milestones
 
 | Milestone | Status |
 |-----------|--------|
-| Repo scaffold | Done (2026-09-28) |
-| Choose hosting provider | Done (2026-09-28): existing plex-stack Caddy |
-| Deploy workflow | Manual copy (2026-09-28); preview path at /v2/; no CI yet |
-| Site v2, order from noise | Built and previewed (2026-09-28) |
-| Site v3, interaction vocabulary and live tiles | Built and previewed (2026-09-28) |
-| Site v4, light and composure | Done (2026-09-28) |
-| Site v5, mobile experience and motion | Done (2026-09-28) |
-| Site v6, platform polish and restraint | Done (2026-09-28) |
-| Site v7, living surface and journeys | Done (2026-09-28) |
-| Site v8, one sheet | Done (2026-09-28) |
-| Site v8.1, fundamentals audit (contrast, scale, semantics, touch, viewports) | Done (2026-09-28) |
-| Site v9, rebuilt around the person: narrative sections, Built, standards demoted | In production (2026-10-26) |
-| GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Not started |
-
-## Velocity
-
-N/A — no sprints completed.
+| Repo scaffold, hosting on plex-stack Caddy, deploy script | Done (2026-09-28) |
+| Site v9, rebuilt around the person | Done (2026-10-26) |
+| Site v10, GPU field removed; system fonts, ~13 KB | Done (2026-11-03) |
+| Site v11, month pivot from real dates, one screen per section | Done (2026-11-03) |
+| Site v12, career reference applied, Principles, Interests, contact relay | Done (2026-11-03) |
+| Contact relay connected to an inbox | Waiting on owner: `GMAIL_USER` and `GMAIL_APP_PASSWORD` in `contact-relay/.env` |
+| GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Dependabot active; protection not configured |
 
 ## Remote
 
-Public at https://github.com/rodelBeronilla/beronilla.rodeo (owner's decision, 2026-10-26). Before this the repo had no remote and the site existed only on this machine's C: drive, in the working copy and the docroot: plex-stack #342.
+Public at https://github.com/rodelBeronilla/beronilla.rodeo. Commits go straight to `main` by the owner's choice.
 
 ## Blockers
 
-- None. Notes: Caddy sends `Cache-Control: no-cache` for pages and a week for versioned assets (plex-stack Caddyfile). The CSP pins the hash of the single inline script in `index.html`, so editing that script means updating the hash. WGSL reserves common words (`target`, `filter`, `pass`, `set`, `smooth`); a reserved identifier fails the shader silently and the hero goes black, which now drops to the WebGL fallback via the uncapturederror handler.
+- Cloudflare proxying appeared on 2026-11-03 without a change in this repo. It injects an analytics beacon and NEL telemetry headers, which the footer's "no analytics, no trackers" line contradicts, and it re-advertises HTTP/3 at the edge. Owner to decide: keep the proxy and switch off Web Analytics auto-injection, or return the record to DNS-only.
+- The relay answers "Not connected yet" until the credentials exist.
 
 ## Tech Debt
 
-None.
+- Experience and the hero overflow one screen on phones and at 1024×768; accepted rather than cutting content.
+- plex-stack's Caddyfile carries another session's uncommitted volleyball vhost hunk; this repo's route was committed on its own (plex-stack 79abedb). Pushing plex-stack is the gate session's job.
 
 ## Next Actions
 
-1. Watch the field on real phones (Android tilt, iOS Safari WebGPU) and adjust constants if needed.
-2. Regenerate `site/og.png` (scratch `ogimage.py`) whenever the hero changes materially.
-3. Regression: scratch `v9test.py` runs the ten-viewport matrix (overflow, targets, popover bounds, outline, 404) against any URL via `SITE_URL`.
-4. Optional: a deploy script in `scripts/` that syncs `site/` to the docroot (and to /v2/ for previews).
-5. Apply repo baseline: branch protection on `main`, squash-only merges, Dependabot weekly, CODEOWNERS enforced.
+1. Owner adds the Gmail app password to `contact-relay/.env`, then `docker compose up -d` in that directory; send one real message to prove delivery.
+2. Decide the Cloudflare proxy question above.
+3. Regenerate `site/og.png` with Playwright whenever the hero changes.
+4. Repo baseline: branch protection on `main`, CODEOWNERS.

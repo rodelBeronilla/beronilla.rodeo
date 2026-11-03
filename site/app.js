@@ -313,7 +313,6 @@
       var list = pages.map(function (el) {
         return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - h));
       });
-      list.push(Math.round(document.documentElement.scrollHeight - window.innerHeight));
       return list.sort(function (a, b) { return a - b; });
     };
     document.addEventListener("keydown", function (e) {
