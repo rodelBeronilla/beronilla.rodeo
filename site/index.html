@@ -16,16 +16,12 @@
   <meta property="og:image" content="https://beronilla.rodeo/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Rodel Beronilla. A field of particles settling from noise into order.">
+  <meta property="og:image:alt" content="Rodel Beronilla. A career timeline from 2015 to now, drawn as bars.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:image" content="https://beronilla.rodeo/og.png">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,94..100,500..760&family=JetBrains+Mono:wght@600&display=swap">
   <link rel="stylesheet" href="style.css">
   <script>document.documentElement.classList.replace('no-js','js');try{var t=localStorage.getItem('theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.setAttribute('data-theme',t)}catch(e){}</script>
-  <script src="hero.js" defer></script>
   <script src="app.js" defer></script>
 
   <script type="application/ld+json">
@@ -34,11 +30,6 @@
 </head>
 <body>
   <a class="skip" href="#profile">Skip to content</a>
-
-  <div class="field-bg" id="field-bg" aria-hidden="true">
-    <canvas class="shader" id="shader" aria-hidden="true"></canvas>
-    <div class="grain" aria-hidden="true"></div>
-  </div>
 
   <header class="top">
     <div class="top-in">
@@ -64,19 +55,25 @@
   <main>
     <section class="hero" id="top">
       <div class="hero-inner">
-        <p class="meta"><span class="pulse" aria-hidden="true"></span><span class="meta-full">Security, risk and compliance for healthcare at TELUS Health. GTA, remote.</span><span class="meta-short" aria-hidden="true">Security, risk and compliance. TELUS Health.</span></p>
-        <h1 class="name" id="name" aria-label="Rodel Beronilla">
-          <span class="line" data-text="Rodel">Rodel</span>
-          <span class="line" data-text="Beronilla">Beronilla</span>
-        </h1>
+        <p class="meta"><span class="meta-full">Security, risk and compliance for healthcare at TELUS Health. GTA, remote.</span><span class="meta-short" aria-hidden="true">Security, risk and compliance. TELUS Health.</span></p>
+        <h1 class="name" id="name"><span>Rodel</span><span>Beronilla</span></h1>
         <p class="tag">I love getting into the detail: working with data until it makes sense, and digging until I understand how a thing really works.</p>
         <div class="cta">
           <a class="btn primary" href="#how">How I work</a>
           <a class="btn" href="https://ca.linkedin.com/in/rodel-beronilla" rel="me">LinkedIn</a>
         </div>
       </div>
-      <p class="field-hint" id="field-hint">Hover slowly to settle. Move fast to stir. Click to pulse.</p>
-      <a class="scroll-hint" href="#profile" aria-label="Scroll to content"><span>Scroll</span><i aria-hidden="true"></i></a>
+        <figure class="chart" aria-labelledby="chart-cap">
+          <figcaption class="chart-title" id="chart-cap"><span>Career, 2015 to now. One column per year.</span><span>Dates from the Experience section</span></figcaption>
+          <div class="axis" aria-hidden="true"><span></span><div class="axis-years"><span>2015</span><span>2020</span><span>2025</span></div></div>
+          <div class="row"><span class="row-name">TELUS Health</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="TELUS Health, Nov 2024 to now"><use href="#g"/><rect class="bar" x="118" y="1" width="13" height="8"/></svg></div>
+          <div class="row"><span class="row-name">Rogers</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Rogers, Jul 2020 to Oct 2024"><use href="#g"/><rect class="bar" x="66" y="1" width="52" height="8"/></svg></div>
+          <div class="row"><span class="row-name">Celestica</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Celestica, May 2018 to Aug 2019"><use href="#g"/><rect class="bar" x="40" y="1" width="16" height="8"/></svg></div>
+          <div class="row"><span class="row-name">Ontario Tech</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="Ontario Tech University, Sep 2015 to May 2020"><use href="#g"/><rect class="bar edu" x="8" y="1" width="57" height="8"/></svg></div>
+          <div class="row"><span class="row-name">CISSP, SQL (Advanced)</span><svg class="track" viewBox="0 0 144 10" preserveAspectRatio="none" role="img" aria-label="CISSP and SQL (Advanced), both Oct 2026"><use href="#g"/><rect class="bar cert" x="129" y="1" width="2" height="8"/></svg></div>
+          <svg class="defs" width="0" height="0" aria-hidden="true" focusable="false"><defs><g id="g"><path class="grid" d="M0 0V10M12 0V10M24 0V10M36 0V10M48 0V10M60 0V10M72 0V10M84 0V10M96 0V10M108 0V10M120 0V10M132 0V10M144 0V10"/><path class="now" d="M131 0V10"/></g></defs></svg>
+          <p class="chart-note">Dashed line is today.</p>
+        </figure>
     </section>
 
     <div class="sheet" id="profile">
@@ -130,7 +127,7 @@
             <li>
               <h3>This site</h3>
               <p class="built-meta">Hand written, no frameworks, no build step, no trackers</p>
-              <p>The field behind this text is a particle simulation running on the graphics card of a machine in my house. Hover slowly and the drift settles into a lattice; move quickly and it scatters. One flourish, and the rest of the page kept quiet so the flourish means something.</p>
+              <p>A page that treats speed as a feature: one stylesheet, one small script, system fonts, no images in the page, served from a machine in my house. The chart at the top is drawn from the same dates as the Experience section.</p>
             </li>
             <li>
               <a href="https://github.com/rodelBeronilla/volleyball-tactics">
@@ -175,7 +172,7 @@
   <div class="ground">
   <footer class="foot">
     <p>&copy; 2026 Rodel Beronilla. No analytics, no trackers, nothing to accept.</p>
-    <p><span id="colophon-live">Drawn on your GPU.</span> No frameworks, no build step.</p>
+    <p><span id="colophon-live">System fonts, no images, one stylesheet, one script.</span> No frameworks, no build step.</p>
     <p class="foot-print"><button type="button" class="linkish" id="print-link">Print or save as PDF</button></p>
   </footer>
   </div>

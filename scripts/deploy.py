@@ -18,7 +18,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 SITE = ROOT / "site"
 DOCROOT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "C:/srv/beronilla.rodeo/site")
 URL = "https://beronilla.rodeo/"
-ASSETS = ("style.css", "app.js", "hero.js", "favicon.svg")
+ASSETS = ("style.css", "app.js", "favicon.svg")
 
 
 def digest(name):
@@ -51,7 +51,7 @@ def main():
         print("smoke test skipped, could not fetch", URL, "-", e)
         return
     ok = status == 200
-    links = re.findall(r'(?:href|src)="(/?(?:style\.css|app\.js|hero\.js|favicon\.svg)\?v=[0-9a-f]{10})"', html)
+    links = re.findall(r'(?:href|src)="(/?(?:style\.css|app\.js|favicon\.svg)\?v=[0-9a-f]{10})"', html)
     print("root", status, "| stamped links found:", len(links))
     for link in links:
         target = URL.rstrip("/") + "/" + link.lstrip("/")
@@ -62,8 +62,8 @@ def main():
             code = str(e)
         ok = ok and code == 200
         print("  ", link, "->", code)
-    print("smoke test", "passed" if ok and len(links) >= 4 else "FAILED")
-    if not (ok and len(links) >= 4):
+    print("smoke test", "passed" if ok and len(links) >= 3 else "FAILED")
+    if not (ok and len(links) >= 3):
         sys.exit(1)
 
 

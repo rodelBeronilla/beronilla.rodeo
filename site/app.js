@@ -2,126 +2,32 @@
   "use strict";
   var root = document.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var fine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
   function buzz(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) { /* ignore */ } } }
 
-  /* Sound is off until a visitor turns it on from the palette; then confirmations are tiny synthesized notes */
-  var sound = { on: false, ctx: null };
-  try { sound.on = localStorage.getItem("sound") === "on"; } catch (e) { /* ignore */ }
-  function chime(freq, dur, gain) {
-    if (!sound.on) return;
-    try {
-      if (!sound.ctx) sound.ctx = new (window.AudioContext || window.webkitAudioContext)();
-      var c = sound.ctx;
-      if (c.state === "suspended") c.resume();
-      var o = c.createOscillator(), g = c.createGain(), t = c.currentTime, d = dur || 0.09;
-      o.type = "sine"; o.frequency.setValueAtTime(freq, t);
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(gain || 0.07, t + 0.008);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
-      o.connect(g); g.connect(c.destination);
-      o.start(t); o.stop(t + d + 0.02);
-    } catch (e) { /* no audio, no problem */ }
-  }
-  function setSound(on) {
-    sound.on = on;
-    try { localStorage.setItem("sound", on ? "on" : "off"); } catch (e) { /* ignore */ }
-    if (on) { chime(660, 0.08); setTimeout(function () { chime(880, 0.12); }, 90); }
-  }
-  document.addEventListener("field:pulsed", function () { chime(520, 0.16, 0.05); });
-
-  /* Theme, with a circular reveal through the View Transitions API; the field pulses from the same point.
-     The browser chrome (address bar, status bar) follows the toggle, not only the system setting. */
+  /* Theme: instant swap; the browser chrome follows the toggle */
   var themeBtn = document.getElementById("theme-btn");
   function paintChrome() {
     var dark = root.getAttribute("data-theme") !== "light";
-    Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function (m) { m.setAttribute("content", dark ? "#0f0f13" : "#f5f4f0"); });
+    Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function (m) { m.setAttribute("content", dark ? "#101216" : "#f7f7f4"); });
   }
-  paintChrome();
   function labelTheme() {
     var dark = root.getAttribute("data-theme") !== "light";
     themeBtn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
   }
-  function setTheme(next, x, y) {
-    var apply = function () {
-      root.setAttribute("data-theme", next);
-      try { localStorage.setItem("theme", next); } catch (e) { /* ignore */ }
-      labelTheme(); paintChrome();
-    };
-    document.dispatchEvent(new CustomEvent("field:pulse", { detail: { x: x, y: y } }));
-    chime(next === "light" ? 784 : 587, 0.14, 0.05);
-    if (!document.startViewTransition || reduce) { apply(); return; }
-    var vt = document.startViewTransition(apply);
-    vt.ready.then(function () {
-      var r = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-      root.animate(
-        { clipPath: ["circle(0px at " + x + "px " + y + "px)", "circle(" + r + "px at " + x + "px " + y + "px)"] },
-        { duration: 650, easing: "cubic-bezier(.2,.8,.2,1)", pseudoElement: "::view-transition-new(root)" }
-      );
-    }).catch(function () {});
-  }
-  function toggleTheme(x, y) {
+  function toggleTheme() {
     var next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
-    setTheme(next, x, y);
+    root.setAttribute("data-theme", next);
+    try { localStorage.setItem("theme", next); } catch (e) { /* ignore */ }
+    labelTheme(); paintChrome();
   }
+  paintChrome();
   /* The key cap says what the keyboard actually has */
   var keyCap = document.getElementById("cmd-key");
   if (keyCap) {
     var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
     if (!/mac|iphone|ipad|ipod/i.test(plat)) keyCap.textContent = "Ctrl K";
   }
-  if (themeBtn) {
-    labelTheme();
-    themeBtn.addEventListener("click", function (e) {
-      var r = themeBtn.getBoundingClientRect();
-      toggleTheme(e.clientX || r.left + r.width / 2, e.clientY || r.top + r.height / 2);
-    });
-  }
-
-  /* Kinetic name: split into characters, react to pointer distance */
-  var name = document.getElementById("name");
-  var chars = [];
-  if (name) {
-    var i = 0;
-    Array.prototype.slice.call(name.querySelectorAll(".line")).forEach(function (line) {
-      var text = line.getAttribute("data-text") || line.textContent;
-      line.textContent = "";
-      line.setAttribute("aria-hidden", "true");
-      Array.prototype.forEach.call(text, function (c) {
-        var s = document.createElement("span");
-        s.className = "ch";
-        s.textContent = c;
-        s.style.setProperty("--i", i++);
-        s.style.setProperty("--w", 94);
-        s.style.setProperty("--wg", 640);
-        line.appendChild(s);
-        chars.push(s);
-      });
-    });
-    if (fine && !reduce) {
-      var hero = document.querySelector(".hero");
-      var pending = null;
-      hero.addEventListener("pointermove", function (e) {
-        pending = [e.clientX, e.clientY];
-        requestAnimationFrame(function () {
-          if (!pending) return;
-          var px = pending[0], py = pending[1]; pending = null;
-          chars.forEach(function (s) {
-            var r = s.getBoundingClientRect();
-            var d = Math.hypot(px - (r.left + r.width / 2), py - (r.top + r.height / 2));
-            var k = Math.max(0, 1 - d / 260);
-            s.style.setProperty("--w", (94 + 6 * k).toFixed(1));
-            s.style.setProperty("--wg", Math.round(640 + 120 * k));
-          });
-        });
-      }, { passive: true });
-      hero.addEventListener("pointerleave", function () {
-        chars.forEach(function (s) { s.style.setProperty("--w", 94); s.style.setProperty("--wg", 640); });
-      });
-    }
-  }
-
-
+  if (themeBtn) { labelTheme(); themeBtn.addEventListener("click", toggleTheme); }
 
   /* Section in view: underline in the top nav, highlight in the mobile dock */
   var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#'], .dock a[href^='#']"));
@@ -167,22 +73,13 @@
   function copy(text, label) {
     if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast(label + " copied"); }, function () { toast("Copy failed"); });
   }
-  function fieldAction(eventName, done) {
-    if (root.getAttribute("data-field") !== "webgpu") { toast("Needs a browser with WebGPU"); return; }
-    window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
-    document.dispatchEvent(new CustomEvent(eventName));
-    toast(done);
-  }
   var actions = [
     { t: "How I work", k: "section", run: function () { go("how"); } },
     { t: "Experience", k: "section", run: function () { go("experience"); } },
     { t: "Built", k: "section", run: function () { go("built"); } },
     { t: "Off the clock", k: "section", run: function () { go("life"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
-    { t: "Settle the field", k: "field", run: function () { fieldAction("field:settle", "Field settled"); } },
-    { t: "Run a sweep", k: "field", run: function () { fieldAction("field:sweep", "Sweep running"); } },
-    { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(innerWidth - 40, 40); } },
-    { t: "Toggle sound", k: "appearance", run: function () { setSound(!sound.on); toast(sound.on ? "Sound on" : "Sound off"); } },
+    { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(); } },
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
@@ -234,7 +131,7 @@
   }
   function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); input.focus(); }
   function closeCmd() { if (dlg && dlg.open) dlg.close(); if (canHighlight) CSS.highlights.delete("cmdk-match"); }
-  function runSel() { var a = filtered[sel]; closeCmd(); if (a) { buzz(5); chime(660, 0.07, 0.04); setTimeout(a.run, 60); } }
+  function runSel() { var a = filtered[sel]; closeCmd(); if (a) { setTimeout(a.run, 60); } }
   if (dlg) {
     ["cmd-open", "dock-menu"].forEach(function (id) { var b = document.getElementById(id); if (b) b.addEventListener("click", openCmd); });
     input.addEventListener("input", filter);
@@ -249,6 +146,19 @@
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); dlg.open ? closeCmd() : openCmd(); }
     });
   }
+
+  /* Measured, not claimed: what this page cost to load */
+  var live = document.getElementById("colophon-live");
+  try {
+    var nav = performance.getEntriesByType("navigation")[0];
+    if (live && nav && nav.transferSize) {
+      window.addEventListener("load", function () {
+        var n = performance.getEntriesByType("navigation")[0];
+        var bytes = performance.getEntriesByType("resource").reduce(function (t, r) { return t + (r.transferSize || 0); }, n.transferSize || 0);
+        live.textContent = (bytes / 1024).toFixed(1) + " KB over the wire, DOM ready in " + Math.round(n.domContentLoadedEventEnd) + " ms.";
+      });
+    }
+  } catch (e) { /* keep the static text */ }
 
   var printLink = document.getElementById("print-link");
   if (printLink) printLink.addEventListener("click", function () { window.print(); });

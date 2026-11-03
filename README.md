@@ -2,20 +2,17 @@
 
 The source of [beronilla.rodeo](https://beronilla.rodeo), my personal site, and the small amount of tooling that deploys it.
 
-It is five static files. No framework, no build step, no bundler, no dependencies, and nothing to install before you can read it. The page you get is the files in `site/`, served as they are.
+It is four static files. No framework, no build step, no bundler, no dependencies, and nothing to install before you can read it. The page you get is the files in `site/`, served as they are.
 
 ## What's interesting in here
 
-The background is a particle field running on the GPU, written by hand in WebGPU with a WebGL fallback for browsers that lack it. Tens of thousands of particles drift in curl noise and settle into a lattice where your cursor rests, on scroll, or on a slow sweep when nobody has touched the page for a while. It renders through a persistence buffer so motion leaves light behind, and it quietly reduces its own particle count if the machine cannot hold the frame rate.
-
-The rest of the page is deliberately quiet so that one flourish means something: a single typeface, one accent colour, and a layout that is mostly space and type.
+It is built to be fast and quiet. The page is about 13 KB over the wire: system fonts, no images, one stylesheet, one small script, no web-font or third-party requests. The chart at the top is an inline SVG drawn from the same dates as the Experience section, and the footer reads the browser's own timing data to report what the page actually cost to load.
 
 | Path | What it is |
 |------|------------|
 | `site/index.html` | The page |
 | `site/style.css` | All of the styling |
-| `site/hero.js` | The particle field: WebGPU compute and render, WebGL fallback |
-| `site/app.js` | Theme switch, command palette, navigation, print view |
+| `site/app.js` | Theme switch, command palette, navigation, load-cost readout |
 | `site/404.html` | Not-found page, same system |
 | `scripts/deploy.py` | Copies `site/` to the docroot, content-hashes the asset links, smoke-tests the result |
 | `server-config/` | Caddy and nginx configs shipped with the original bundle |
