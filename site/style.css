@@ -256,6 +256,12 @@ html[data-theme="light"] .i-moon { display: block; }
 .kit > div { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--s3); padding-top: var(--s2); border-top: 1px solid var(--line); }
 .kit dt { font-size: var(--fs-sm); font-weight: 650; color: var(--muted); margin: 0; }
 .kit dd { margin: 0; color: var(--fg-2); font-size: var(--fs-2); }
+.certs { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
+.certs li { display: grid; gap: .15rem; }
+.certs li + li { padding-top: var(--s2); border-top: 1px solid var(--line); }
+.certs span { text-wrap: balance; }
+.certs strong { color: var(--fg); font-weight: 650; }
+.certs a { justify-self: start; }
 @media (max-width: 40rem) { .kit > div { grid-template-columns: 1fr; gap: .15rem; } }
 
 /* Path: a sequence, so a thread and a node per step */
