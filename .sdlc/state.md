@@ -61,5 +61,5 @@ Public at https://github.com/rodelBeronilla/beronilla.rodeo. Commits go straight
 ## Next Actions
 
 1. Cloudflare dashboard: switch off Web Analytics auto-injection; consider a WAF rate-limit rule on `POST /contact` and restricting the origin to Cloudflare IPs now that the proxy is deliberate (both are edge-side; nothing in this repo).
-3. Regenerate `site/og.png` with Playwright whenever the hero changes.
-4. Repo baseline: branch protection on `main`, CODEOWNERS.
+2. Regenerate `site/og.png` with Playwright whenever the hero changes.
+3. Repo baseline: branch protection on `main`, CODEOWNERS.
