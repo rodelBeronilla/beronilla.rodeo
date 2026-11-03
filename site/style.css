@@ -189,9 +189,10 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 @media (max-width: 44rem) { .mailform { grid-template-columns: minmax(0, 1fr); } }
 
 /* experience: a stage that pins while four stops scroll past, one role each, oldest first */
-.page.stage { display: block; min-height: 0; padding: 0; scroll-snap-align: none; }
-.xp-stage { position: sticky; top: var(--top-h); height: calc(100svh - var(--top-h)); margin-bottom: calc(var(--top-h) - 100svh); display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1.5fr) minmax(0, 1fr); column-gap: clamp(1.5rem, 4vw, 4rem); align-items: center; padding-top: var(--page-pad); padding-bottom: var(--page-pad); }
+.page.stage { position: relative; display: block; min-height: 0; padding: 0; scroll-snap-align: none; }
+.xp-stage { position: sticky; top: var(--top-h); height: calc(100svh - var(--top-h)); display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1.5fr) minmax(0, 1fr); column-gap: clamp(1.5rem, 4vw, 4rem); align-items: center; padding-top: var(--page-pad); padding-bottom: var(--page-pad); }
 .xp-stop { height: calc(100svh - var(--top-h)); scroll-snap-align: start; scroll-snap-stop: always; }
+.xp-stop[data-i="0"] { position: absolute; top: 0; left: 0; right: 0; }
 .xp-head { align-self: center; display: grid; gap: 1.5rem; }
 .rail { position: relative; display: grid; gap: 1.6rem; width: 12px; padding: 2px 0; }
 .rail-line, .rail-fill { position: absolute; left: 5px; top: 6px; bottom: 6px; width: 2px; background: var(--line-2); }
@@ -214,7 +215,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .cred-tag { display: none; font: .68rem var(--mono); color: var(--muted); border: 1px solid var(--line-2); border-radius: 3px; padding: .1rem .35rem; margin-left: .4rem; vertical-align: middle; }
 .cred.pending > .tl-when > .cred-tag { display: inline-block; }
 .honours { margin-top: .3rem; }
-.no-js .xp-stage { position: static; height: auto; margin-bottom: 0; grid-template-columns: minmax(0, 1fr); row-gap: 1.5rem; }
+.no-js .xp-stage { position: static; height: auto; grid-template-columns: minmax(0, 1fr); row-gap: 1.5rem; }
 .no-js .xp-stop, .no-js .rail, .no-js .cred-tag { display: none; }
 .no-js .xp-roles { display: grid; gap: .75rem; }
 .xp-block > .kicker { margin-bottom: .6rem; }
@@ -412,7 +413,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   .page .sec-head, .page .sec-body > * { opacity: 1 !important; transform: none !important; }
   .tenet-why { max-height: none !important; opacity: 1 !important; margin-top: .6rem !important; }
   .tenets > li { opacity: 1 !important; }
-  .xp-stage { position: static; height: auto; margin-bottom: 0; display: block; }
+  .xp-stage { position: static; height: auto; display: block; }
   .xp-stop, .rail, .cred-tag, .focus, .nav-ind { display: none !important; }
   .js .xp-roles > li { position: static; grid-area: auto; opacity: 1; visibility: visible; }
   .xp-roles { display: grid; gap: .75rem; }
