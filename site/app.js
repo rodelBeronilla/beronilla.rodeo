@@ -74,10 +74,10 @@
     if (navigator.clipboard) navigator.clipboard.writeText(text).then(function () { toast(label + " copied"); }, function () { toast("Copy failed"); });
   }
   var actions = [
-    { t: "How I work", k: "section", run: function () { go("how"); } },
+    { t: "What I hold to", k: "section", run: function () { go("how"); } },
     { t: "Experience", k: "section", run: function () { go("experience"); } },
     { t: "Projects", k: "section", run: function () { go("projects"); } },
-    { t: "Away from the desk", k: "section", run: function () { go("away"); } },
+    { t: "Interests", k: "section", run: function () { go("interests"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(); } },
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
