@@ -96,6 +96,20 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .lead { font-size: clamp(1.02rem, .4vw + .9rem, 1.25rem); color: var(--fg-2); max-width: 46rem; text-wrap: pretty; }
 .rules { margin-top: clamp(1.5rem, 4vh, 3rem); display: grid; gap: clamp(1rem, 2.5vh, 2.25rem) clamp(1.5rem, 3vw, 3rem); grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr)); }
 .rules.interests { grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); }
+
+/* principles: each one carries the places it was formed, in the colours of the career grid */
+.tenets { margin-top: clamp(1.25rem, 3vh, 2.5rem); display: grid; gap: clamp(1rem, 2.5vh, 2rem) clamp(1.5rem, 3vw, 3.5rem); grid-template-columns: repeat(auto-fit, minmax(21rem, 1fr)); }
+.tenets > li { border-top: 1px solid var(--line-2); padding-top: .8rem; }
+.tenet-marks { display: flex; gap: .35rem; margin-bottom: .55rem; }
+.pip { width: .55rem; height: .55rem; border-radius: 50%; display: block; }
+.p-ot { background: var(--edu); }
+.p-wal { background: var(--rose); }
+.p-cel { background: var(--mark); }
+.p-rog { background: var(--violet); }
+.p-tel { background: var(--accent); }
+.tenets h3 { font-size: 1.05rem; font-weight: 620; margin-bottom: .3rem; }
+.tenets p { color: var(--fg-2); font-size: .95rem; text-wrap: pretty; }
+.tenet-from { margin-top: .7rem; padding-top: .7rem; border-top: 1px solid var(--line); font-size: .84rem !important; line-height: 1.5; color: var(--muted) !important; }
 .rules li { border-top: 1px solid var(--line); padding-top: 1rem; }
 .rules h3, .built h3 { font-size: 1.05rem; font-weight: 620; margin-bottom: .35rem; }
 .rules p, .built p { color: var(--fg-2); font-size: .96rem; text-wrap: pretty; }
