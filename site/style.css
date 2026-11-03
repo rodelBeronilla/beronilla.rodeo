@@ -338,12 +338,20 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 }
 
 @media (max-width: 68rem) {
-  .page.stage { padding: var(--page-pad) 0; scroll-snap-align: start; }
-  .xp-stage { position: static; height: auto; margin-bottom: 0; padding: 0; grid-template-columns: minmax(0, 1fr); row-gap: 1.5rem; align-content: start; }
-  .xp-stop, .rail, .cred-tag { display: none; }
-  .js .xp-roles { gap: .75rem; }
-  .js .xp-roles > li { grid-area: auto; opacity: 1; visibility: visible; }
-  .cred.pending { opacity: 1; }
+  .xp-stage { grid-template-columns: minmax(0, 1fr); row-gap: clamp(.8rem, 2vh, 1.25rem); align-content: center; overflow: hidden; padding-top: clamp(.75rem, 2vh, 1.25rem); padding-bottom: clamp(.75rem, 2vh, 1.25rem); }
+  .xp-head .kicker-sub { display: none; }
+  .xp-roles .tl-what .tl-role + p { font-size: .92rem; line-height: 1.5; }
+  .xp-side { gap: .8rem; }
+  .xp-side .skills, .xp-side .honours { display: none; }
+  .xp-side .xp-block:last-child .tl { display: grid; grid-template-columns: 1fr 1fr; gap: .9rem; }
+  .xp-side .xp-block:last-child .tl > li { border-top: 1px solid var(--line); padding-top: .45rem; }
+  .xp-side .tl-what h3 { font-size: .95rem; }
+  .xp-side .tl-what p { font-size: .85rem; }
+}
+@media (max-width: 68rem) and (max-height: 760px) {
+  .xp-roles .tl-what .tl-role + p { font-size: .86rem; line-height: 1.45; }
+  #education .tl-what > p { display: none; }
+  .xp-stage { row-gap: .6rem; }
   .xp-head { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .rail { width: auto; height: 12px; grid-auto-flow: column; gap: 1.4rem; padding: 0 2px; }
   .rail-line, .rail-fill { left: 6px; right: 6px; top: 5px; bottom: auto; width: auto; height: 2px; }
