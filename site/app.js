@@ -170,10 +170,11 @@
     var now = new Date();
     var ORGS = [
       { name: "St. Brother Andre CHS", kind: "Study", c: 4, from: [2015, 1], to: [2015, 6] },
-      { name: "Ontario Tech University", kind: "Study", c: 0, from: [2015, 9], to: [2020, 5] },
-      { name: "Celestica", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
-      { name: "Rogers", kind: "Work", c: 2, from: [2020, 7], to: [2024, 10] },
-      { name: "TELUS Health", kind: "Work", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
+      { name: "Ontario Tech University", kind: "Study", c: 0, from: [2015, 9], to: [2020, 4] },
+      { name: "Walmart Canada", kind: "Part-time work", c: 5, from: [2017, 5], to: [2018, 4] },
+      { name: "Celestica International", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
+      { name: "Rogers Communications", kind: "Work", c: 2, from: [2020, 7], to: [2024, 10] },
+      { name: "TELUS Health Solutions", kind: "Work", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
     ];
     var MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
     var MNAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -193,6 +194,7 @@
         kind: lead ? lead.kind : "Between",
         c: lead ? lead.c : null,
         both: on.length > 1,
+        under: on.length > 1 ? on[0].c : -1,
         title: MNAMES[m - 1] + " " + y + ", " + (on.length ? on.map(function (o) { return o.name; }).join(" and ") : "between things")
       });
       m++; if (m > 12) { m = 1; y++; }
@@ -214,7 +216,7 @@
     var BOX = 16;
     var nodes = recs.map(function (r) {
       var d = document.createElement("i");
-      d.className = "dot " + (r.c === null ? "cgap" : "c" + r.c) + (r.both ? " both" : "");
+      d.className = "dot " + (r.c === null ? "cgap" : "c" + r.c) + (r.both ? " both b" + r.under : "");
       d.setAttribute("aria-hidden", "true");
       d.title = r.title;
       plot.appendChild(d);
