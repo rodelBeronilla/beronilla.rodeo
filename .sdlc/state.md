@@ -10,7 +10,7 @@ Single place to manage how beronilla.rodeo is hosted: the static site, the one s
 
 Static site (`site/`, no build step, system fonts, ~15 KB) served by the plex-stack Caddy container from a read-only bind of `C:/srv/beronilla.rodeo/site`. The vhost block lives in plex-stack's `config/caddy/Caddyfile`; it routes `/contact` to `contact-relay`, a standard-library Python service from `contact-relay/` that joins Caddy's `media-net` the same way the volleyball app does, and sends through Gmail SMTP with credentials that exist only in `contact-relay/.env`.
 
-DNS at Cloudflare. As of 2026-11-03 the apex is **proxied** (orange cloud): responses arrive with `Server: cloudflare`, `CF-RAY`, NEL/Report-To headers and an `alt-svc: h3` advertisement, the default Python user agent gets a 403 from the edge, and a Web Analytics beacon is injected into HTML for browsers (blocked by the CSP, visible as a console error). Whether that stays is the owner's call; see Blockers.
+DNS at Cloudflare. As of 2026-11-03 the apex is **proxied** (orange cloud): responses arrive with `Server: cloudflare`, `CF-RAY`, NEL/Report-To headers and an `alt-svc: h3` advertisement, the default Python user agent gets a 403 from the edge, and a Web Analytics beacon is injected into HTML for browsers (blocked by the CSP, visible as a console error). The owner confirmed the proxy is deliberate (2026-11-03). Still open: turn off Web Analytics auto-injection in the Cloudflare dashboard so the footer's "no trackers" line stays true.
 
 ## Commands
 
@@ -50,7 +50,7 @@ Public at https://github.com/rodelBeronilla/beronilla.rodeo. Commits go straight
 
 ## Blockers
 
-- Cloudflare proxying appeared on 2026-11-03 without a change in this repo. It injects an analytics beacon and NEL telemetry headers, which the footer's "no analytics, no trackers" line contradicts, and it re-advertises HTTP/3 at the edge. Owner to decide: keep the proxy and switch off Web Analytics auto-injection, or return the record to DNS-only.
+- Cloudflare proxy is deliberate (owner, 2026-11-03). Its Web Analytics beacon is still injected and blocked by the CSP (console error), contradicting the footer's "no analytics, no trackers" line. Owner to switch off auto-injection in the dashboard; otherwise the footer wording has to change.
 - The relay answers "Not connected yet" until the credentials exist.
 
 ## Tech Debt
