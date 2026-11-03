@@ -259,7 +259,7 @@ html[data-theme="light"] .i-moon { display: block; }
 .certs { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
 .certs li { display: grid; gap: .15rem; }
 .certs li + li { padding-top: var(--s2); border-top: 1px solid var(--line); }
-.certs span { text-wrap: balance; }
+.certs sup { font-size: .7em; line-height: 0; }
 .certs strong { color: var(--fg); font-weight: 650; }
 .certs a { justify-self: start; }
 @media (max-width: 40rem) { .kit > div { grid-template-columns: 1fr; gap: .15rem; } }
