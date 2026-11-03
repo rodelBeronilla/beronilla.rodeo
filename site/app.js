@@ -391,7 +391,7 @@
   if (pages.length) {
     var stops = function () {
       var h = document.querySelector(".top").offsetHeight;
-      var list = pages.map(function (el) {
+      var list = pages.filter(function (el) { return el.offsetParent !== null; }).map(function (el) {
         return Math.max(0, Math.round(el.getBoundingClientRect().top + window.scrollY - h));
       });
       return list.sort(function (a, b) { return a - b; });

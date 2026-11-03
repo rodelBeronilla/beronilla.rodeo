@@ -338,7 +338,12 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 }
 
 @media (max-width: 68rem) {
-  .xp-stage { grid-template-columns: minmax(0, 1fr); row-gap: 1rem; align-content: center; height: auto; min-height: calc(100svh - var(--top-h)); }
+  .page.stage { padding: var(--page-pad) 0; }
+  .xp-stage { position: static; height: auto; margin-bottom: 0; padding: 0; grid-template-columns: minmax(0, 1fr); row-gap: 1.5rem; align-content: start; }
+  .xp-stop, .rail, .cred-tag { display: none; }
+  .js .xp-roles { gap: .75rem; }
+  .js .xp-roles > li { grid-area: auto; opacity: 1; visibility: visible; }
+  .cred.pending { opacity: 1; }
   .xp-head { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .rail { width: auto; height: 12px; grid-auto-flow: column; gap: 1.4rem; padding: 0 2px; }
   .rail-line, .rail-fill { left: 6px; right: 6px; top: 5px; bottom: auto; width: auto; height: 2px; }
