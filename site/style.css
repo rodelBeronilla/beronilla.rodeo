@@ -232,6 +232,10 @@ html[data-theme="light"] .i-moon { display: block; }
 .sec-head { align-self: start; position: sticky; top: calc(var(--top-h) + 1.25rem); }
 .kicker-sub { font-size: var(--fs-sm); color: var(--muted); margin: var(--s1) 0 0; max-width: 16ch; }
 .sec-body { display: grid; gap: var(--s3); min-width: 0; }
+.sec-sub { margin-top: var(--s3); padding-top: var(--s4); border-top: 1px solid var(--line); }
+.sec-head.sec-sub { position: relative; top: auto; border-top: 0; }
+@media (max-width: 45.99rem) { .sec-head.sec-sub { border-top: 1px solid var(--line); } .sec-body.sec-sub { margin-top: 0; padding-top: 0; border-top: 0; } }
+@media (min-width: 46rem) { .sec-head.sec-sub::before { content: ""; position: absolute; top: 0; left: 0; width: calc(100% + var(--s6)); height: 1px; background: var(--line); } }
 .sec-body .statement { margin-bottom: var(--s1); }
 .lead { font-size: var(--fs-lead); font-weight: 500; line-height: 1.45; letter-spacing: -0.012em; max-width: 46ch; color: var(--fg); }
 .sec-body > p:not(.lead):not(.statement) { color: var(--fg-2); }
