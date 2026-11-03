@@ -347,17 +347,20 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   .xp-side .xp-block:last-child .tl > li { border-top: 1px solid var(--line); padding-top: .45rem; }
   .xp-side .tl-what h3 { font-size: .95rem; }
   .xp-side .tl-what p { font-size: .85rem; }
-}
-@media (max-width: 68rem) and (max-height: 760px) {
-  .xp-roles .tl-what .tl-role + p { font-size: .86rem; line-height: 1.45; }
-  #education .tl-what > p { display: none; }
-  .xp-stage { row-gap: .6rem; }
   .xp-head { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
   .rail { width: auto; height: 12px; grid-auto-flow: column; gap: 1.4rem; padding: 0 2px; }
   .rail-line, .rail-fill { left: 6px; right: 6px; top: 5px; bottom: auto; width: auto; height: 2px; }
   .rail-fill { transform: scaleX(var(--p, 0)); transform-origin: left; }
   .xp-side { border-left: 0; border-top: 1px solid var(--line); padding-left: 0; padding-top: 1rem; }
   .xp-roles .tl-what .tl-role + p { font-size: .92rem; }
+}
+@media (max-width: 68rem) and (max-height: 760px) {
+  .xp-roles .tl-what .tl-role + p { font-size: .86rem; line-height: 1.45; }
+  #education .tl-what > p { display: none; }
+  .xp-stage { row-gap: .5rem; padding-top: .4rem; padding-bottom: .4rem; }
+  .xp-side { gap: .5rem; padding-top: .6rem; }
+  .xp-side .tl > li { padding-top: .3rem; }
+  .xp-roles .skills { margin-top: .5rem; }
 }
 @media (max-width: 68rem) and (min-width: 44rem) {
   .xp-side { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.5rem, 2.5vw, 2.5rem); }
