@@ -1,6 +1,6 @@
 # Project State — webapp-hosting
 
-Last updated: 2026-11-03 (v12 live: contact relay, six one-screen pages)
+Last updated: 2026-11-03 (v12 live; relay connected; security pass)
 
 ## Vision
 
@@ -41,7 +41,8 @@ v12 is in production (2026-11-03). Six sections, each sized to one viewport with
 | Site v10, GPU field removed; system fonts, ~13 KB | Done (2026-11-03) |
 | Site v11, month pivot from real dates, one screen per section | Done (2026-11-03) |
 | Site v12, career reference applied, Principles, Interests, contact relay | Done (2026-11-03) |
-| Contact relay connected to an inbox | Waiting on owner: `GMAIL_USER` and `GMAIL_APP_PASSWORD` in `contact-relay/.env` |
+| Contact relay connected to an inbox | Done (2026-11-03), delivery proven |
+| Security pass: fail-closed Origin check, socket timeout, CSP without font hosts, repo mirror of the vhost | Done (2026-11-03) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Dependabot active; protection not configured |
 
 ## Remote
@@ -51,7 +52,6 @@ Public at https://github.com/rodelBeronilla/beronilla.rodeo. Commits go straight
 ## Blockers
 
 - Cloudflare proxy is deliberate (owner, 2026-11-03). Its Web Analytics beacon is still injected and blocked by the CSP (console error), contradicting the footer's "no analytics, no trackers" line. Owner to switch off auto-injection in the dashboard; otherwise the footer wording has to change.
-- The relay answers "Not connected yet" until the credentials exist.
 
 ## Tech Debt
 
@@ -60,7 +60,6 @@ Public at https://github.com/rodelBeronilla/beronilla.rodeo. Commits go straight
 
 ## Next Actions
 
-1. Owner adds the Gmail app password to `contact-relay/.env`, then `docker compose up -d` in that directory; send one real message to prove delivery.
-2. Decide the Cloudflare proxy question above.
+1. Cloudflare dashboard: switch off Web Analytics auto-injection; consider a WAF rate-limit rule on `POST /contact` and restricting the origin to Cloudflare IPs now that the proxy is deliberate (both are edge-side; nothing in this repo).
 3. Regenerate `site/og.png` with Playwright whenever the hero changes.
 4. Repo baseline: branch protection on `main`, CODEOWNERS.

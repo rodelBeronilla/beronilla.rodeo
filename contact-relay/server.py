@@ -94,6 +94,7 @@ def send(name, email, message):
 class Handler(BaseHTTPRequestHandler):
     server_version = "contact-relay"
     sys_version = ""
+    timeout = 15
 
     def log_message(self, fmt, *args):
         sys.stdout.write("%s %s\n" % (self.client_ip(), fmt % args))
@@ -136,8 +137,9 @@ class Handler(BaseHTTPRequestHandler):
         back = f'<a href="{SITE}/#contact">Back to the form.</a>'
         if self.path.rstrip("/") != "/contact":
             return self.reply(404, "Nothing here", back)
-        origin = self.headers.get("Origin") or self.headers.get("Referer") or ""
-        if origin and not origin.startswith(SITE):
+        # Browsers always send Origin with a form POST; anything without one is not the form.
+        origin = self.headers.get("Origin") or ""
+        if not (origin == SITE or origin.startswith(SITE + "/")):
             return self.reply(403, "Not from here", "This form only accepts messages sent from the site. " + back)
         try:
             length = int(self.headers.get("Content-Length") or 0)
@@ -154,7 +156,7 @@ class Handler(BaseHTTPRequestHandler):
         if form.get("website"):
             return self.redirect(SITE + "/sent.html")
 
-        name = re.sub(r"\s+", " ", form.get("name", ""))
+        name = re.sub(r"\s+", " ", "".join(ch for ch in form.get("name", "") if ch.isprintable() or ch.isspace()))
         email = form.get("email", "").lower()
         message = form.get("message", "")
         if not (0 < len(name) <= 120 and len(email) <= 200 and EMAIL_RE.match(email) and 0 < len(message) <= 4000):
