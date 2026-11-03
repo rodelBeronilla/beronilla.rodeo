@@ -2,7 +2,6 @@
   "use strict";
   var root = document.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function buzz(ms) { if (navigator.vibrate) { try { navigator.vibrate(ms); } catch (e) { /* ignore */ } } }
 
   /* Theme: instant swap; the browser chrome follows the toggle */
   var themeBtn = document.getElementById("theme-btn");
@@ -29,8 +28,8 @@
   }
   if (themeBtn) { labelTheme(); themeBtn.addEventListener("click", toggleTheme); }
 
-  /* Section in view: underline in the top nav, highlight in the mobile dock */
-  var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#'], .dock a[href^='#']"));
+  /* Section in view: underline in the top nav */
+  var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#']"));
   if (navLinks.length && "IntersectionObserver" in window) {
     var groups = {};
     navLinks.forEach(function (a) { var id = a.getAttribute("href").slice(1); (groups[id] = groups[id] || []).push(a); });
@@ -47,24 +46,6 @@
     Object.keys(groups).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el); });
     var top = document.getElementById("top");
     if (top) new IntersectionObserver(function (en) { if (en[0].isIntersecting) setCurrent(null); }, { rootMargin: "-60% 0px 0px 0px" }).observe(top);
-  }
-
-  /* Mobile dock: slips away while reading down the page, returns on the way back up or at either end */
-  var dock = document.querySelector(".dock");
-  if (dock) {
-    var lastY = window.scrollY, dockRaf = 0;
-    window.addEventListener("scroll", function () {
-      if (dockRaf) return;
-      dockRaf = requestAnimationFrame(function () {
-        dockRaf = 0;
-        var y = window.scrollY, dy = y - lastY;
-        var atEnd = y + innerHeight >= document.documentElement.scrollHeight - 48;
-        if (dy > 8 && y > 160 && !atEnd) dock.classList.add("is-hidden");
-        else if (dy < -4 || y <= 160 || atEnd) dock.classList.remove("is-hidden");
-        lastY = y;
-      });
-    }, { passive: true });
-    dock.addEventListener("click", function (e) { if (e.target.closest("a, button")) buzz(4); });
   }
 
   /* Command palette */
@@ -131,11 +112,13 @@
     filtered = query ? actions.filter(function (a) { return (a.t + " " + a.k).toLowerCase().indexOf(query) !== -1; }) : actions.slice();
     sel = 0; render();
   }
-  function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); input.focus(); }
+  var touch = window.matchMedia("(pointer: coarse)").matches || (navigator.maxTouchPoints > 0 && !window.matchMedia("(hover: hover)").matches);
+  function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); if (!touch) input.focus(); }
   function closeCmd() { if (dlg && dlg.open) dlg.close(); if (canHighlight) CSS.highlights.delete("cmdk-match"); }
   function runSel() { var a = filtered[sel]; closeCmd(); if (a) { setTimeout(a.run, 60); } }
   if (dlg) {
-    ["cmd-open", "dock-menu"].forEach(function (id) { var b = document.getElementById(id); if (b) b.addEventListener("click", openCmd); });
+    var opener = document.getElementById("cmd-open");
+    if (opener) opener.addEventListener("click", openCmd);
     input.addEventListener("input", filter);
     dlg.addEventListener("keydown", function (e) {
       if (e.key === "ArrowDown") { e.preventDefault(); sel = (sel + 1) % Math.max(1, filtered.length); render(); }
