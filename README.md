@@ -6,9 +6,9 @@ It is four static files. No framework, no build step, no bundler, no dependencie
 
 ## What's interesting in here
 
-It is built to be fast and quiet. The page is about 14 KB over the wire: system fonts, no images, one stylesheet, one small script, no web-font or third-party requests. The footer reads the browser's own timing data and reports what the page actually cost to load.
+It is built to be fast and quiet. The page is around 15 KB over the wire: system fonts, no images, one stylesheet, one small script, and no third-party requests at all. The footer reads the browser's own timing data and reports what the page actually cost to load. Each section is laid out to fill one screen, so the page reads as six pages rather than one long scroll.
 
-The one interactive thing is the grid of dots in the header. Every month I have spent studying or working is one record, generated in the browser from the same dates as the Experience section, and the three buttons group those records by employer, by year, or by kind of engagement. A dot keeps its colour when the grouping changes, so regrouping shows where each month came from: the internship that overlapped the last two years of the degree, and the year a job changed hands. It is a pivot table that happens to be drawn as dots, and it stops moving as soon as it has arrived.
+The one interactive thing is the grid of dots in the header. Every calendar month since the degree started in September 2015 is one record, generated in the browser from the dates in the Experience section, and the three buttons group those records by year, by employer, or by kind of engagement. Grouped by year the columns are months, January on the left, so each row is one year of twelve. A dot keeps its colour when the grouping changes, which is what makes the regrouping worth watching: the sixteen months where the internship ran alongside the degree carry both colours, and the single hollow dot is the month between graduating and starting the next job. It is a pivot table that happens to be drawn as dots, and it stops moving as soon as it has arrived.
 
 | Path | What it is |
 |------|------------|

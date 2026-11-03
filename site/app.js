@@ -76,12 +76,13 @@
   var actions = [
     { t: "How I work", k: "section", run: function () { go("how"); } },
     { t: "Experience", k: "section", run: function () { go("experience"); } },
-    { t: "Built", k: "section", run: function () { go("built"); } },
-    { t: "Off the clock", k: "section", run: function () { go("life"); } },
+    { t: "Projects", k: "section", run: function () { go("projects"); } },
+    { t: "Away from the desk", k: "section", run: function () { go("away"); } },
     { t: "Contact", k: "section", run: function () { go("contact"); } },
-    { t: "Group the months by year", k: "page", run: function () { var b = document.querySelector('.pivot-ctrl button[data-view="year"]'); window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); if (b) b.click(); } },
     { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(); } },
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
+    { t: "Copy email address", k: "link", run: function () { copy("rodel.beronilla@gmail.com", "Email address"); } },
+    { t: "Email Rodel", k: "link", run: function () { window.location.href = "mailto:rodel.beronilla@gmail.com"; } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
     { t: "Open LinkedIn", k: "link", run: function () { window.open("https://ca.linkedin.com/in/rodel-beronilla", "_blank", "noopener"); } },
@@ -162,113 +163,140 @@
   } catch (e) { /* keep the static text */ }
 
 
-  /* The pivot: every month of study or work is one record, regrouped on demand.
-     A dot holds its colour across groupings, so a regrouping shows where the months came from. */
+  /* The pivot: one record per calendar month since the degree started, regrouped on demand.
+     A month keeps its colour when the grouping changes, so a regrouping shows where it went. */
   var plot = document.getElementById("pivot-plot");
   if (plot) {
     var now = new Date();
-    var SPANS = [
-      { org: "Ontario Tech", kind: "Study", c: 0, from: [2015, 9], to: [2020, 5] },
-      { org: "Celestica", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
-      { org: "Rogers", kind: "Employed", c: 2, from: [2020, 7], to: [2024, 10] },
-      { org: "TELUS Health", kind: "Employed", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
+    var ORGS = [
+      { name: "Ontario Tech", kind: "Study", c: 0, from: [2015, 9], to: [2020, 5] },
+      { name: "Celestica", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
+      { name: "Rogers", kind: "Employed", c: 2, from: [2020, 7], to: [2024, 10] },
+      { name: "TELUS Health", kind: "Employed", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
     ];
-    var recs = [];
-    SPANS.forEach(function (s) {
-      var y = s.from[0], m = s.from[1];
-      while (y < s.to[0] || (y === s.to[0] && m <= s.to[1])) {
-        recs.push({ org: s.org, kind: s.kind, c: s.c, y: y });
-        m++; if (m > 12) { m = 1; y++; }
-      }
+    var MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+    function covers(o, y, m) {
+      var t = y * 12 + m, lo = o.from[0] * 12 + o.from[1], hi = o.to[0] * 12 + o.to[1];
+      return t >= lo && t <= hi;
+    }
+    /* Every calendar month is exactly one record. Where two things ran at once the month sits with
+       the work and carries both colours, so each year still holds twelve dots. */
+    var recs = [], y = ORGS[0].from[0], m = ORGS[0].from[1];
+    while (y * 12 + m <= now.getFullYear() * 12 + now.getMonth() + 1) {
+      var on = ORGS.filter(function (o) { return covers(o, y, m); });
+      var lead = on.length ? on[on.length - 1] : null;
+      recs.push({
+        y: y, m: m,
+        org: lead ? lead.name : "Between roles",
+        kind: lead ? lead.kind : "Between roles",
+        c: lead ? lead.c : null,
+        both: on.length > 1
+      });
+      m++; if (m > 12) { m = 1; y++; }
+    }
+    var years = [], orgNames = [], kinds = [];
+    recs.forEach(function (r) {
+      if (years.indexOf(r.y) === -1) years.push(r.y);
+      if (orgNames.indexOf(r.org) === -1) orgNames.push(r.org);
+      if (kinds.indexOf(r.kind) === -1) kinds.push(r.kind);
     });
-    var years = [];
-    recs.forEach(function (r) { if (years.indexOf(r.y) === -1) years.push(r.y); });
-    years.sort(function (a, b) { return a - b; });
     var VIEWS = {
-      org: { keys: SPANS.map(function (s) { return s.org; }), of: function (r) { return r.org; } },
-      year: { keys: years, of: function (r) { return r.y; } },
-      kind: { keys: ["Study", "Internship", "Employed"], of: function (r) { return r.kind; } }
+      year: { keys: years, of: function (r) { return r.y; }, cols: 12, slot: function (r) { return r.m - 1; } },
+      org: { keys: orgNames, of: function (r) { return r.org; }, cols: 14 },
+      kind: { keys: kinds, of: function (r) { return r.kind; }, cols: 14 }
     };
     var total = document.getElementById("pivot-n");
     if (total) total.textContent = String(recs.length);
 
+    var BOX = 16;
     var nodes = recs.map(function (r) {
       var d = document.createElement("i");
-      d.className = "dot c" + r.c;
+      d.className = "dot " + (r.c === null ? "cgap" : "c" + r.c) + (r.both ? " both" : "");
       d.setAttribute("aria-hidden", "true");
       plot.appendChild(d);
       return d;
     });
-    var labelLayer = [];
-    var view = "org", W = 0, metrics = null;
+    var labels = [], view = "year";
 
-    function measure() {
-      W = plot.clientWidth || 360;
-      var small = W < 400;
-      var m = { size: small ? 6 : 7, pitch: small ? 10 : 13, labelW: small ? 92 : 120, gap: small ? 9 : 11 };
-      m.perLine = Math.max(1, Math.floor((W - m.labelW) / m.pitch));
-      metrics = m;
-      nodes.forEach(function (d) { d.style.width = m.size + "px"; d.style.height = m.size + "px"; });
+    function geom(name) {
+      var W = plot.clientWidth || 360;
+      var labelW = W < 420 ? 76 : 116;
+      var cols = VIEWS[name].cols;
+      var pitch = Math.max(9, Math.min(32, (W - labelW) / cols));
+      return { W: W, labelW: labelW, cols: cols, pitch: pitch, dot: Math.max(5, pitch * 0.46), gap: pitch * 0.5 };
     }
-    /* Lay a grouping out on paper first: the plot keeps the tallest view's height so nothing jumps */
+    /* Lay the grouping out on paper first, then move every dot to where it belongs */
     function plan(name) {
-      var v = VIEWS[name], m = metrics, y = 0, out = { groups: [], at: [] };
+      var v = VIEWS[name], g = geom(name), axis = v.slot ? g.pitch : 0, y0 = axis, out = { g: g, axis: !!v.slot, groups: [], at: [] };
       v.keys.forEach(function (key) {
         var members = [];
         recs.forEach(function (r, i) { if (v.of(r) === key) members.push(i); });
         if (!members.length) return;
-        out.groups.push({ text: String(key), count: members.length, y: y });
+        var lines = 1;
         members.forEach(function (idx, n) {
-          out.at[idx] = [m.labelW + (n % m.perLine) * m.pitch, y + Math.floor(n / m.perLine) * m.pitch];
+          var slot = v.slot ? v.slot(recs[idx]) : n % g.cols;
+          var line = v.slot ? 0 : Math.floor(n / g.cols);
+          lines = Math.max(lines, line + 1);
+          out.at[idx] = [g.labelW + (slot + 0.5) * g.pitch, y0 + (line + 0.5) * g.pitch];
         });
-        y += Math.ceil(members.length / m.perLine) * m.pitch + m.gap;
+        out.groups.push({ text: String(key), count: members.length, y: y0 });
+        y0 += lines * g.pitch + (v.slot ? 0 : g.gap);
       });
-      out.height = Math.max(0, y - m.gap) + m.size;
+      out.height = y0 + (v.slot ? 0 : -g.gap);
       return out;
     }
     function paint(name, animate) {
-      var p = plan(name);
+      var p = plan(name), g = p.g;
       if (!animate) plot.classList.add("no-anim");
-      plot.style.height = p.height + "px";
-      labelLayer.forEach(function (el) { el.remove(); });
-      labelLayer = p.groups.map(function (g) {
+      plot.style.height = Math.round(p.height) + "px";
+      labels.forEach(function (el) { el.remove(); });
+      labels = [];
+      if (p.axis) {
+        MONTHS.forEach(function (label, i) {
+          var el = document.createElement("div");
+          el.className = "maxis";
+          el.textContent = label;
+          el.style.left = (g.labelW + i * g.pitch) + "px";
+          el.style.width = g.pitch + "px";
+          plot.appendChild(el);
+          labels.push(el);
+        });
+      }
+      p.groups.forEach(function (gr) {
         var el = document.createElement("div");
         el.className = "glabel";
-        el.style.top = (g.y + Math.round(metrics.size / 2) - 5) + "px";
-        el.appendChild(document.createTextNode(g.text + " "));
+        el.style.top = Math.round(gr.y + g.pitch / 2 - 5) + "px";
+        el.appendChild(document.createTextNode(gr.text + " "));
         var c = document.createElement("span");
-        c.textContent = String(g.count);
+        c.textContent = String(gr.count);
         el.appendChild(c);
         plot.appendChild(el);
-        return el;
+        labels.push(el);
       });
       nodes.forEach(function (d, i) {
-        var at = p.at[i];
+        var at = p.at[i], s = (g.dot / BOX).toFixed(3);
         d.style.transitionDelay = animate ? Math.min(i * 1.1, 180) + "ms" : "0ms";
-        d.style.transform = "translate(" + at[0] + "px, " + at[1] + "px)";
+        d.style.transform = "translate(" + (at[0] - BOX / 2).toFixed(1) + "px, " + (at[1] - BOX / 2).toFixed(1) + "px) scale(" + s + ")";
       });
       if (!animate) requestAnimationFrame(function () { plot.classList.remove("no-anim"); });
     }
-    function fit() { measure(); }
-    fit();
     paint(view, false);
     requestAnimationFrame(function () { plot.classList.add("is-in"); });
 
-    Array.prototype.forEach.call(document.querySelectorAll(".pivot-ctrl button"), function (b) {
+    var buttons = Array.prototype.slice.call(document.querySelectorAll(".pivot-ctrl button"));
+    buttons.forEach(function (b) {
       b.addEventListener("click", function () {
         var next = b.getAttribute("data-view");
         if (next === view) return;
         view = next;
-        Array.prototype.forEach.call(document.querySelectorAll(".pivot-ctrl button"), function (o) {
-          o.setAttribute("aria-pressed", o === b ? "true" : "false");
-        });
+        buttons.forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
         paint(view, !reduce);
       });
     });
-    var fitRaf = 0;
+    var reflow = 0;
     window.addEventListener("resize", function () {
-      clearTimeout(fitRaf);
-      fitRaf = setTimeout(function () { fit(); paint(view, false); }, 120);
+      clearTimeout(reflow);
+      reflow = setTimeout(function () { paint(view, false); }, 120);
     });
   }
 
