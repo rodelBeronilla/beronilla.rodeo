@@ -169,13 +169,14 @@
   if (plot) {
     var now = new Date();
     var ORGS = [
-      { name: "High school", kind: "Study", c: 4, from: [2015, 1], to: [2015, 6] },
-      { name: "Ontario Tech", kind: "Study", c: 0, from: [2015, 9], to: [2020, 5] },
+      { name: "St. Brother Andre CHS", kind: "Study", c: 4, from: [2015, 1], to: [2015, 6] },
+      { name: "Ontario Tech University", kind: "Study", c: 0, from: [2015, 9], to: [2020, 5] },
       { name: "Celestica", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
-      { name: "Rogers", kind: "Employed", c: 2, from: [2020, 7], to: [2024, 10] },
-      { name: "TELUS Health", kind: "Employed", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
+      { name: "Rogers", kind: "Work", c: 2, from: [2020, 7], to: [2024, 10] },
+      { name: "TELUS Health", kind: "Work", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
     ];
     var MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
+    var MNAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     function covers(o, y, m) {
       var t = y * 12 + m, lo = o.from[0] * 12 + o.from[1], hi = o.to[0] * 12 + o.to[1];
       return t >= lo && t <= hi;
@@ -191,7 +192,8 @@
         org: lead ? lead.name : "Between",
         kind: lead ? lead.kind : "Between",
         c: lead ? lead.c : null,
-        both: on.length > 1
+        both: on.length > 1,
+        title: MNAMES[m - 1] + " " + y + ", " + (on.length ? on.map(function (o) { return o.name; }).join(" and ") : "between things")
       });
       m++; if (m > 12) { m = 1; y++; }
     }
@@ -214,36 +216,49 @@
       var d = document.createElement("i");
       d.className = "dot " + (r.c === null ? "cgap" : "c" + r.c) + (r.both ? " both" : "");
       d.setAttribute("aria-hidden", "true");
+      d.title = r.title;
       plot.appendChild(d);
       return d;
     });
     var labels = [], view = "year";
 
     function geom(name) {
-      var W = plot.clientWidth || 360;
-      var labelW = W < 420 ? 76 : 116;
-      var cols = VIEWS[name].cols;
-      var pitch = Math.max(9, Math.min(32, (W - labelW) / cols));
-      return { W: W, labelW: labelW, cols: cols, pitch: pitch, dot: Math.max(5, pitch * 0.46), gap: pitch * 0.5 };
+      var W = plot.clientWidth || 360, small = W < 420, pitch;
+      if (VIEWS[name].slot) {
+        var labelW = small ? 76 : 116;
+        pitch = Math.max(9, Math.min(32, (W - labelW) / 12));
+        return { W: W, labelW: labelW, cols: 12, pitch: pitch, dot: pitch * 0.46, labelH: 0, gap: 0 };
+      }
+      var cols = small ? 18 : 22;
+      pitch = Math.max(9, Math.min(32, W / cols));
+      return { W: W, labelW: 0, cols: cols, pitch: pitch, dot: pitch * 0.46, labelH: 20, gap: pitch * 0.6 };
     }
-    /* Lay the grouping out on paper first, then move every dot to where it belongs */
+    /* Lay the grouping out on paper first, then move every dot to where it belongs.
+       Grouped by year a row is one year and the label sits beside it; the other groupings
+       have names too long for a gutter, so their label sits above a full-width block. */
     function plan(name) {
-      var v = VIEWS[name], g = geom(name), axis = v.slot ? g.pitch : 0, y0 = axis, out = { g: g, axis: !!v.slot, groups: [], at: [] };
+      var v = VIEWS[name], g = geom(name), side = !!v.slot;
+      var y = side ? g.pitch : 0, out = { g: g, axis: side, groups: [], at: [] };
       v.keys.forEach(function (key) {
         var members = [];
         recs.forEach(function (r, i) { if (v.of(r) === key) members.push(i); });
         if (!members.length) return;
-        var lines = 1;
-        members.forEach(function (idx, n) {
-          var slot = v.slot ? v.slot(recs[idx]) : n % g.cols;
-          var line = v.slot ? 0 : Math.floor(n / g.cols);
-          lines = Math.max(lines, line + 1);
-          out.at[idx] = [g.labelW + (slot + 0.5) * g.pitch, y0 + (line + 0.5) * g.pitch];
-        });
-        out.groups.push({ text: String(key), count: members.length, y: y0 });
-        y0 += lines * g.pitch + (v.slot ? 0 : g.gap);
+        if (side) {
+          members.forEach(function (idx) {
+            out.at[idx] = [g.labelW + (v.slot(recs[idx]) + 0.5) * g.pitch, y + 0.5 * g.pitch];
+          });
+          out.groups.push({ text: String(key), count: members.length, top: y + g.pitch / 2 - 5 });
+          y += g.pitch;
+        } else {
+          out.groups.push({ text: String(key), count: members.length, top: y });
+          y += g.labelH;
+          members.forEach(function (idx, n) {
+            out.at[idx] = [(n % g.cols + 0.5) * g.pitch, y + (Math.floor(n / g.cols) + 0.5) * g.pitch];
+          });
+          y += Math.ceil(members.length / g.cols) * g.pitch + g.gap;
+        }
       });
-      out.height = y0 + (v.slot ? 0 : -g.gap);
+      out.height = side ? y : y - g.gap;
       return out;
     }
     function paint(name, animate) {
@@ -266,7 +281,7 @@
       p.groups.forEach(function (gr) {
         var el = document.createElement("div");
         el.className = "glabel";
-        el.style.top = Math.round(gr.y + g.pitch / 2 - 5) + "px";
+        el.style.top = Math.round(gr.top) + "px";
         el.appendChild(document.createTextNode(gr.text + " "));
         var c = document.createElement("span");
         c.textContent = String(gr.count);
