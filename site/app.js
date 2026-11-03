@@ -169,22 +169,27 @@
   if (plot) {
     var now = new Date();
     var ORGS = [
-      { name: "St. Brother Andre CHS", kind: "Study", c: 4, from: [2015, 1], to: [2015, 6] },
-      { name: "Ontario Tech University", kind: "Study", c: 0, from: [2015, 9], to: [2020, 4] },
-      { name: "Walmart Canada", kind: "Part-time work", c: 5, from: [2017, 5], to: [2018, 4] },
-      { name: "Celestica International", kind: "Internship", c: 1, from: [2018, 5], to: [2019, 8] },
-      { name: "Rogers Communications", kind: "Work", c: 2, from: [2020, 7], to: [2024, 10] },
-      { name: "TELUS Health Solutions", kind: "Work", c: 3, from: [2024, 11], to: [now.getFullYear(), now.getMonth() + 1] }
+      { name: "St. Brother Andre CHS", kind: "Study", c: 4, spans: [[[2015, 1], [2015, 6]]] },
+      /* the degree is its class terms, September to April; the summers in between were not school */
+      { name: "Ontario Tech University", kind: "Study", c: 0, spans: [[[2015, 9], [2016, 4]], [[2016, 9], [2017, 4]], [[2017, 9], [2018, 4]], [[2019, 9], [2020, 4]]] },
+      { name: "Walmart Canada", kind: "Part-time work", c: 5, spans: [[[2017, 5], [2018, 4]]] },
+      { name: "Celestica International", kind: "Internship", c: 1, spans: [[[2018, 5], [2019, 8]]] },
+      { name: "Rogers Communications", kind: "Work", c: 2, spans: [[[2020, 7], [2024, 10]]] },
+      { name: "TELUS Health Solutions", kind: "Work", c: 3, spans: [[[2024, 11], [now.getFullYear(), now.getMonth() + 1]]] }
     ];
     var MONTHS = ["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"];
     var MNAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     function covers(o, y, m) {
-      var t = y * 12 + m, lo = o.from[0] * 12 + o.from[1], hi = o.to[0] * 12 + o.to[1];
-      return t >= lo && t <= hi;
+      var t = y * 12 + m;
+      for (var i = 0; i < o.spans.length; i++) {
+        var s = o.spans[i];
+        if (t >= s[0][0] * 12 + s[0][1] && t <= s[1][0] * 12 + s[1][1]) return true;
+      }
+      return false;
     }
     /* Every calendar month is exactly one record. Where two things ran at once the month sits with
        the work and carries both colours, so each year still holds twelve dots. */
-    var recs = [], y = ORGS[0].from[0], m = ORGS[0].from[1];
+    var recs = [], y = ORGS[0].spans[0][0][0], m = ORGS[0].spans[0][0][1];
     while (y * 12 + m <= now.getFullYear() * 12 + now.getMonth() + 1) {
       var on = ORGS.filter(function (o) { return covers(o, y, m); });
       var lead = on.length ? on[on.length - 1] : null;
