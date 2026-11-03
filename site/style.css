@@ -338,7 +338,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 }
 
 @media (max-width: 68rem) {
-  .page.stage { padding: var(--page-pad) 0; }
+  .page.stage { padding: var(--page-pad) 0; scroll-snap-align: start; }
   .xp-stage { position: static; height: auto; margin-bottom: 0; padding: 0; grid-template-columns: minmax(0, 1fr); row-gap: 1.5rem; align-content: start; }
   .xp-stop, .rail, .cred-tag { display: none; }
   .js .xp-roles { gap: .75rem; }
