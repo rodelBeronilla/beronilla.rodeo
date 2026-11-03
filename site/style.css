@@ -252,31 +252,24 @@ html[data-theme="light"] .i-moon { display: block; }
 
 
 /* Kit: the facts an employer scans for */
-.kit { display: grid; gap: var(--s2); margin: var(--s2) 0 0; }
-.kit > div { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: var(--s3); padding-top: var(--s2); border-top: 1px solid var(--line); }
-.kit dt { font-size: var(--fs-sm); font-weight: 650; color: var(--muted); margin: 0; }
-.kit dd { margin: 0; color: var(--fg-2); font-size: var(--fs-2); }
-.certs { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--s2); }
-.certs li { display: grid; gap: .15rem; }
-.certs li + li { padding-top: var(--s2); border-top: 1px solid var(--line); }
-.certs sup { font-size: .7em; line-height: 0; }
-.certs strong { color: var(--fg); font-weight: 650; }
-.certs a { justify-self: start; }
-@media (max-width: 40rem) { .kit > div { grid-template-columns: 1fr; gap: .15rem; } }
 
 /* Path: a sequence, so a thread and a node per step */
 .tl { list-style: none; margin: 0; padding: 0; }
-.tl li { display: grid; grid-template-columns: 9.5rem 1fr; gap: 1.25rem; padding: var(--s3) 0 var(--s3) 1.6rem; border-top: 1px solid var(--line); position: relative; }
-.tl li:first-child { border-top: 0; padding-top: 0; }
-.tl li:last-child { padding-bottom: 0; }
-.tl li::before { content: ""; position: absolute; left: .2rem; top: 1.45rem; width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px oklch(from var(--accent) l c h / .16); }
-.tl li:first-child::before { top: .45rem; }
-.tl li::after { content: ""; position: absolute; left: .44rem; top: 2.3rem; bottom: -.3rem; width: 1px; background: var(--line-2); }
-.tl li:first-child::after { top: 1.3rem; }
-.tl li:last-child::after { display: none; }
+.tl > li { display: grid; grid-template-columns: 9.5rem 1fr; gap: 1.25rem; padding: var(--s3) 0 var(--s3) 1.6rem; border-top: 1px solid var(--line); position: relative; }
+.tl > li:first-child { border-top: 0; padding-top: 0; }
+.tl > li:last-child { padding-bottom: 0; }
+.tl > li::before { content: ""; position: absolute; left: .2rem; top: 1.45rem; width: .5rem; height: .5rem; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 4px oklch(from var(--accent) l c h / .16); }
+.tl > li:first-child::before { top: .45rem; }
+.tl > li::after { content: ""; position: absolute; left: .44rem; top: 2.3rem; bottom: -.3rem; width: 1px; background: var(--line-2); }
+.tl > li:first-child::after { top: 1.3rem; }
+.tl > li:last-child::after { display: none; }
 .tl-when { color: var(--muted); font-size: var(--fs-sm); font-weight: 600; padding-top: .2rem; }
 .tl-what p { color: var(--fg-2); font-size: var(--fs-2); }
-@media (max-width: 40rem) { .tl li { grid-template-columns: 1fr; gap: .15rem; } .tl-when { padding-top: 0; } }
+.tl-what sup { font-size: .7em; line-height: 0; }
+.tl-group { font-size: var(--fs-sm); font-weight: 650; color: var(--muted); margin: var(--s4) 0 var(--s2); }
+.skills { list-style: none; margin: .7rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }
+.skills li { font-size: var(--fs-sm); color: var(--fg-2); border: 1px solid var(--line-2); border-radius: 999px; padding: .15rem .65rem; }
+@media (max-width: 40rem) { .tl > li { grid-template-columns: 1fr; gap: .15rem; } .tl-when { padding-top: 0; } }
 
 /* How I work: a stated position, then why it matters */
 .rules { list-style: none; margin: 0; padding: 0; display: grid; }
@@ -453,18 +446,18 @@ html { scroll-snap-type: y proximity; }
   .sheet { margin: 0; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; backdrop-filter: none; }
   .sec { padding: .8rem 0; column-gap: 1.5rem; break-inside: avoid; grid-template-columns: 8rem 1fr; }
   .sec-head { position: static; }
-  .kicker, .kit dt, .tl-when { color: #666; }
+  .kicker, .tl-when { color: #666; }
   .statement, h3 { color: #111; }
   .lead { font-size: 12pt; color: #111; }
-  .sec-body > p:not(.lead):not(.statement), .xp-d, .tl-what p, .built p, .rules p, .kit dd { color: #222; }
+  .sec-body > p:not(.lead):not(.statement), .xp-d, .tl-what p, .built p, .rules p { color: #222; }
   .rules li { border-top-color: #ddd; padding: .5rem 0; break-inside: avoid; }
   .standards { border-top-color: #ddd; }
   .standards-label, .built-meta { color: #666; }
   .built li { border-top-color: #ddd; padding: .55rem 0; break-inside: avoid; }
   .sec-body > * { opacity: 1 !important; translate: none !important; }
   .xp-icon { border-color: #111; }
-  .tl li::before { background: #111; box-shadow: none; }
-  .tl li::after { background: #ccc; }
+  .tl > li::before { background: #111; box-shadow: none; }
+  .tl > li::after { background: #ccc; }
   .arrow { display: none; }
   a[href^="http"]::after { content: " " attr(href); font-size: 9pt; color: #555; font-weight: 400; }
   .statement-lg { font-size: 16pt; }
