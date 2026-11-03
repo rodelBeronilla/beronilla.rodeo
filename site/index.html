@@ -74,6 +74,7 @@
               <button type="button" data-view="org" aria-pressed="false">place</button>
               <button type="button" data-view="kind" aria-pressed="false">activity</button>
             </div>
+            <p class="pivot-hl" id="pivot-hl" aria-live="polite"></p>
           </figcaption>
           <div class="pivot-plot" id="pivot-plot"></div>
         </figure>
@@ -84,25 +85,25 @@
       <div class="page-in sec">
         <div class="sec-head"><h2 class="kicker">Principles</h2><p class="kicker-sub">Four, wherever I am.</p></div>
         <div class="sec-body">
-          <p class="statement">The data comes before the answer.</p>
+          <p class="statement statement-lg">The data comes before the answer.</p>
           <p class="lead">I go at a problem like a researcher. I’ll push an approach further than most people would, and when the evidence finally refuses, I stop arguing with it, ask the people around me and take another route.</p>
           <ul class="tenets">
-            <li>
+            <li tabindex="0">
               <h3>Say only what is true</h3>
               <p>Integrity and transparency, in practice. I say what I actually know, give credit where it belongs, and own my part when something goes wrong. If a claim needs stretching to sound good, it isn’t mine to make.</p>
               <p class="tenet-why">Trust is slow to earn and quick to lose, and I’d rather be believed than impressive.</p>
             </li>
-            <li>
+            <li tabindex="0">
               <h3>Get the question right</h3>
               <p>Context before action. I want to understand what’s really being asked, and why, before I commit to anything, and I’ll keep asking until it’s clear. Once it is, I’m all in.</p>
               <p class="tenet-why">Most wasted effort starts as a good answer to the wrong question.</p>
             </li>
-            <li>
+            <li tabindex="0">
               <h3>Start from the data</h3>
               <p>Curiosity with discipline. I’d rather sit with the evidence until the shape of a problem is obvious than defend a solution I reached for too early. When the data disagrees with me, the data wins.</p>
               <p class="tenet-why">Being right early feels good. Being right in the end is what actually helps anyone.</p>
             </li>
-            <li>
+            <li tabindex="0">
               <h3>Take something from everything</h3>
               <p>Every job, team and mistake leaves something worth keeping. I pay attention to what each one taught me and carry it into the next thing.</p>
               <p class="tenet-why">The parts that were uncomfortable at the time are the ones I still use.</p>
@@ -147,25 +148,25 @@
           <ul class="built">
             <li>
               <a href="https://fantasyscout.beronilla.rodeo/" target="_blank" rel="noopener noreferrer"><h3>FantasyScout<i class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></i></h3></a>
-              <p class="built-meta">Open source, MIT. <a href="https://github.com/rodelBeronilla/fantasyscout" target="_blank" rel="noopener noreferrer">Source</a></p>
+              <p class="built-meta"><i class="st st-live" aria-hidden="true"></i>Open source, MIT. <a href="https://github.com/rodelBeronilla/fantasyscout" target="_blank" rel="noopener noreferrer">Source</a></p>
               <p>I play fantasy basketball in both leagues and wanted better numbers than the apps hand you, so I built the data platform underneath. It pulls from public sources, checks what it pulls, and serves it in whatever form you want: a scouting board, a notebook, or a SQL console in the browser.</p>
               <ul class="skills" aria-label="Built with"><li>Python</li><li>dbt</li><li>Databricks</li><li>Delta Lake</li><li>Cloudflare</li><li>Astro</li><li>React</li><li>GitHub Actions</li></ul>
             </li>
             <li>
               <a href="https://volleyballtactics.beronilla.rodeo/" target="_blank" rel="noopener noreferrer"><h3>volleyball-tactics<i class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg></i></h3></a>
-              <p class="built-meta">Self-hosted, for my team</p>
+              <p class="built-meta"><i class="st st-live" aria-hidden="true"></i>Self-hosted, for my team</p>
               <p>I organise my volleyball team and was drawing the same six positions on scrap paper before every match. This replaced the paper: lineups, rotations and formations you can set up in a minute and share with the team.</p>
               <ul class="skills" aria-label="Built with"><li>React</li><li>Vite</li><li>Docker</li><li>Caddy</li></ul>
             </li>
             <li>
               <h3>NIST OSCAL assessment platform</h3>
-              <p class="built-meta">Planned. Nothing built yet</p>
+              <p class="built-meta"><i class="st st-plan" aria-hidden="true"></i>Planned. Nothing built yet</p>
               <p>Assessments still run on documents: a catalogue here, a plan there, evidence in a folder, results in a spreadsheet. I keep crosswalks between frameworks and gather the same evidence twice, and that only stays manual while a control is a paragraph instead of a record. OSCAL is the format that fixes it, and I want the tool built on it.</p>
               <ul class="skills" aria-label="Built on"><li>OSCAL</li><li>NIST SP 800-53</li><li>Python</li></ul>
             </li>
             <li>
               <h3>This site</h3>
-              <p class="built-meta">No frameworks, no build step, no trackers</p>
+              <p class="built-meta"><i class="st st-here" aria-hidden="true"></i>You are here</p>
               <p>I wanted a page that loads fast, is honest about what it loads, and says something true about me. The dots at the top are every month since 2015, grouped the way I’d pivot any dataset.</p>
               <ul class="skills" aria-label="Built with"><li>HTML</li><li>CSS</li><li>JavaScript</li><li>Caddy</li><li>Python</li></ul>
             </li>
@@ -176,21 +177,60 @@
 
     <section class="page" id="interests">
       <div class="page-in sec">
-        <div class="sec-head"><h2 class="kicker">Interests</h2><p class="kicker-sub">Off the clock.</p></div>
+        <div class="sec-head"><h2 class="kicker">Interests</h2><p class="kicker-sub">Each one goes deeper. Keep clicking.</p></div>
         <div class="sec-body">
-          <p class="lead">The short version of what I’m into.</p>
-          <ul class="facets">
-            <li>
-              <h3>Work</h3>
-              <p>Data engineering and analytics, AI security and governance, regulatory compliance, and the tooling that joins them up. That overlap is the part of the job I actually enjoy.</p>
+          <ul class="holes">
+            <li class="hole" data-depth="0">
+              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Volleyball</span><span class="hole-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
+              <ol class="hole-levels">
+                <li><div>I play outside hitter.</div></li>
+                <li><div>I also run my team’s lineups and rotations.</div></li>
+                <li><div>Which is why <a href="#projects">volleyball-tactics</a> exists.</div></li>
+              </ol>
             </li>
-            <li>
-              <h3>Sport</h3>
-              <p>I play volleyball as an outside hitter and run my team’s lineups. I watch basketball, the Raptors and the Tempo, and play fantasy in both leagues. Blue Jays for baseball, and the UFC and PFL for MMA.</p>
+            <li class="hole" data-depth="0">
+              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Basketball</span><span class="hole-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
+              <ol class="hole-levels">
+                <li><div>Raptors, and the Tempo.</div></li>
+                <li><div>Fantasy in both leagues, every season.</div></li>
+                <li><div>Enough that I built <a href="#projects">FantasyScout</a> to get better numbers than the apps give you.</div></li>
+              </ol>
             </li>
-            <li>
-              <h3>Elsewhere</h3>
-              <p>Street photography most of all, with portraits and landscapes when the mood strikes. Board games, and competitive shooters when there’s time. On screen: sci-fi and fantasy, crime and thrillers, comedy, action and horror.</p>
+            <li class="hole" data-depth="0">
+              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Photography</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
+              <ol class="hole-levels">
+                <li><div>Street, mostly.</div></li>
+                <li><div>Portraits and landscapes when the light is right.</div></li>
+              </ol>
+            </li>
+            <li class="hole" data-depth="0">
+              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Games</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
+              <ol class="hole-levels">
+                <li><div>Board games when there’s a table.</div></li>
+                <li><div>Competitive shooters when there isn’t.</div></li>
+              </ol>
+            </li>
+            <li class="hole" data-depth="0">
+              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Film and TV</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
+              <ol class="hole-levels">
+                <li><div>Sci-fi and fantasy, crime and thrillers.</div></li>
+                <li><div>Comedy, action and horror too. Not picky, just particular.</div></li>
+              </ol>
+            </li>
+            <li class="hole" data-depth="0">
+              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Baseball and fights</span><span class="hole-dots" aria-hidden="true"><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
+              <ol class="hole-levels">
+                <li><div>Blue Jays.</div></li>
+                <li><div>UFC and PFL.</div></li>
+              </ol>
+            </li>
+            <li class="hole" data-depth="0">
+              <button type="button" class="hole-top" aria-expanded="false"><span class="hole-name">Work, off the clock</span><span class="hole-dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="hole-hint" aria-hidden="true">deeper</span></button>
+              <ol class="hole-levels">
+                <li><div>Data pipelines, AI security and governance, compliance.</div></li>
+                <li><div>The tooling that ties those together is the part I actually enjoy.</div></li>
+                <li><div>The <a href="#projects">OSCAL platform</a> is where that’s headed.</div></li>
+              </ol>
             </li>
           </ul>
         </div>
@@ -207,9 +247,10 @@
             <div class="field"><label for="c-name">Name</label><input id="c-name" name="name" type="text" required autocomplete="name" maxlength="120"></div>
             <div class="field"><label for="c-email">Your email</label><input id="c-email" name="email" type="email" required autocomplete="email" maxlength="200"></div>
             <div class="field field-wide"><label for="c-msg">Message</label><textarea id="c-msg" name="message" required rows="5" maxlength="4000"></textarea></div>
+            <div class="field-foot"><div class="meter" aria-hidden="true"><i id="c-meter"></i></div><span class="count" id="c-count"></span></div>
             <div class="field hp" aria-hidden="true"><label for="c-site">Website</label><input id="c-site" name="website" type="text" tabindex="-1" autocomplete="off"></div>
             <div class="cta">
-              <button class="btn primary" type="submit">Send</button>
+              <button class="btn primary" type="submit" id="c-send">Send</button>
               <a class="btn" href="https://ca.linkedin.com/in/rodel-beronilla" rel="me">LinkedIn</a>
               <a class="btn" href="https://github.com/rodelBeronilla" rel="me">GitHub</a>
             </div>

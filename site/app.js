@@ -252,7 +252,8 @@
     function paint(name, animate) {
       var p = plan(name), g = p.g;
       if (!animate) plot.classList.add("no-anim");
-      plot.style.height = Math.round(p.height) + "px";
+      var tallest = Object.keys(VIEWS).reduce(function (h, k) { return Math.max(h, k === name ? p.height : plan(k).height); }, 0);
+      plot.style.height = Math.round(tallest) + "px";
       labels.forEach(function (el) { el.remove(); });
       labels = [];
       if (p.axis) {
@@ -297,6 +298,34 @@
         paint(view, !reduce);
       });
     });
+    var hl = document.getElementById("pivot-hl");
+    if (hl && window.matchMedia("(hover: hover)").matches) {
+      var tally = {};
+      recs.forEach(function (r) {
+        var k = r.c === null ? "gap" : "c" + r.c;
+        tally[k] = (tally[k] || 0) + 1;
+        if (r.both) { tally["c" + r.under] = (tally["c" + r.under] || 0) + 1; }
+      });
+      var names = { gap: "Between things" };
+      ORGS.forEach(function (o) { names["c" + o.c] = o.name; });
+      function keyOf(el) {
+        var d = el && el.closest ? el.closest(".dot") : null;
+        if (!d) return null;
+        var m = /(?:^|\s)c(\d)(?:\s|$)/.exec(d.className);
+        return m ? "c" + m[1] : "gap";
+      }
+      plot.addEventListener("pointerover", function (e) {
+        var k = keyOf(e.target);
+        if (!k) return;
+        plot.setAttribute("data-hl", k);
+        hl.textContent = names[k] + ", " + tally[k] + (tally[k] === 1 ? " month" : " months");
+      });
+      plot.addEventListener("pointerout", function (e) {
+        if (keyOf(e.relatedTarget)) return;
+        plot.removeAttribute("data-hl");
+        hl.textContent = "";
+      });
+    }
     var reflow = 0;
     window.addEventListener("resize", function () {
       clearTimeout(reflow);
@@ -336,6 +365,63 @@
     });
   }
 
+  /* Projects: a stack tag lights up everywhere it appears */
+  var built = document.querySelector("ul.built");
+  if (built) {
+    var tags = Array.prototype.slice.call(built.querySelectorAll(".skills li")), pinned = null;
+    var key = function (li) { return li.textContent.trim().toLowerCase(); };
+    var light = function (k) {
+      built.classList.toggle("tagging", !!k);
+      tags.forEach(function (li) { li.classList.toggle("lit", !!k && key(li) === k); });
+    };
+    tags.forEach(function (li) {
+      li.addEventListener("pointerenter", function () { if (!pinned) light(key(li)); });
+      li.addEventListener("pointerleave", function () { if (!pinned) light(null); });
+      li.addEventListener("click", function (e) {
+        e.stopPropagation();
+        pinned = pinned === key(li) ? null : key(li);
+        light(pinned);
+      });
+    });
+    document.addEventListener("click", function () { if (pinned) { pinned = null; light(null); } });
+  }
+
+  /* Contact: the message meter and a sending state on the button */
+  var msg = document.getElementById("c-msg"), meter = document.getElementById("c-meter"), count = document.getElementById("c-count");
+  if (msg && meter && count) {
+    var MAX = Number(msg.getAttribute("maxlength")) || 4000;
+    var measure = function () {
+      var n = msg.value.length;
+      meter.style.transform = "scaleX(" + Math.min(1, n / MAX).toFixed(3) + ")";
+      count.textContent = n >= MAX - 500 ? n + " / " + MAX : "";
+    };
+    msg.addEventListener("input", measure);
+    measure();
+  }
+  var mailform = document.querySelector(".mailform"), send = document.getElementById("c-send");
+  if (mailform && send) {
+    mailform.addEventListener("submit", function () {
+      send.textContent = "Sending";
+      send.setAttribute("aria-busy", "true");
+      send.classList.add("sending");
+    });
+  }
+
+  /* Each page settles in the first time it is seen */
+  var unseen = Array.prototype.slice.call(document.querySelectorAll(".page:not(.hero)"));
+  if ("IntersectionObserver" in window) {
+    var seer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        en.target.classList.add("seen");
+        seer.unobserve(en.target);
+      });
+    }, { threshold: 0.35 });
+    unseen.forEach(function (el) { seer.observe(el); });
+  } else {
+    unseen.forEach(function (el) { el.classList.add("seen"); });
+  }
+
   var printLink = document.getElementById("print-link");
   if (printLink) printLink.addEventListener("click", function () { window.print(); });
 
@@ -353,4 +439,20 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { toastEl.classList.remove("is-on"); }, 1800);
   }
+
+  /* Interests: each click goes one level deeper; at the bottom the next click closes it */
+  Array.prototype.forEach.call(document.querySelectorAll(".hole"), function (hole) {
+    var top = hole.querySelector(".hole-top"), levels = Array.prototype.slice.call(hole.querySelectorAll(".hole-levels > li")), dots = Array.prototype.slice.call(hole.querySelectorAll(".hole-dots i")), hint = hole.querySelector(".hole-hint");
+    var depth = 0, max = levels.length;
+    function show() {
+      levels.forEach(function (li, i) { li.classList.toggle("open", i < depth); });
+      dots.forEach(function (d, i) { d.classList.toggle("on", i < depth); });
+      hole.setAttribute("data-depth", String(depth));
+      hole.classList.toggle("bottom", depth === max);
+      top.setAttribute("aria-expanded", depth > 0 ? "true" : "false");
+      if (hint) hint.textContent = depth === max ? "that\u2019s the bottom" : (depth ? "deeper" : "open");
+    }
+    top.addEventListener("click", function () { depth = depth >= max ? 0 : depth + 1; show(); });
+    show();
+  });
 })();
