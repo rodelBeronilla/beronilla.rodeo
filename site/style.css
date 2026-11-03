@@ -404,6 +404,16 @@ html[data-theme="light"] .i-moon { display: block; }
 .notfound h1 { font-size: clamp(3rem, 12vw, 8rem); font-weight: 640; letter-spacing: -0.045em; line-height: .95; }
 .notfound p:not(.kicker) { color: var(--fg-2); font-size: var(--fs-tag); }
 
+/* Magnet scrolling: each section is one screen and the page settles on it */
+:root { --snap-pad: 6rem; }
+@media (max-width: 45.99rem) { :root { --snap-pad: 5rem; } }
+html { scroll-snap-type: y proximity; }
+@media (min-width: 46rem) and (min-height: 38rem) and (pointer: fine) { html { scroll-snap-type: y mandatory; } }
+.hero { scroll-snap-align: start; scroll-margin-top: 0; }
+.sec { min-height: calc(100svh - var(--snap-pad)); align-content: center; scroll-snap-align: start; }
+.sec-head { align-self: start; position: static; }
+.ground { scroll-snap-align: end; }
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
@@ -419,7 +429,8 @@ html[data-theme="light"] .i-moon { display: block; }
 @media print {
   @page { margin: 16mm; }
   * { animation: none !important; transition: none !important; }
-  html, html[data-theme="dark"], html[data-theme="light"] { color-scheme: light; scroll-padding-top: 0; }
+  html, html[data-theme="dark"], html[data-theme="light"] { color-scheme: light; scroll-padding-top: 0; scroll-snap-type: none; }
+  .sec { min-height: 0; }
   body { background: #fff; color: #111; font-size: 11pt; line-height: 1.4; }
   .field-bg, .top, .dock, .cmdk, .field-hint, .scroll-hint, .grain, .toast, .linkish, .hero .cta, .pulse, .kicker-sub, .foot-print { display: none !important; }
   .hero { min-height: 0; padding: 0; display: block; overflow: visible; }
