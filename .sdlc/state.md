@@ -1,6 +1,6 @@
 # Project State — webapp-hosting
 
-Last updated: 2026-11-03 (v12 live; relay connected; security pass)
+Last updated: 2026-11-04 (v13 live: views, no page scrolling, responsive pass)
 
 ## Vision
 
@@ -30,7 +30,7 @@ DNS at Cloudflare. As of 2026-11-03 the apex is **proxied** (orange cloud): resp
 
 ## Active Sprint
 
-v12 is in production (2026-11-03). Six sections, each sized to one viewport with mandatory scroll snapping and arrow-key paging: Hero with the month pivot, Principles, Experience (roles two-up, education and certifications beside), Projects (FantasyScout, the planned OSCAL platform, this site), Interests, Contact. The contact form posts to the relay; the address is nowhere in the page, the structured data or the command menu. Mobile navigation is the top-bar Menu opening the command palette; the bottom dock is gone.
+v13 is in production (2026-11-04). The six sections are views: one on screen at a time, switched by the nav, the keyboard (arrows, page keys), the wheel (one view per flick) and horizontal swipes; a long view scrolls inside itself and the document never scrolls. Experience is a stepper (Earlier/Later, rail dots, Up/Down). Interests float and bounce. Phones get a pull-down full-screen menu from the top bar and a swipe strip with position dots; the phone treatment applies under 896 px or on any touch-first device because the owner's phone renders at roughly 750 CSS px. Responsive pass verified at 360×640 through 1440×900 including 750×1400 and phone landscape.
 
 ## Milestones
 
@@ -43,6 +43,7 @@ v12 is in production (2026-11-03). Six sections, each sized to one viewport with
 | Site v12, career reference applied, Principles, Interests, contact relay | Done (2026-11-03) |
 | Contact relay connected to an inbox | Done (2026-11-03), delivery proven |
 | Security pass: fail-closed Origin check, socket timeout, CSP without font hosts, repo mirror of the vhost | Done (2026-11-03) |
+| Site v13, views instead of scrolling, pull-down menu, swipe strip, responsive matrix | Done (2026-11-04) |
 | GitHub repo baseline (branch protection, Dependabot, CODEOWNERS) | Dependabot active; protection not configured |
 
 ## Remote
@@ -55,7 +56,7 @@ Public at https://github.com/rodelBeronilla/beronilla.rodeo. Commits go straight
 
 ## Tech Debt
 
-- Experience and the hero overflow one screen on phones and at 1024×768; accepted rather than cutting content.
+- Projects scrolls inside its view on phones; phone landscape scrolls inside every view. Accepted.
 - plex-stack's Caddyfile carries another session's uncommitted volleyball vhost hunk; this repo's route was committed on its own (plex-stack 79abedb). Pushing plex-stack is the gate session's job.
 
 ## Next Actions
