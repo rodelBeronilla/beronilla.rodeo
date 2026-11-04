@@ -435,6 +435,7 @@
     function avail() {
       if (!heroPage || !heroPage.clientHeight) return Infinity;
       var cs = getComputedStyle(heroPage), room = heroPage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      var pin = heroPage.querySelector(".page-in"); if (pin) { var ps = getComputedStyle(pin); room -= parseFloat(ps.paddingTop) + parseFloat(ps.paddingBottom); }
       room -= fig.offsetHeight - plot.offsetHeight;
       var stacked = heroInner && fig.getBoundingClientRect().top >= heroInner.getBoundingClientRect().bottom - 1;
       if (stacked) room -= heroInner.offsetHeight + (parseFloat(getComputedStyle(heroGrid).rowGap) || 0);
@@ -492,7 +493,7 @@
       }); });
     }
     if (heroPage) heroPage.addEventListener("viewshow", function () { if (unspooled) paint(view, false); else unspool(); });
-    document.addEventListener("a11ychange", function (e) { if (e.detail.on && !unspooled) { unspooled = true; paint(view, false); plot.classList.add("is-in"); } });
+    document.addEventListener("a11ychange", function (e) { if (!unspooled) { unspooled = true; plot.classList.add("is-in"); } paint(view, false); });
     if (unspooled) requestAnimationFrame(function () { plot.classList.add("is-in"); });
     else if (heroPage && heroPage.classList.contains("on")) unspool();
 
@@ -511,6 +512,7 @@
       ORGS.forEach(function (o) { var li = document.createElement("li"), sw = document.createElement("i"); sw.className = "sw c" + o.c; li.appendChild(sw); li.appendChild(document.createTextNode(o.name)); key.appendChild(li); });
       var gli = document.createElement("li"), gsw = document.createElement("i"); gsw.className = "sw cgap"; gli.appendChild(gsw); gli.appendChild(document.createTextNode("Between things")); key.appendChild(gli);
       var ctrlEl = document.querySelector(".pivot-ctrl"); if (ctrlEl) ctrlEl.parentNode.insertBefore(key, ctrlEl.nextSibling);
+      if (a11yOn()) paint(view, false);
     })();
     var hl = document.getElementById("pivot-hl");
     if (hl && window.matchMedia("(hover: hover)").matches) {
@@ -679,7 +681,7 @@
       if (!howPage.classList.contains("on")) return;
       tenets.classList.remove("fold");
       tenetItems.forEach(function (li) { li.classList.remove("open"); });
-      if (!a11yOn() && howPage.scrollHeight > howPage.clientHeight + 2) tenets.classList.add("fold");
+      if (howPage.scrollHeight > howPage.clientHeight + 2) tenets.classList.add("fold");
     };
     tenetItems.forEach(function (li) {
       li.addEventListener("click", function () {
