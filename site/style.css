@@ -494,7 +494,8 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .sheet-list li.cur button { color: var(--accent); }
   .sheet-close { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 1rem 0 calc(1.2rem + env(safe-area-inset-bottom, 0)); font: .75rem var(--mono); color: var(--muted); }
   .sheet-close i { width: 2.2rem; height: 4px; border-radius: 2px; background: var(--line-2); }
-  .a11y { display: none; }
+  .a11y { left: calc(.75rem + env(safe-area-inset-left, 0)); bottom: calc(3rem + .6rem + env(safe-area-inset-bottom, 0)); padding: 3px 12px 3px 4px; }
+  .a11y .a11y-switch { font-size: .68rem; }
   .sheet .a11y-switch { display: flex; justify-content: center; padding: .9rem 0 .2rem; font-size: .8rem; border-top: 1px solid var(--line); }
   .js .swipe { display: flex; align-items: center; justify-content: center; gap: .6rem; flex: none; height: 3rem; padding-bottom: env(safe-area-inset-bottom, 0); border-top: 1px solid var(--line); background: var(--bg); font: .7rem var(--mono); color: var(--muted); }
   .swipe-dots { display: flex; gap: .35rem; }
