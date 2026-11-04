@@ -28,7 +28,7 @@ html[data-theme="light"] { color-scheme: light; }
 html[data-theme="dark"]  { color-scheme: dark; }
 *, *::before, *::after { box-sizing: inherit; }
 
-html { background: var(--bg); scroll-padding-top: var(--top-h); scroll-snap-type: y mandatory; -webkit-text-size-adjust: 100%; }
+html { background: var(--bg); -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
   font: clamp(1rem, .25vw + .95rem, 1.1rem)/1.6 var(--sans);
@@ -62,17 +62,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .theme-btn svg { width: 1.2rem; height: 1.2rem; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none; }
 
-/* one screen per section */
-.page {
-  min-height: calc(100svh - var(--top-h));
-  display: flex; align-items: center;
-  padding: var(--page-pad) 0;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  border-top: 1px solid var(--line-2);
-}
-.page:first-of-type { border-top: 0; scroll-margin-top: 0; }
-.page-in { width: var(--wrap); margin: 0 auto; padding: 0 var(--gutter); }
+/* one view at a time; a view taller than the screen scrolls inside itself, the document never does */
+.page { display: flex; padding: var(--page-pad) 0; border-top: 1px solid var(--line-2); }
+.page:first-of-type { border-top: 0; }
+.page-in { width: var(--wrap); margin: auto; padding: 0 var(--gutter); }
+.js body { height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.js main { flex: 1; min-height: 0; }
+.js .page { display: none; height: 100%; overflow-y: auto; overflow-x: hidden; border-top: 0; }
+.js .page.on { display: flex; }
 
 /* hero */
 .hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 34rem); gap: clamp(2rem, 4vh, 3.5rem) clamp(2rem, 5vw, 5rem); align-items: center; }
@@ -204,11 +201,16 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .mailform .cta { margin-top: .25rem; }
 @media (max-width: 44rem) { .mailform { grid-template-columns: minmax(0, 1fr); } }
 
-/* experience: a stage that pins while four stops scroll past, one role each, oldest first */
-.page.stage { position: relative; display: block; min-height: 0; padding: 0; scroll-snap-align: none; }
-.xp-stage { position: sticky; top: var(--top-h); height: calc(100svh - var(--top-h)); display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1.5fr) minmax(0, 1fr); column-gap: clamp(1.5rem, 4vw, 4rem); align-items: center; padding-top: var(--page-pad); padding-bottom: var(--page-pad); }
-.xp-stop { height: calc(100svh - var(--top-h)); scroll-snap-align: start; scroll-snap-stop: always; }
-.xp-stop[data-i="0"] { position: absolute; top: 0; left: 0; right: 0; }
+/* experience: one role at a time, oldest first, stepped through */
+.xp-stage { display: grid; grid-template-columns: minmax(8rem, 12rem) minmax(0, 1.5fr) minmax(0, 1fr); grid-template-rows: auto auto; column-gap: clamp(1.5rem, 4vw, 4rem); row-gap: 1.25rem; align-content: center; align-items: center; }
+.xp-head { grid-column: 1; grid-row: 1 / 3; }
+.xp-side { grid-column: 3; grid-row: 1 / 3; }
+.xp-roles { grid-column: 2; grid-row: 1; align-self: end; }
+.xp-nav { grid-column: 2; grid-row: 2; align-self: start; display: flex; align-items: center; gap: .5rem; }
+.xp-nav .btn { min-height: 2.25rem; padding: 0 .8rem; font-size: .85rem; }
+.xp-nav .btn:disabled { opacity: .4; cursor: default; }
+.xp-pos { font: .75rem var(--mono); color: var(--muted); margin-left: .25rem; }
+.no-js .xp-nav { display: none; }
 .xp-head { align-self: center; display: grid; gap: 1.5rem; }
 .rail { position: relative; display: grid; gap: 1.6rem; width: 12px; padding: 2px 0; }
 .rail-line, .rail-fill { position: absolute; left: 5px; top: 6px; bottom: 6px; width: 2px; background: var(--line-2); }
@@ -231,8 +233,8 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .cred-tag { display: none; font: .68rem var(--mono); color: var(--muted); border: 1px solid var(--line-2); border-radius: 3px; padding: .1rem .35rem; margin-left: .4rem; vertical-align: middle; }
 .cred.pending > .tl-when > .cred-tag { display: inline-block; }
 .honours { margin-top: .3rem; }
-.no-js .xp-stage { position: static; height: auto; grid-template-columns: minmax(0, 1fr); row-gap: 1.5rem; }
-.no-js .xp-stop, .no-js .rail, .no-js .cred-tag { display: none; }
+.no-js .xp-stage { grid-template-columns: minmax(0, 1fr); row-gap: 1.5rem; }
+.no-js .rail, .no-js .cred-tag { display: none; }
 .no-js .xp-roles { display: grid; gap: .75rem; }
 .xp-block > .kicker { margin-bottom: .6rem; }
 .tl-role { color: var(--fg-2); font-size: .88rem; line-height: 1.4; }
@@ -357,7 +359,8 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 }
 
 @media (max-width: 68rem) {
-  .xp-stage { grid-template-columns: minmax(0, 1fr); row-gap: clamp(.8rem, 2vh, 1.25rem); align-content: center; overflow: hidden; padding-top: clamp(.75rem, 2vh, 1.25rem); padding-bottom: clamp(.75rem, 2vh, 1.25rem); }
+  .xp-stage { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; row-gap: clamp(.8rem, 2vh, 1.25rem); }
+  .xp-head, .xp-side, .xp-roles, .xp-nav { grid-column: auto; grid-row: auto; align-self: auto; }
   .xp-head .kicker-sub { display: none; }
   .xp-roles .tl-what .tl-role + p { font-size: .92rem; line-height: 1.5; }
   .xp-side { gap: .8rem; }
@@ -376,7 +379,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 @media (max-width: 68rem) and (max-height: 760px) {
   .xp-roles .tl-what .tl-role + p { font-size: .86rem; line-height: 1.45; }
   #education .tl-what > p { display: none; }
-  .xp-stage { row-gap: .5rem; padding-top: .4rem; padding-bottom: .4rem; }
+  .xp-stage { row-gap: .5rem; }
   .xp-side { gap: .5rem; padding-top: .6rem; }
   .xp-side .tl > li { padding-top: .3rem; }
   .xp-roles .skills { margin-top: .5rem; }
@@ -396,6 +399,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   .topnav, .cmd-key { display: none; }
   .top-actions { margin-left: auto; }
   .page { padding: clamp(2rem, 6vw, 3rem) 0; }
+  #experience { padding: .75rem 0; }
   .sec { grid-template-columns: minmax(0, 1fr); row-gap: 1.25rem; }
   .meta-full { display: none; }
   .meta-short { display: block; }
@@ -437,14 +441,16 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 
 @media print {
   @page { margin: 16mm; }
-  html, html[data-theme="dark"], html[data-theme="light"] { color-scheme: light; scroll-snap-type: none; }
+  html, html[data-theme="dark"], html[data-theme="light"] { color-scheme: light; }
+  .js body { overflow: visible; }
+  .js .page { display: block; height: auto; overflow: visible; }
   body { font-size: 11pt; line-height: 1.4; }
   .top, .cmdk, .toast, .linkish, .hero .cta, .kicker-sub, .foot-print, .pivot-ctrl, .pivot-plot, .pivot-hl, .field-foot { display: none !important; }
   .page .sec-head, .page .sec-body > * { opacity: 1 !important; transform: none !important; }
   .tenet-why { max-height: none !important; opacity: 1 !important; margin-top: .6rem !important; }
   .tenets > li { opacity: 1 !important; }
-  .xp-stage { position: static; height: auto; display: block; }
-  .xp-stop, .rail, .cred-tag, .focus, .nav-ind { display: none !important; }
+  .xp-stage { display: block; }
+  .rail, .xp-nav, .cred-tag, .focus, .nav-ind { display: none !important; }
   .js .xp-roles > li { position: static; grid-area: auto; opacity: 1; visibility: visible; }
   .xp-roles { display: grid; gap: .75rem; }
   .cred.pending { opacity: 1; }
@@ -453,6 +459,6 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   .js .node-levels { display: block; padding-left: .9rem; }
   .st { animation: none !important; transform: none !important; }
   .statement .w { opacity: 1 !important; transform: none !important; animation: none !important; }
-  .page { min-height: 0; padding: .75rem 0; break-inside: avoid; display: block; border-top: 0; }
+  .page { padding: .75rem 0; break-inside: avoid; display: block; border-top: 0; }
   a { text-decoration: none; }
 }
