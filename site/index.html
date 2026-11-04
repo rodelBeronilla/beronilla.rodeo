@@ -54,6 +54,7 @@
     <div class="sheet-in">
       <p class="sheet-title">Menu</p>
       <ul class="sheet-list" id="sheet-list"></ul>
+      <label class="a11y-switch" for="a11y-switch-m"><span class="a11y-status"><span data-a11y-status aria-hidden="true">Off</span><input id="a11y-switch-m" data-a11y-switch type="checkbox" role="switch" aria-checked="false" aria-label="Accessibility mode"></span><span aria-hidden="true">Accessibility mode</span></label>
       <button class="sheet-close" id="sheet-close" type="button"><i></i>Pull up to close</button>
     </div>
   </div>
@@ -240,13 +241,7 @@
       </footer>
     </section>
   </main>
-  <div class="settings" id="settings">
-    <ul class="settings-rows" id="settings-rows">
-      <li class="srow"><button class="pill" id="set-a11y" type="button" aria-pressed="false">Off</button><span>Accessibility mode</span></li>
-      <li class="srow"><button class="pill" id="set-theme" type="button" aria-label="Theme: Auto">Auto</button><span>Theme</span></li>
-    </ul>
-    <div class="srow bar"><button class="pill" id="set-open" type="button" aria-expanded="false" aria-controls="settings-rows">Open</button><span>Site settings</span></div>
-  </div>
+  <nav class="a11y" aria-label="Accessibility controls"><label class="a11y-switch" for="a11y-switch"><span class="a11y-status"><span data-a11y-status aria-hidden="true">Off</span><input id="a11y-switch" data-a11y-switch type="checkbox" role="switch" aria-checked="false" aria-label="Accessibility mode"></span><span aria-hidden="true">Accessibility mode</span></label></nav>
   <nav class="swipe" id="swipe" aria-label="Views">
     <i class="chev" aria-hidden="true"></i>
     <ol class="swipe-dots" id="swipe-dots"></ol>

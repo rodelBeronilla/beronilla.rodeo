@@ -21,15 +21,17 @@
   }
   lightMq.addEventListener("change", function () { if (themePref() === "auto") osTheme(); });
 
-  /* Site settings: a bar at the bottom left that opens into rows */
-  var settings = document.getElementById("settings"), setA11y = document.getElementById("set-a11y"), setTheme = document.getElementById("set-theme"), setOpen = document.getElementById("set-open");
-  var setRows = settings ? Array.prototype.slice.call(settings.querySelectorAll(".settings-rows .srow")) : [];
-  var EASE = "cubic-bezier(.2,.75,.25,1)";
+  /* Accessibility switch: the pill at the bottom left (desktop) and the same switch inside the phone menu */
+  var a11yInputs = Array.prototype.slice.call(document.querySelectorAll("input[data-a11y-switch]"));
   var a11yAction = { t: "Accessibility mode: off", k: "appearance", run: function () { toggleA11y(); } };
-  var settingsAction = { t: "Site settings", k: "appearance", run: function () { openSettings(); } };
+  var themeAction = { t: "Theme: Auto", k: "appearance", run: function () { var p = themePref(); applyThemePref(p === "auto" ? "light" : p === "light" ? "dark" : "auto"); } };
   function syncA11y() {
     var on = a11yOn();
-    if (setA11y) { setA11y.textContent = on ? "On" : "Off"; setA11y.setAttribute("aria-pressed", on ? "true" : "false"); setA11y.classList.toggle("set", on); }
+    a11yInputs.forEach(function (i) {
+      i.checked = on; i.setAttribute("aria-checked", on ? "true" : "false");
+      i.parentNode.classList.toggle("is-checked", on);
+      var st = i.parentNode.querySelector("[data-a11y-status]"); if (st) st.textContent = on ? "On" : "Off";
+    });
     a11yAction.t = "Accessibility mode: " + (on ? "on" : "off");
     if (a11yAction.btn) a11yAction.btn.firstChild.textContent = a11yAction.t;
     paintChrome();
@@ -44,45 +46,17 @@
     document.dispatchEvent(new CustomEvent("a11ychange", { detail: { on: on } }));
   }
   function syncTheme() {
-    if (!setTheme) return;
-    var p = themePref(), label = p === "light" ? "Light" : p === "dark" ? "Dark" : "Auto";
-    setTheme.textContent = label; setTheme.setAttribute("aria-label", "Theme: " + label); setTheme.classList.toggle("set", p !== "auto");
+    var p = themePref();
+    themeAction.t = "Theme: " + (p === "light" ? "Light" : p === "dark" ? "Dark" : "Auto");
+    if (themeAction.btn) themeAction.btn.firstChild.textContent = themeAction.t;
   }
   function applyThemePref(p) {
     if (p === "auto") { try { localStorage.removeItem("theme"); } catch (e) { /* ignore */ } osTheme(); }
     else { root.setAttribute("data-theme", p); try { localStorage.setItem("theme", p); } catch (e) { /* ignore */ } paintChrome(); }
     syncTheme();
   }
-  var settingsOpen = false;
-  function openSettings() {
-    if (!settings || settingsOpen) return;
-    settingsOpen = true;
-    settings.classList.add("open");
-    setOpen.textContent = "Close"; setOpen.setAttribute("aria-expanded", "true"); setOpen.classList.add("set");
-    if (!reduce && setRows[0] && setRows[0].animate) setRows.slice().reverse().forEach(function (r, i) {
-      r.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 160, delay: i * 40, easing: EASE, fill: "backwards" });
-    });
-    setRows[0].querySelector(".pill").focus({ preventScroll: true });
-  }
-  function closeSettings() {
-    if (!settings || !settingsOpen) return;
-    settingsOpen = false;
-    setOpen.textContent = "Open"; setOpen.setAttribute("aria-expanded", "false"); setOpen.classList.remove("set");
-    if (reduce || !setRows[0] || !setRows[0].animate) { settings.classList.remove("open"); return; }
-    var last = null;
-    setRows.forEach(function (r, i) {
-      last = r.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(8px)" }], { duration: 140, delay: i * 40, easing: EASE, fill: "forwards" });
-    });
-    last.onfinish = function () { settings.classList.remove("open"); setRows.forEach(function (r) { r.getAnimations().forEach(function (a) { a.cancel(); }); }); };
-  }
-  if (settings) {
-    setOpen.addEventListener("click", function () { if (settingsOpen) { closeSettings(); setOpen.focus({ preventScroll: true }); } else openSettings(); });
-    setA11y.addEventListener("click", toggleA11y);
-    setTheme.addEventListener("click", function () { var p = themePref(); applyThemePref(p === "auto" ? "light" : p === "light" ? "dark" : "auto"); });
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && settingsOpen) { closeSettings(); setOpen.focus({ preventScroll: true }); } });
-    document.addEventListener("click", function (e) { if (settingsOpen && !settings.contains(e.target)) closeSettings(); });
-    syncA11y(); syncTheme();
-  }
+  a11yInputs.forEach(function (i) { i.addEventListener("change", function () { if (i.checked !== a11yOn()) toggleA11y(); }); });
+  syncA11y(); syncTheme();
   paintChrome();
   /* The key cap says what the keyboard actually has */
   var keyCap = document.getElementById("cmd-key");
@@ -181,7 +155,7 @@
     { t: "Interests", k: "section", run: function () { go("interests"); } },
     { t: "Send a message", k: "section", run: function () { go("contact"); } },
     a11yAction,
-    settingsAction,
+    themeAction,
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
@@ -536,11 +510,11 @@
   if (sheet && sheetList && topBar) {
     var sheetItems = [];
     actions.forEach(function (a) {
-      if (a.t === "Back to top" || a.k === "link" && a.t.indexOf("Copy") === 0) return;
+      if (a.t === "Back to top" || a === a11yAction || a.k === "link" && a.t.indexOf("Copy") === 0) return;
       var li = document.createElement("li"), b = document.createElement("button"), s = document.createElement("small");
       b.type = "button"; b.textContent = a.t; s.textContent = a.k; b.appendChild(s);
       b.addEventListener("click", function () { closeSheet(); setTimeout(a.run, 60); });
-      li.appendChild(b); sheetList.appendChild(li); sheetItems.push({ li: li, t: a.t }); if (a === a11yAction) a11yAction.btn = b;
+      li.appendChild(b); sheetList.appendChild(li); sheetItems.push({ li: li, t: a.t }); if (a === a11yAction) a11yAction.btn = b; if (a === themeAction) themeAction.btn = b;
     });
     var sheetOpen = false, pullY = null, pullDy = 0, pushY = null, pushDy = 0;
     function markSheet() {
