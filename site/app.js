@@ -63,15 +63,39 @@
     dir = dir || (idx > current ? 1 : -1);
     current = idx;
     views.forEach(function (v, i) { v.classList.toggle("on", i === idx); });
+    if (prev) prev.classList.remove("seen");
     next.scrollTop = 0;
-    next.classList.add("seen");
     setCurrent(groups[next.id] ? next.id : null);
-    if (next.id === "how" && firstHow && riseWords) { firstHow = false; riseWords(); }
+    markSwipe(!!prev);
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      if (views[current] !== next) return;
+      next.classList.add("seen");
+      if (next.id === "how" && firstHow && riseWords) { firstHow = false; riseWords(); }
+    }); });
     if (prev && !reduce && next.animate) {
       switching = true;
       next.animate([{ opacity: 0, transform: "translateX(" + (28 * dir) + "px)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "cubic-bezier(.2,.75,.25,1)" }).onfinish = function () { switching = false; };
     }
     next.dispatchEvent(new CustomEvent("viewshow"));
+  }
+  var swipe = document.getElementById("swipe"), swipeDots = document.getElementById("swipe-dots"), swipeTxt = document.getElementById("swipe-txt"), swipeBtns = [];
+  if (swipe && swipeDots) {
+    var swiped = false;
+    try { swiped = localStorage.getItem("swiped") === "1"; } catch (e) { /* ignore */ }
+    views.forEach(function (v, i) {
+      var li = document.createElement("li"), b = document.createElement("button");
+      b.type = "button"; b.setAttribute("aria-label", v.id === "top" ? "Top" : v.querySelector(".kicker").textContent);
+      b.addEventListener("click", function () { go(v.id); });
+      li.appendChild(b); swipeDots.appendChild(li); swipeBtns.push(b);
+    });
+    if (swiped) swipeTxt.hidden = true; else swipe.classList.add("nudge");
+  }
+  function markSwipe(moved) {
+    swipeBtns.forEach(function (b, i) { if (i === current) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
+    if (moved && swipeTxt && !swipeTxt.hidden) {
+      swipeTxt.hidden = true;
+      try { localStorage.setItem("swiped", "1"); } catch (e) { /* ignore */ }
+    }
   }
   function idxOf(hash) { var i = viewIds.indexOf((hash || "").replace(/^#/, "")); return i; }
   function go(id) {
@@ -281,22 +305,26 @@
       a.onfinish = function () { d.style.transform = tf(to[0], to[1], to[2]); a.cancel(); if (anims[i] === a) anims[i] = null; };
     }
 
-    function geom(name) {
+    function geom(name, cap) {
       var W = plot.clientWidth || 360, small = W < 420, pitch;
       if (VIEWS[name].slot) {
         var labelW = small ? 76 : 116;
-        pitch = Math.max(9, Math.min(32, (W - labelW) / 12));
+        pitch = Math.max(7, Math.min(cap, (W - labelW) / 12));
         return { W: W, labelW: labelW, cols: 12, pitch: pitch, dot: pitch * 0.46, labelH: 0, gap: 0 };
       }
-      var cols = small ? 18 : 22;
-      pitch = Math.max(9, Math.min(32, W / cols));
+      if (small) {
+        pitch = Math.max(7, Math.min(cap, (W - 96) / 18));
+        return { W: W, labelW: 96, cols: Math.max(6, Math.floor((W - 96) / pitch)), pitch: pitch, dot: pitch * 0.46, labelH: 0, gap: pitch * 0.5, beside: true };
+      }
+      var cols = 22;
+      pitch = Math.max(7, Math.min(cap, W / cols));
       return { W: W, labelW: 0, cols: cols, pitch: pitch, dot: pitch * 0.46, labelH: 20, gap: pitch * 0.6 };
     }
     /* Lay the grouping out on paper first, then move every dot to where it belongs.
        Grouped by year a row is one year and the label sits beside it; the other groupings
        have names too long for a gutter, so their label sits above a full-width block. */
-    function plan(name) {
-      var v = VIEWS[name], g = geom(name), side = !!v.slot;
+    function plan(name, cap) {
+      var v = VIEWS[name], g = geom(name, cap || 32), side = !!v.slot;
       var y = side ? g.pitch : 0, out = { g: g, axis: side, groups: [], at: [] };
       v.keys.forEach(function (key) {
         var members = [];
@@ -308,6 +336,12 @@
           });
           out.groups.push({ text: String(key), count: members.length, top: y + g.pitch / 2 - 5 });
           y += g.pitch;
+        } else if (g.beside) {
+          out.groups.push({ text: String(key), count: members.length, top: y + g.pitch / 2 - 5, beside: true });
+          members.forEach(function (idx, n) {
+            out.at[idx] = [g.labelW + (n % g.cols + 0.5) * g.pitch, y + (Math.floor(n / g.cols) + 0.5) * g.pitch];
+          });
+          y += Math.ceil(members.length / g.cols) * g.pitch + g.gap;
         } else {
           out.groups.push({ text: String(key), count: members.length, top: y });
           y += g.labelH;
@@ -320,10 +354,26 @@
       out.height = side ? y : y - g.gap;
       return out;
     }
+    var heroPage = document.getElementById("top"), heroGrid = document.querySelector(".hero-grid"), heroInner = document.querySelector(".hero-inner"), fig = document.getElementById("pivot");
+    /* The room the plot has: the hero's height less what sits above and beside it */
+    function avail() {
+      if (!heroPage || !heroPage.clientHeight) return Infinity;
+      var cs = getComputedStyle(heroPage), room = heroPage.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      room -= fig.offsetHeight - plot.offsetHeight;
+      var stacked = heroInner && fig.getBoundingClientRect().top >= heroInner.getBoundingClientRect().bottom - 1;
+      if (stacked) room -= heroInner.offsetHeight + (parseFloat(getComputedStyle(heroGrid).rowGap) || 0);
+      return Math.max(80, room - 2);
+    }
+    function tallestAt(cap) {
+      var t = { h: 0, pitch: cap };
+      Object.keys(VIEWS).forEach(function (k) { var q = plan(k, cap); if (q.height > t.h) { t.h = q.height; t.pitch = q.g.pitch; } });
+      return t;
+    }
     function paint(name, animate) {
-      var p = plan(name), g = p.g;
-      var tallest = Object.keys(VIEWS).reduce(function (h, k) { return Math.max(h, k === name ? p.height : plan(k).height); }, 0);
-      plot.style.height = Math.round(tallest) + "px";
+      var cap = 32, t = tallestAt(cap), room = avail(), n = 0;
+      while (t.h > room && cap > 7 && n++ < 5) { cap = Math.max(7, Math.floor(t.pitch * room / t.h)); t = tallestAt(cap); }
+      var p = plan(name, cap), g = p.g;
+      plot.style.height = Math.round(t.h) + "px";
       labels.forEach(function (el) { el.remove(); });
       labels = [];
       if (p.axis) {
@@ -338,13 +388,12 @@
         });
       }
       p.groups.forEach(function (gr) {
-        var el = document.createElement("div");
-        el.className = "glabel";
+        var el = document.createElement("div"), c = document.createElement("span");
+        el.className = gr.beside ? "glabel side" : "glabel";
         el.style.top = Math.round(gr.top) + "px";
-        el.appendChild(document.createTextNode(gr.text + " "));
-        var c = document.createElement("span");
         c.textContent = String(gr.count);
-        el.appendChild(c);
+        if (gr.beside) { el.title = gr.text + ", " + gr.count; el.appendChild(c); el.appendChild(document.createTextNode(gr.text)); }
+        else { el.appendChild(document.createTextNode(gr.text + " ")); el.appendChild(c); }
         plot.appendChild(el);
         labels.push(el);
       });
@@ -354,19 +403,21 @@
       });
     }
     paint(view, false);
-    var hero = document.getElementById("top");
-    if (hero) hero.addEventListener("viewshow", function () { paint(view, false); });
     /* First sight: every month starts where now is, then the timeline unspools backwards from it */
-    if (!reduce && typeof nodes[0].animate === "function" && hero && hero.classList.contains("on")) {
+    var unspooled = reduce || typeof nodes[0].animate !== "function";
+    function unspool() {
+      unspooled = true;
+      paint(view, false);
       var origin = cur[cur.length - 1], targets = cur.slice();
       nodes.forEach(function (d, i) { cur[i] = [origin[0], origin[1], 0]; d.style.transform = tf(origin[0], origin[1], 0); });
-      requestAnimationFrame(function () {
+      requestAnimationFrame(function () { requestAnimationFrame(function () {
         plot.classList.add("is-in");
         nodes.forEach(function (d, i) { fly(i, targets[i], { duration: 650, delay: (nodes.length - 1 - i) * 8 }); });
-      });
-    } else {
-      requestAnimationFrame(function () { plot.classList.add("is-in"); });
+      }); });
     }
+    if (heroPage) heroPage.addEventListener("viewshow", function () { if (unspooled) paint(view, false); else unspool(); });
+    if (unspooled) requestAnimationFrame(function () { plot.classList.add("is-in"); });
+    else if (heroPage && heroPage.classList.contains("on")) unspool();
 
     var buttons = Array.prototype.slice.call(document.querySelectorAll(".pivot-ctrl button"));
     buttons.forEach(function (b) {
@@ -537,6 +588,29 @@
   }
 
   /* Principles: the statement rises a word at a time, once; the text stays one sentence underneath */
+  /* Principles: if the four tenets overflow the screen they fold to titles and open one at a time */
+  var tenets = document.querySelector(".tenets"), howPage = document.getElementById("how");
+  if (tenets && howPage) {
+    var tenetItems = Array.prototype.slice.call(tenets.children), fitTimer = 0;
+    var fitTenets = function () {
+      if (!howPage.classList.contains("on")) return;
+      tenets.classList.remove("fold");
+      tenetItems.forEach(function (li) { li.classList.remove("open"); });
+      if (howPage.scrollHeight > howPage.clientHeight + 2) tenets.classList.add("fold");
+    };
+    tenetItems.forEach(function (li) {
+      li.addEventListener("click", function () {
+        if (!tenets.classList.contains("fold")) return;
+        var open = li.classList.contains("open");
+        tenetItems.forEach(function (o) { o.classList.remove("open"); });
+        if (!open) li.classList.add("open");
+      });
+      li.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && tenets.classList.contains("fold")) { e.preventDefault(); li.click(); } });
+    });
+    howPage.addEventListener("viewshow", fitTenets);
+    window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTenets, 150); });
+    fitTenets();
+  }
   riseWords = function () {
     var st = document.querySelector("#how .statement");
     if (!st || reduce || st.classList.contains("rise")) return;
