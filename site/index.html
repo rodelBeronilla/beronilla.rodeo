@@ -240,7 +240,13 @@
       </footer>
     </section>
   </main>
-  <button class="a11y-btn" id="a11y-btn" type="button" aria-pressed="false" aria-label="Accessibility mode" title="Switch to the accessible version of this site"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="4.5" r="2"/><path d="M4 8.5h16M12 8.5v6M12 14.5l-3.5 6M12 14.5l3.5 6"/></svg><span>Accessibility</span></button>
+  <div class="settings" id="settings">
+    <ul class="settings-rows" id="settings-rows">
+      <li class="srow"><button class="pill" id="set-a11y" type="button" aria-pressed="false">Off</button><span>Accessibility mode</span></li>
+      <li class="srow"><button class="pill" id="set-theme" type="button" aria-label="Theme: Auto">Auto</button><span>Theme</span></li>
+    </ul>
+    <div class="srow bar"><button class="pill" id="set-open" type="button" aria-expanded="false" aria-controls="settings-rows">Open</button><span>Site settings</span></div>
+  </div>
   <nav class="swipe" id="swipe" aria-label="Views">
     <i class="chev" aria-hidden="true"></i>
     <ol class="swipe-dots" id="swipe-dots"></ol>
