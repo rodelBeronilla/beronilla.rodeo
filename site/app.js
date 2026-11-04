@@ -21,10 +21,14 @@
   }
   lightMq.addEventListener("change", function () { if (themePref() === "auto") osTheme(); });
 
-  /* Accessibility switch: the pill at the bottom left (desktop) and the same switch inside the phone menu */
+  /* Site settings: a stack of pills at the bottom left (cookies, accessibility mode, theme) */
+  var ss = document.getElementById("ss"), ssRows = document.getElementById("ss-rows"), ssOpen = document.getElementById("ss-open"), ssOpenChip = document.getElementById("ss-open-chip");
+  var ssTheme = document.getElementById("ss-theme"), ssThemeChip = document.getElementById("ss-theme-chip"), ssCookies = document.getElementById("ss-cookies"), ssNote = document.getElementById("ss-note"), ssClear = document.getElementById("ss-clear");
   var a11yInputs = Array.prototype.slice.call(document.querySelectorAll("input[data-a11y-switch]"));
+  var EASE = "cubic-bezier(.2,.75,.25,1)";
   var a11yAction = { t: "Accessibility mode: off", k: "appearance", run: function () { toggleA11y(); } };
-  var themeAction = { t: "Theme: Auto", k: "appearance", run: function () { var p = themePref(); applyThemePref(p === "auto" ? "light" : p === "light" ? "dark" : "auto"); } };
+  var themeAction = { t: "Theme: Auto", k: "appearance", run: function () { cycleTheme(); } };
+  var settingsAction = { t: "Site settings", k: "appearance", run: function () { openSS(); } };
   function syncA11y() {
     var on = a11yOn();
     a11yInputs.forEach(function (i) {
@@ -46,14 +50,52 @@
     document.dispatchEvent(new CustomEvent("a11ychange", { detail: { on: on } }));
   }
   function syncTheme() {
-    var p = themePref();
-    themeAction.t = "Theme: " + (p === "light" ? "Light" : p === "dark" ? "Dark" : "Auto");
+    var p = themePref(), label = p === "light" ? "Light" : p === "dark" ? "Dark" : "Auto";
+    themeAction.t = "Theme: " + label;
     if (themeAction.btn) themeAction.btn.firstChild.textContent = themeAction.t;
+    if (ssTheme) { ssThemeChip.textContent = label; ssTheme.setAttribute("aria-label", "Theme: " + label); ssThemeChip.classList.toggle("set", p !== "auto"); }
   }
   function applyThemePref(p) {
     if (p === "auto") { try { localStorage.removeItem("theme"); } catch (e) { /* ignore */ } osTheme(); }
     else { root.setAttribute("data-theme", p); try { localStorage.setItem("theme", p); } catch (e) { /* ignore */ } paintChrome(); }
     syncTheme();
+  }
+  function cycleTheme() { var p = themePref(); applyThemePref(p === "auto" ? "light" : p === "light" ? "dark" : "auto"); }
+  var ssIsOpen = false;
+  function ssItems() { return Array.prototype.slice.call(ssRows.children); }
+  function openSS() {
+    if (!ss || ssIsOpen) return;
+    ssIsOpen = true; ssRows.hidden = false;
+    ssOpenChip.textContent = "Close"; ssOpenChip.classList.add("set"); ssOpen.setAttribute("aria-expanded", "true");
+    if (!reduce && ssRows.animate) ssItems().slice().reverse().forEach(function (li, i) {
+      li.animate([{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 160, delay: i * 40, easing: EASE, fill: "backwards" });
+    });
+    ssRows.querySelector("button, input").focus({ preventScroll: true });
+  }
+  function closeSS() {
+    if (!ss || !ssIsOpen) return;
+    ssIsOpen = false; hideNote();
+    ssOpenChip.textContent = "Open"; ssOpenChip.classList.remove("set"); ssOpen.setAttribute("aria-expanded", "false");
+    if (reduce || !ssRows.animate) { ssRows.hidden = true; return; }
+    var last = null;
+    ssItems().forEach(function (li, i) { last = li.animate([{ opacity: 1, transform: "none" }, { opacity: 0, transform: "translateY(8px)" }], { duration: 140, delay: i * 40, easing: EASE, fill: "forwards" }); });
+    last.onfinish = function () { ssRows.hidden = true; ssItems().forEach(function (li) { li.getAnimations().forEach(function (a) { a.cancel(); }); }); };
+  }
+  function hideNote() { if (ssNote) { ssNote.hidden = true; ssCookies.setAttribute("aria-expanded", "false"); } }
+  if (ss) {
+    ssOpen.addEventListener("click", function () { if (ssIsOpen) { closeSS(); ssOpen.focus({ preventScroll: true }); } else openSS(); });
+    ssTheme.addEventListener("click", cycleTheme);
+    ssCookies.addEventListener("click", function () {
+      var show = ssNote.hidden; ssNote.hidden = !show; ssCookies.setAttribute("aria-expanded", show ? "true" : "false");
+      if (show && !reduce && ssNote.animate) ssNote.animate([{ opacity: 0, transform: "translateY(6px)" }, { opacity: 1, transform: "none" }], { duration: 160, easing: EASE });
+    });
+    ssClear.addEventListener("click", function () {
+      try { ["theme", "a11y", "swiped"].forEach(function (k) { localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
+      if (a11yOn()) toggleA11y();
+      osTheme(); syncTheme(); hideNote(); toast("Saved choices cleared");
+    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && ssIsOpen) { closeSS(); ssOpen.focus({ preventScroll: true }); } });
+    document.addEventListener("click", function (e) { if (ssIsOpen && !ss.contains(e.target)) closeSS(); });
   }
   a11yInputs.forEach(function (i) { i.addEventListener("change", function () { if (i.checked !== a11yOn()) toggleA11y(); }); });
   syncA11y(); syncTheme();
@@ -156,6 +198,7 @@
     { t: "Send a message", k: "section", run: function () { go("contact"); } },
     a11yAction,
     themeAction,
+    settingsAction,
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },

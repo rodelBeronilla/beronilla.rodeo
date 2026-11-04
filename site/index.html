@@ -54,7 +54,6 @@
     <div class="sheet-in">
       <p class="sheet-title">Menu</p>
       <ul class="sheet-list" id="sheet-list"></ul>
-      <label class="a11y-switch" for="a11y-switch-m"><span class="a11y-status"><span data-a11y-status aria-hidden="true">Off</span><input id="a11y-switch-m" data-a11y-switch type="checkbox" role="switch" aria-checked="false" aria-label="Accessibility mode"></span><span aria-hidden="true">Accessibility mode</span></label>
       <button class="sheet-close" id="sheet-close" type="button"><i></i>Pull up to close</button>
     </div>
   </div>
@@ -241,7 +240,15 @@
       </footer>
     </section>
   </main>
-  <nav class="a11y" aria-label="Accessibility controls"><label class="a11y-switch" for="a11y-switch"><span class="a11y-status"><span data-a11y-status aria-hidden="true">Off</span><input id="a11y-switch" data-a11y-switch type="checkbox" role="switch" aria-checked="false" aria-label="Accessibility mode"></span><span aria-hidden="true">Accessibility mode</span></label></nav>
+  <nav class="a11y" id="ss" aria-label="Site settings">
+    <ul class="ss-rows" id="ss-rows" hidden>
+      <li><button class="ss-pill" id="ss-cookies" type="button" aria-expanded="false" aria-controls="ss-note"><span class="chip">None</span><span>Cookies</span></button></li>
+      <li><label class="ss-pill a11y-switch" for="a11y-switch"><span class="chip a11y-status"><span data-a11y-status aria-hidden="true">Off</span><input id="a11y-switch" data-a11y-switch type="checkbox" role="switch" aria-checked="false" aria-label="Accessibility mode"></span><span aria-hidden="true">Accessibility mode</span></label></li>
+      <li><button class="ss-pill" id="ss-theme" type="button" aria-label="Theme: Auto"><span class="chip" id="ss-theme-chip">Auto</span><span aria-hidden="true">Theme</span></button></li>
+    </ul>
+    <div class="ss-note" id="ss-note" hidden><p>No cookies. Your theme and accessibility choices stay in this browser and are never sent anywhere.</p><button class="btn" id="ss-clear" type="button">Clear saved choices</button></div>
+    <button class="ss-pill" id="ss-open" type="button" aria-expanded="false" aria-controls="ss-rows"><span class="chip" id="ss-open-chip">Open</span><span>Site settings</span></button>
+  </nav>
   <nav class="swipe" id="swipe" aria-label="Views">
     <i class="chev" aria-hidden="true"></i>
     <ol class="swipe-dots" id="swipe-dots"></ol>
