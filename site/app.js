@@ -105,7 +105,7 @@
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
     { t: "Open LinkedIn", k: "link", run: function () { window.open("https://ca.linkedin.com/in/rodel-beronilla", "_blank", "noopener"); } },
     { t: "Open GitHub", k: "link", run: function () { window.open("https://github.com/rodelBeronilla", "_blank", "noopener"); } },
-    { t: "Back to top", k: "section", run: function () { window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" }); } }
+    { t: "Back to top", k: "section", run: function () { go("top"); } }
   ];
   var filtered = actions.slice(), sel = 0, query = "";
   var canHighlight = typeof CSS !== "undefined" && "highlights" in CSS && typeof Highlight === "function";
@@ -413,9 +413,71 @@
     });
   }
 
+
+  /* Phones: pull the menu down over the page from the top bar, push it back up to close */
+  var sheet = document.getElementById("sheet"), sheetList = document.getElementById("sheet-list"), pull = document.getElementById("pull"), topBar = document.querySelector(".top");
+  if (sheet && sheetList && topBar) {
+    var sheetItems = [];
+    actions.forEach(function (a) {
+      if (a.t === "Back to top" || a.k === "link" && a.t.indexOf("Copy") === 0) return;
+      var li = document.createElement("li"), b = document.createElement("button"), s = document.createElement("small");
+      b.type = "button"; b.textContent = a.t; s.textContent = a.k; b.appendChild(s);
+      b.addEventListener("click", function () { closeSheet(); setTimeout(a.run, 60); });
+      li.appendChild(b); sheetList.appendChild(li); sheetItems.push({ li: li, t: a.t });
+    });
+    var sheetOpen = false, pullY = null, pullDy = 0, pushY = null, pushDy = 0;
+    function markSheet() {
+      var cur = viewIds[current], names = { how: "Principles", experience: "Experience", projects: "Projects", interests: "Interests", contact: "Send a message" };
+      sheetItems.forEach(function (it) { it.li.classList.toggle("cur", it.t === names[cur]); });
+    }
+    function openSheet() {
+      sheet.style.transform = ""; sheet.classList.remove("drag"); sheet.classList.add("open");
+      sheet.setAttribute("aria-hidden", "false"); sheetOpen = true; markSheet();
+      var first = sheetList.querySelector("button"); if (first) first.focus({ preventScroll: true });
+    }
+    function closeSheet() {
+      sheet.style.transform = ""; sheet.classList.remove("drag", "open");
+      sheet.setAttribute("aria-hidden", "true"); sheetOpen = false;
+    }
+    topBar.addEventListener("touchstart", function (e) {
+      if (sheetOpen || e.touches.length !== 1 || e.target.closest("button, a")) return;
+      pullY = e.touches[0].clientY; pullDy = 0;
+    }, { passive: true });
+    topBar.addEventListener("touchmove", function (e) {
+      if (pullY === null) return;
+      pullDy = Math.max(0, e.touches[0].clientY - pullY);
+      if (pullDy > 4) { e.preventDefault(); sheet.classList.add("drag"); sheet.style.transform = "translateY(calc(-100% + " + Math.round(pullDy) + "px))"; }
+    }, { passive: false });
+    topBar.addEventListener("touchend", function () {
+      if (pullY === null) return;
+      pullY = null;
+      if (pullDy > Math.min(140, window.innerHeight * 0.18)) openSheet(); else closeSheet();
+    });
+    if (pull) pull.addEventListener("click", function () { if (!sheetOpen) openSheet(); });
+    sheet.addEventListener("touchstart", function (e) {
+      e.stopPropagation();
+      if (!sheetOpen || e.touches.length !== 1) return;
+      pushY = e.touches[0].clientY; pushDy = 0;
+    }, { passive: true });
+    sheet.addEventListener("touchmove", function (e) {
+      e.stopPropagation();
+      if (pushY === null) return;
+      pushDy = Math.max(0, pushY - e.touches[0].clientY);
+      if (pushDy > 4) { e.preventDefault(); sheet.classList.add("drag"); sheet.style.transform = "translateY(" + (-Math.round(pushDy)) + "px)"; }
+    }, { passive: false });
+    sheet.addEventListener("touchend", function (e) {
+      e.stopPropagation();
+      if (pushY === null) return;
+      pushY = null;
+      if (pushDy > 70) closeSheet(); else if (pushDy > 4) { sheet.classList.remove("drag"); sheet.style.transform = ""; }
+    });
+    document.getElementById("sheet-close").addEventListener("click", closeSheet);
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && sheetOpen) closeSheet(); });
+  }
+
   /* Moving between views: arrows, page keys, the wheel past a view's own scroll, and swipes */
   function typing(t) { return t && t.closest && t.closest("input, textarea, select, [contenteditable]"); }
-  function busy() { return (dlg && dlg.open) || focusOpen(); }
+  function busy() { return (dlg && dlg.open) || focusOpen() || (sheet && sheet.classList.contains("open")); }
   function stepOrMove(dir) {
     if (viewIds[current] === "experience" && xpStep && xpStep(dir)) return true;
     return move(dir);

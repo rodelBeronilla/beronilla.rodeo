@@ -54,6 +54,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .topnav a:hover { border-bottom-color: var(--line-2); }
 .topnav a:hover, .topnav a[aria-current] { color: var(--fg); }
 .top-actions { display: flex; align-items: center; gap: .25rem; }
+.pull, .sheet { display: none; }
 .cmd-btn { display: flex; gap: .5rem; align-items: center; min-height: 2.75rem; padding: 0 .6rem; color: var(--fg-2); font-size: .9rem; border: 1px solid var(--line); border-radius: 6px; }
 .cmd-btn:hover { border-color: var(--line-2); color: var(--fg); }
 .cmd-key { font: .78rem var(--mono); color: var(--muted); }
@@ -408,6 +409,23 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 
 @media (pointer: coarse) { .cmdk-hint { display: none; } }
 @media (max-width: 44rem) {
+  .cmd-btn { display: none; }
+  .pull { position: absolute; left: 50%; bottom: -1.15rem; transform: translateX(-50%); display: flex; align-items: center; gap: .45rem; padding: .3rem .7rem; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--muted); font: .72rem var(--mono); white-space: nowrap; z-index: 21; }
+  .pull i { width: 1.4rem; height: 3px; border-radius: 2px; background: var(--line-2); }
+  .js .pull { animation: pull-nudge 2.4s var(--ease) .8s 2; }
+  @keyframes pull-nudge { 0%, 100% { transform: translate(-50%, 0); } 30% { transform: translate(-50%, 6px); } 60% { transform: translate(-50%, 0); } }
+  .sheet { display: block; position: fixed; inset: 0; z-index: 30; background: var(--bg); color: var(--fg); transform: translateY(-100%); visibility: hidden; transition: transform .38s var(--ease), visibility 0s .38s; padding-top: env(safe-area-inset-top, 0); }
+  .sheet.open { transform: none; visibility: visible; transition: transform .38s var(--ease); }
+  .sheet.drag { transition: none; visibility: visible; }
+  .sheet-in { display: flex; flex-direction: column; height: 100%; padding: 0 var(--gutter); }
+  .sheet-title { font: .8rem var(--mono); color: var(--accent); padding: 1.2rem 0 .4rem; border-bottom: 1px solid var(--line); }
+  .sheet-list { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: .1rem; overflow: hidden; }
+  .sheet-list button { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; padding: .85rem .4rem; font: inherit; font-size: 1.35rem; font-weight: 560; color: var(--fg); text-align: left; border-radius: 6px; }
+  .sheet-list button:active { background: var(--bg-2); }
+  .sheet-list small { font: .72rem var(--mono); color: var(--muted); }
+  .sheet-list li.cur button { color: var(--accent); }
+  .sheet-close { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 1rem 0 calc(1.2rem + env(safe-area-inset-bottom, 0)); font: .75rem var(--mono); color: var(--muted); }
+  .sheet-close i { width: 2.2rem; height: 4px; border-radius: 2px; background: var(--line-2); }
   .cmdk { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; border: 0; border-radius: 0; }
   .cmdk[open] { animation-name: cmdk-up; }
   @keyframes cmdk-up { from { opacity: 0; transform: translateY(12px); } }
@@ -433,7 +451,8 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .dot, .pivot-plot, .tenets > li, .tenet-why, .field::after, .meter i, .nav-ind, .ifield, .focus, .rail-fill, .rail-dot, .cred, .depth i { transition: none; }
-  .btn.sending::after, .node, .cmdk[open], .js .page.seen .st { animation: none; }
+  .btn.sending::after, .node, .cmdk[open], .js .page.seen .st, .js .pull { animation: none; }
+  .sheet, .sheet.open { transition: none; }
   .js .page:not(.seen) .st { transform: none; }
   .js .statement.rise .w { animation: none; opacity: 1; transform: none; }
   ::view-transition-new(root) { animation: none; }
@@ -445,7 +464,7 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
   .js body { overflow: visible; }
   .js .page { display: block; height: auto; overflow: visible; }
   body { font-size: 11pt; line-height: 1.4; }
-  .top, .cmdk, .toast, .linkish, .hero .cta, .kicker-sub, .foot-print, .pivot-ctrl, .pivot-plot, .pivot-hl, .field-foot { display: none !important; }
+  .top, .cmdk, .sheet, .pull, .toast, .linkish, .hero .cta, .kicker-sub, .foot-print, .pivot-ctrl, .pivot-plot, .pivot-hl, .field-foot { display: none !important; }
   .page .sec-head, .page .sec-body > * { opacity: 1 !important; transform: none !important; }
   .tenet-why { max-height: none !important; opacity: 1 !important; margin-top: .6rem !important; }
   .tenets > li { opacity: 1 !important; }
