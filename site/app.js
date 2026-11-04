@@ -1,31 +1,46 @@
 (function () {
   "use strict";
   var root = document.documentElement;
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  /* Accessibility mode first, before anything paints */
+  var a11yPref = null;
+  try { a11yPref = localStorage.getItem("a11y"); } catch (e) { /* ignore */ }
+  if (a11yPref === "on" || (a11yPref === null && (window.matchMedia("(prefers-contrast: more)").matches || window.matchMedia("(forced-colors: active)").matches))) root.setAttribute("data-a11y", "on");
+  function a11yOn() { return root.getAttribute("data-a11y") === "on"; }
+  var reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var reduce = reduceMq.matches || a11yOn();
+  function calcReduce() { reduce = reduceMq.matches || a11yOn(); }
+  reduceMq.addEventListener("change", calcReduce);
 
-  /* Theme: instant swap; the browser chrome follows the toggle */
-  var themeBtn = document.getElementById("theme-btn");
+  /* Theme follows the OS. Visitors who once picked a theme by hand go back to following it. */
+  var lightMq = window.matchMedia("(prefers-color-scheme: light)");
+  function osTheme() { root.setAttribute("data-theme", lightMq.matches ? "light" : "dark"); paintChrome(); }
   function paintChrome() {
     var dark = root.getAttribute("data-theme") !== "light";
-    Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function (m) { m.setAttribute("content", dark ? "#101216" : "#f7f7f4"); });
+    Array.prototype.forEach.call(document.querySelectorAll('meta[name="theme-color"]'), function (m) { m.setAttribute("content", dark ? (a11yOn() ? "#000000" : "#101216") : (a11yOn() ? "#ffffff" : "#f7f7f4")); });
   }
-  function labelTheme() {
-    var dark = root.getAttribute("data-theme") !== "light";
-    themeBtn.setAttribute("aria-label", dark ? "Switch to light theme" : "Switch to dark theme");
+  try { if (localStorage.getItem("theme") !== null) { localStorage.removeItem("theme"); osTheme(); } } catch (e) { /* ignore */ }
+  lightMq.addEventListener("change", osTheme);
+
+  /* The accessibility switch: one tap, whole site */
+  var a11yBtn = document.getElementById("a11y-btn");
+  var a11yAction = { t: "Accessibility mode: off", k: "appearance", run: function () { toggleA11y(); } };
+  function syncA11y() {
+    var on = a11yOn();
+    if (a11yBtn) { a11yBtn.setAttribute("aria-pressed", on ? "true" : "false"); a11yBtn.title = on ? "Switch back to the default version of this site" : "Switch to the accessible version of this site"; }
+    a11yAction.t = "Accessibility mode: " + (on ? "on" : "off");
+    if (a11yAction.btn) a11yAction.btn.firstChild.textContent = a11yAction.t;
+    paintChrome();
   }
-  function applyTheme() {
-    var next = root.getAttribute("data-theme") === "light" ? "dark" : "light";
-    root.setAttribute("data-theme", next);
-    try { localStorage.setItem("theme", next); } catch (e) { /* ignore */ }
-    labelTheme(); paintChrome();
+  function toggleA11y() {
+    var on = !a11yOn();
+    if (on) root.setAttribute("data-a11y", "on"); else root.removeAttribute("data-a11y");
+    try { localStorage.setItem("a11y", on ? "on" : "off"); } catch (e) { /* ignore */ }
+    calcReduce();
+    if (on && document.getAnimations) document.getAnimations().forEach(function (a) { try { a.finish(); } catch (e) { a.cancel(); } });
+    syncA11y();
+    document.dispatchEvent(new CustomEvent("a11ychange", { detail: { on: on } }));
   }
-  function toggleTheme() {
-    if (reduce || window.matchMedia("(pointer: coarse)").matches || typeof document.startViewTransition !== "function") { applyTheme(); return; }
-    var r = themeBtn ? themeBtn.getBoundingClientRect() : null;
-    root.style.setProperty("--vt-x", r ? Math.round(r.left + r.width / 2) + "px" : "50%");
-    root.style.setProperty("--vt-y", r ? Math.round(r.top + r.height / 2) + "px" : "50%");
-    document.startViewTransition(applyTheme);
-  }
+  if (a11yBtn) a11yBtn.addEventListener("click", toggleA11y);
   paintChrome();
   /* The key cap says what the keyboard actually has */
   var keyCap = document.getElementById("cmd-key");
@@ -33,7 +48,7 @@
     var plat = (navigator.userAgentData && navigator.userAgentData.platform) || navigator.platform || "";
     if (!/mac|iphone|ipad|ipod/i.test(plat)) keyCap.textContent = "Ctrl K";
   }
-  if (themeBtn) { labelTheme(); themeBtn.addEventListener("click", toggleTheme); }
+  syncA11y();
 
   /* Views: one section on screen at a time; the nav underline marks it */
   var navLinks = Array.prototype.slice.call(document.querySelectorAll(".topnav a[href^='#']"));
@@ -123,7 +138,7 @@
     { t: "Projects", k: "section", run: function () { go("projects"); } },
     { t: "Interests", k: "section", run: function () { go("interests"); } },
     { t: "Send a message", k: "section", run: function () { go("contact"); } },
-    { t: "Toggle theme", k: "appearance", run: function () { toggleTheme(); } },
+    a11yAction,
     { t: "Print or save as PDF", k: "page", run: function () { window.print(); } },
     { t: "Copy LinkedIn link", k: "link", run: function () { copy("https://ca.linkedin.com/in/rodel-beronilla", "LinkedIn link"); } },
     { t: "Copy GitHub link", k: "link", run: function () { copy("https://github.com/rodelBeronilla", "GitHub link"); } },
@@ -174,6 +189,7 @@
     sel = 0; render();
   }
   var touch = window.matchMedia("(pointer: coarse)").matches || (navigator.maxTouchPoints > 0 && !window.matchMedia("(hover: hover)").matches);
+  document.addEventListener("a11ychange", function () { if (dlg && dlg.open) filter(); });
   function openCmd() { if (!dlg || dlg.open) return; input.value = ""; filter(); dlg.showModal(); if (touch) input.blur(); else input.focus(); }
   function closeCmd() { if (dlg && dlg.open) dlg.close(); if (canHighlight) CSS.highlights.delete("cmdk-match"); }
   function runSel() { var a = filtered[sel]; closeCmd(); if (a) { setTimeout(a.run, 60); } }
@@ -416,6 +432,7 @@
       }); });
     }
     if (heroPage) heroPage.addEventListener("viewshow", function () { if (unspooled) paint(view, false); else unspool(); });
+    document.addEventListener("a11ychange", function (e) { if (e.detail.on && !unspooled) { unspooled = true; paint(view, false); plot.classList.add("is-in"); } });
     if (unspooled) requestAnimationFrame(function () { plot.classList.add("is-in"); });
     else if (heroPage && heroPage.classList.contains("on")) unspool();
 
@@ -429,6 +446,12 @@
         paint(view, !reduce);
       });
     });
+    (function () {
+      var key = document.createElement("ul"); key.className = "pivot-key"; key.setAttribute("aria-label", "Colour key");
+      ORGS.forEach(function (o) { var li = document.createElement("li"), sw = document.createElement("i"); sw.className = "sw c" + o.c; li.appendChild(sw); li.appendChild(document.createTextNode(o.name)); key.appendChild(li); });
+      var gli = document.createElement("li"), gsw = document.createElement("i"); gsw.className = "sw cgap"; gli.appendChild(gsw); gli.appendChild(document.createTextNode("Between things")); key.appendChild(gli);
+      var ctrlEl = document.querySelector(".pivot-ctrl"); if (ctrlEl) ctrlEl.parentNode.insertBefore(key, ctrlEl.nextSibling);
+    })();
     var hl = document.getElementById("pivot-hl");
     if (hl && window.matchMedia("(hover: hover)").matches) {
       var tally = {};
@@ -474,7 +497,7 @@
       var li = document.createElement("li"), b = document.createElement("button"), s = document.createElement("small");
       b.type = "button"; b.textContent = a.t; s.textContent = a.k; b.appendChild(s);
       b.addEventListener("click", function () { closeSheet(); setTimeout(a.run, 60); });
-      li.appendChild(b); sheetList.appendChild(li); sheetItems.push({ li: li, t: a.t });
+      li.appendChild(b); sheetList.appendChild(li); sheetItems.push({ li: li, t: a.t }); if (a === a11yAction) a11yAction.btn = b;
     });
     var sheetOpen = false, pullY = null, pullDy = 0, pushY = null, pushDy = 0;
     function markSheet() {
@@ -596,7 +619,7 @@
       if (!howPage.classList.contains("on")) return;
       tenets.classList.remove("fold");
       tenetItems.forEach(function (li) { li.classList.remove("open"); });
-      if (howPage.scrollHeight > howPage.clientHeight + 2) tenets.classList.add("fold");
+      if (!a11yOn() && howPage.scrollHeight > howPage.clientHeight + 2) tenets.classList.add("fold");
     };
     tenetItems.forEach(function (li) {
       li.addEventListener("click", function () {
@@ -608,6 +631,7 @@
       li.addEventListener("keydown", function (e) { if ((e.key === "Enter" || e.key === " ") && tenets.classList.contains("fold")) { e.preventDefault(); li.click(); } });
     });
     howPage.addEventListener("viewshow", fitTenets);
+    document.addEventListener("a11ychange", fitTenets);
     window.addEventListener("resize", function () { clearTimeout(fitTimer); fitTimer = setTimeout(fitTenets, 150); });
     fitTenets();
   }
@@ -866,6 +890,7 @@
         d.style.left = "calc(" + pct(ru.start) + " + 1px)"; d.style.width = "calc(" + pct(ru.n) + " - 2px)";
         d.style.setProperty("--i", String(ri++));
         d.setAttribute("data-seg", ru.seg === undefined ? "" : String(ru.seg));
+        if (ru.c !== null && ru.n >= 10) { var org = ORGS.filter(function (o) { return o.c === ru.c; })[0]; if (org) { var lab = document.createElement("b"); lab.className = "run-lab"; lab.textContent = org.name.split(" ")[0]; d.appendChild(lab); } }
         band.appendChild(d); runEls.push(d);
       });
       roles.forEach(function (li, n) {
