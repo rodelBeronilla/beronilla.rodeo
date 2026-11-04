@@ -20,7 +20,7 @@
     labelTheme(); paintChrome();
   }
   function toggleTheme() {
-    if (reduce || typeof document.startViewTransition !== "function") { applyTheme(); return; }
+    if (reduce || window.matchMedia("(pointer: coarse)").matches || typeof document.startViewTransition !== "function") { applyTheme(); return; }
     var r = themeBtn ? themeBtn.getBoundingClientRect() : null;
     root.style.setProperty("--vt-x", r ? Math.round(r.left + r.width / 2) + "px" : "50%");
     root.style.setProperty("--vt-y", r ? Math.round(r.top + r.height / 2) + "px" : "50%");
@@ -139,6 +139,8 @@
       else if (e.key === "Enter") { e.preventDefault(); runSel(); }
     });
     dlg.addEventListener("click", function (e) { if (e.target === dlg) closeCmd(); });
+    var closer = document.getElementById("cmdk-close");
+    if (closer) closer.addEventListener("click", closeCmd);
     dlg.addEventListener("close", function () { if (canHighlight) CSS.highlights.delete("cmdk-match"); });
     document.addEventListener("keydown", function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); dlg.open ? closeCmd() : openCmd(); }

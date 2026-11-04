@@ -28,7 +28,7 @@ html[data-theme="light"] { color-scheme: light; }
 html[data-theme="dark"]  { color-scheme: dark; }
 *, *::before, *::after { box-sizing: inherit; }
 
-html { scroll-padding-top: var(--top-h); scroll-snap-type: y mandatory; -webkit-text-size-adjust: 100%; }
+html { background: var(--bg); scroll-padding-top: var(--top-h); scroll-snap-type: y mandatory; -webkit-text-size-adjust: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--fg);
   font: clamp(1rem, .25vw + .95rem, 1.1rem)/1.6 var(--sans);
@@ -327,7 +327,9 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 .cmdk[open] { animation: cmdk-in .16s var(--ease); }
 @keyframes cmdk-in { from { opacity: 0; transform: scale(.98); } }
 .cmdk::backdrop { background: rgb(0 0 0 / .5); }
-.cmdk-input { width: 100%; padding: 1rem 1.1rem; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: inherit; font: inherit; outline: none; }
+.cmdk-bar { display: flex; align-items: center; border-bottom: 1px solid var(--line); }
+.cmdk-input { flex: 1; min-width: 0; padding: 1rem 1.1rem; border: 0; background: transparent; color: inherit; font: inherit; outline: none; }
+.cmdk-close { display: none; font: .9rem var(--mono); color: var(--fg-2); padding: 0 1.1rem; min-height: 2.75rem; }
 .cmdk-list { max-height: 50vh; overflow: auto; padding: .4rem; }
 .cmdk-list li { display: flex; justify-content: space-between; gap: 1rem; padding: .65rem .7rem; border-radius: 5px; cursor: pointer; }
 .cmdk-list li[aria-selected="true"] { background: var(--bg-2); }
@@ -401,6 +403,18 @@ html[data-theme="dark"] .i-moon, html[data-theme="light"] .i-sun { display: none
 }
 
 @media (pointer: coarse) { .cmdk-hint { display: none; } }
+@media (max-width: 44rem) {
+  .cmdk { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; border: 0; border-radius: 0; }
+  .cmdk[open] { animation-name: cmdk-up; }
+  @keyframes cmdk-up { from { opacity: 0; transform: translateY(12px); } }
+  .cmdk-in { display: flex; flex-direction: column; height: 100%; }
+  .cmdk-bar { padding-top: env(safe-area-inset-top, 0); }
+  .cmdk-input { font-size: 1.05rem; padding: 1.1rem 1.25rem; }
+  .cmdk-close { display: block; }
+  .cmdk-list { flex: 1; max-height: none; padding: .75rem; }
+  .cmdk-list li { padding: 1rem .9rem; font-size: 1.15rem; border-radius: 6px; }
+  .cmdk-hint { display: none; }
+}
 
 /* each page settles in once, the first time it is seen */
 @media (prefers-reduced-motion: no-preference) {
