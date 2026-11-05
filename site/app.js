@@ -731,10 +731,13 @@
     toastTimer = setTimeout(function () { toastEl.classList.remove("is-on"); }, 1800);
   }
 
-  /* Interests: four areas, twelve dots on rails. Click one and the field zooms into it;
-     every click after that is one fact deeper, until the bottom. */
+  /* Interests: four areas, twelve dots on rails. Choosing one is a camera move: the field
+     scales toward that dot, the rest of the map drifts off, and the tile hands over to the card.
+     Every click after that is one fact deeper, and the camera pushes in a little further. */
   var field = document.getElementById("ifield"), focus = document.getElementById("ifocus");
   if (field && focus) {
+    var EZ = "cubic-bezier(.2,.75,.25,1)";
+    var CAM = [1.26, 1.32, 1.38], CAML = [1.14, 1.18, 1.22], GLOW = [.42, .5, .58], GS = [1, 1.06, 1.12];
     var fname = document.createElement("p"); fname.className = "focus-name";
     var trail = document.createElement("ol"); trail.className = "trail";
     var fact = document.createElement("p"); fact.className = "fact";
@@ -745,6 +748,25 @@
     foot.appendChild(depthEl); foot.appendChild(deeper); foot.appendChild(surface);
     focus.appendChild(fname); focus.appendChild(trail); focus.appendChild(fact); focus.appendChild(foot);
     var openNode = null, facts = [], depth = 0, hideTimer = 0;
+    var camTx = 0, camTy = 0, camTimer = 0, flipAnim = null;
+    /* one camera, one glow, both stepped by how deep we are */
+    function camStep() {
+      var k = Math.max(0, Math.min(depth - 1, CAM.length - 1));
+      wrap.style.setProperty("--cam", "translate(" + camTx.toFixed(1) + "px," + camTy.toFixed(1) + "px) scale(" + CAM[k] + ")");
+      wrap.style.setProperty("--camL", "translate(" + (camTx * .8).toFixed(1) + "px," + (camTy * .8).toFixed(1) + "px) scale(" + CAML[k] + ")");
+      wrap.style.setProperty("--glow", String(GLOW[k]));
+      wrap.style.setProperty("--gs", String(GS[k]));
+    }
+    function camHome() {
+      clearTimeout(camTimer);
+      wrap.style.setProperty("--cam", "none");
+      wrap.style.setProperty("--camL", "none");
+      camTimer = setTimeout(function () {
+        if (openNode) return;
+        wrap.classList.remove("clip");
+        ["--cam", "--camL", "--camo", "--glow", "--gs", "--gx", "--gy"].forEach(function (p) { wrap.style.removeProperty(p); });
+      }, 560);
+    }
     function paintDepth() {
       Array.prototype.forEach.call(depthEl.children, function (d, i) { d.classList.toggle("on", i < depth); });
       var bottom = depth >= facts.length;
@@ -755,16 +777,35 @@
       fact.innerHTML = facts[depth].innerHTML;
       depth++;
       paintDepth();
-      if (animate && !reduce && fact.animate) fact.animate([{ opacity: 0, transform: "scale(.7)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "cubic-bezier(.2,.75,.25,1)" });
+      if (reduce) return;
+      if (animate && fact.animate) fact.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: EZ });
+      var pip = depthEl.children[depth - 1];
+      if (pip && pip.animate) pip.animate([{ transform: "scale(1)" }, { transform: "scale(1.35)" }, { transform: "scale(1)" }], { duration: 220, easing: "ease-out" });
     }
     function goDeeper() {
       if (depth >= facts.length) return;
       var li = document.createElement("li"); li.innerHTML = fact.innerHTML; trail.appendChild(li);
-      if (!reduce && li.animate) li.animate([{ opacity: 1, transform: "translateY(10px)" }, { opacity: .6, transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.75,.25,1)" });
+      if (!reduce && li.animate) li.animate([{ opacity: 1, transform: "translateY(6px) scale(1.03)" }, { opacity: .6, transform: "none" }], { duration: 320, easing: EZ });
       showFact(true);
+      if (!reduce) camStep();
+    }
+    /* the tile shrinks and dissolves where the card's title lands */
+    function flipOut(top) {
+      if (reduce || !top.animate) return;
+      openNode.classList.add("flip");
+      if (flipAnim) { flipAnim.cancel(); flipAnim = null; }
+      flipAnim = top.animate([{ transform: "none", opacity: 1 }, { transform: "scale(.68)", opacity: 0 }], { duration: 340, easing: EZ, fill: "forwards" });
+    }
+    function flipBack(node, top) {
+      if (!flipAnim) { node.classList.remove("flip"); return; }
+      flipAnim.cancel(); flipAnim = null;
+      if (!top.animate) { node.classList.remove("flip"); return; }
+      var a = top.animate([{ transform: "scale(.68)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 300, easing: EZ });
+      a.onfinish = function () { node.classList.remove("flip"); };
+      a.oncancel = function () { node.classList.remove("flip"); };
     }
     function zoomIn(node) {
-      var top = node.querySelector(".node-top");
+      var top = node.querySelector(".node-top"), i = nodeEls.indexOf(node);
       openNode = node;
       facts = Array.prototype.slice.call(node.querySelectorAll(".node-levels > li"));
       depth = 0;
@@ -772,28 +813,55 @@
       trail.innerHTML = "";
       depthEl.innerHTML = "";
       facts.forEach(function () { depthEl.appendChild(document.createElement("i")); });
+      nodeEls.forEach(function (el) { el.classList.remove("flip"); });
       node.classList.add("chosen");
-      field.classList.add("zoomed"); wrap.classList.add("zoomed");
       field.inert = true;
       top.setAttribute("aria-expanded", "true");
-      clearTimeout(hideTimer);
+      clearTimeout(hideTimer); clearTimeout(camTimer);
       focus.hidden = false;
-      requestAnimationFrame(function () { requestAnimationFrame(function () { focus.classList.add("on"); }); });
       showFact(false);
+      if (!reduce) {
+        /* aim the camera at the card's own title line, so the tile lands on it */
+        var wr = wrap.getBoundingClientRect(), nr = fname.getBoundingClientRect(), d = dot(i);
+        var ax = nr.left - wr.left, ay = nr.top - wr.top + nr.height / 2;
+        /* the dot parks in the card's left margin, never on the title's first letter */
+        var dx = ax - Math.min(16, Math.max(0, ax));
+        camTx = (dx - d[0]) * .9; camTy = (ay - d[1]) * .9;
+        wrap.style.setProperty("--camo", d[0].toFixed(1) + "px " + d[1].toFixed(1) + "px");
+        wrap.style.setProperty("--gx", ax.toFixed(1) + "px");
+        wrap.style.setProperty("--gy", ay.toFixed(1) + "px");
+        cats.forEach(function (cat, c) {
+          if (c === catOf[i]) { cat.style.setProperty("--fd", "60ms"); cat.style.removeProperty("--drift"); return; }
+          cat.style.setProperty("--fd", "0ms");
+          cat.style.setProperty("--drift", (c < catOf[i] ? -18 : 18) + "px");
+        });
+        wrap.classList.add("clip");
+      }
+      unlight();
+      if (i !== -1) litOnly(i);
+      field.classList.add("zoomed"); wrap.classList.add("zoomed");
+      requestAnimationFrame(function () {
+        if (!reduce) camStep();
+        requestAnimationFrame(function () { focus.classList.add("on"); });
+      });
+      flipOut(top);
       deeper.focus({ preventScroll: true });
     }
     function surfaceUp() {
       if (!openNode) return;
-      var top = openNode.querySelector(".node-top");
+      var node = openNode, top = node.querySelector(".node-top");
+      openNode = null;
       focus.classList.remove("on");
       field.classList.remove("zoomed"); wrap.classList.remove("zoomed");
-      openNode.classList.remove("chosen");
+      node.classList.remove("chosen");
       unlight();
+      cats.forEach(function (cat) { cat.style.removeProperty("--drift"); cat.style.removeProperty("--fd"); });
+      camHome();
+      flipBack(node, top);
       field.inert = false;
       top.setAttribute("aria-expanded", "false");
-      hideTimer = setTimeout(function () { focus.hidden = true; }, reduce ? 0 : 460);
+      hideTimer = setTimeout(function () { if (!openNode) focus.hidden = true; }, reduce ? 0 : 460);
       top.focus({ preventScroll: true });
-      openNode = null;
     }
     Array.prototype.forEach.call(field.querySelectorAll(".node:not(.sat)"), function (node) {
       node.querySelector(".node-top").addEventListener("click", function () { zoomIn(node); });
@@ -810,6 +878,8 @@
     /* Rails: each area is a line through its dots; satellites hang off their parent */
     var wrap = field.parentNode, svg = document.getElementById("ilinks"), isec = document.getElementById("interests");
     var nodeEls = Array.prototype.slice.call(field.querySelectorAll(".node"));
+    var cats = Array.prototype.slice.call(field.querySelectorAll(".cat"));
+    var catOf = nodeEls.map(function (el) { return cats.indexOf(el.closest(".cat")); });
     nodeEls.forEach(function (el) { var a = document.createElement("i"); a.className = "anchor"; a.setAttribute("aria-hidden", "true"); el.appendChild(a); });
     var RAILS = [], SATS = [];
     nodeEls.forEach(function (el, i) {
@@ -840,6 +910,7 @@
         l.setAttribute("x1", sg.x1.toFixed(1)); l.setAttribute("y1", sg.y1.toFixed(1)); l.setAttribute("x2", sg.x2.toFixed(1)); l.setAttribute("y2", sg.y2.toFixed(1));
         l.setAttribute("data-m", sg.m.join(","));
         l.style.setProperty("--len", Math.hypot(sg.x2 - sg.x1, sg.y2 - sg.y1).toFixed(0));
+        l.style.setProperty("--ld", "0ms");
         svg.appendChild(l);
         return l;
       });
@@ -855,6 +926,9 @@
       nodeEls.forEach(function (el, n) { el.classList.toggle("hot", n === i); el.classList.toggle("near", n !== i && set.indexOf(n) !== -1); });
       lines.forEach(function (l) { var m = l.getAttribute("data-m").split(",").map(Number); l.setAttribute("class", m.indexOf(i) !== -1 ? "lit" : ""); });
     }
+    function litOnly(i) {
+      lines.forEach(function (l) { var m = l.getAttribute("data-m").split(",").map(Number); l.setAttribute("class", m.indexOf(i) !== -1 ? "lit" : ""); });
+    }
     function unlight() {
       field.classList.remove("hl"); wrap.classList.remove("hl");
       nodeEls.forEach(function (el) { el.classList.remove("hot", "near"); });
@@ -862,21 +936,34 @@
     }
     nodeEls.forEach(function (el, i) {
       var top = el.querySelector(".node-top");
-      top.addEventListener("pointerenter", function () { light(i); });
-      top.addEventListener("pointerleave", unlight);
-      top.addEventListener("focus", function () { if (top.matches(":focus-visible")) light(i); });
-      top.addEventListener("blur", unlight);
+      top.addEventListener("pointerenter", function () { if (!openNode) light(i); });
+      top.addEventListener("pointerleave", function () { if (!openNode) unlight(); });
+      top.addEventListener("focus", function () { if (!openNode && top.matches(":focus-visible")) light(i); });
+      top.addEventListener("blur", function () { if (!openNode) unlight(); });
     });
     var landTimer = 0;
+    /* arrival: area by area, the rule draws, the label fades, the dots land, then that area's rails */
     function arrive() {
       field.classList.remove("in"); wrap.classList.remove("in");
       requestAnimationFrame(function () {
         drawLinks();
-        var order = nodeEls.slice().sort(function (a, b) { var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect(); return (Math.round(ra.left / 20) - Math.round(rb.left / 20)) || (ra.top - rb.top); });
-        order.forEach(function (el, n) { el.style.setProperty("--d", (reduce ? 0 : n * 45) + "ms"); });
+        cats.forEach(function (cat, c) {
+          var base = reduce ? 0 : c * 90;
+          cat.style.setProperty("--rd", base + "ms");
+          Array.prototype.forEach.call(cat.querySelectorAll(".node"), function (el, k) {
+            el.style.setProperty("--d", (reduce ? 0 : base + 150 + k * 50) + "ms");
+          });
+        });
+        lines.forEach(function (l) {
+          var c = catOf[Number(l.getAttribute("data-m").split(",")[0])];
+          l.style.setProperty("--ld", (reduce || c < 0 ? 0 : c * 90 + 330) + "ms");
+        });
         requestAnimationFrame(function () { field.classList.add("in"); wrap.classList.add("in"); });
         clearTimeout(landTimer);
-        landTimer = setTimeout(function () { nodeEls.forEach(function (el) { el.style.removeProperty("--d"); }); }, 1300);
+        landTimer = setTimeout(function () {
+          nodeEls.forEach(function (el) { el.style.removeProperty("--d"); });
+          cats.forEach(function (cat) { cat.style.removeProperty("--rd"); });
+        }, 1400);
       });
     }
     var linkTimer = 0;
