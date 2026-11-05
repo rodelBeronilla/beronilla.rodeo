@@ -731,7 +731,7 @@
     toastTimer = setTimeout(function () { toastEl.classList.remove("is-on"); }, 1800);
   }
 
-  /* Interests: nine things drifting in a field. Click one and the field zooms into it;
+  /* Interests: four areas, twelve dots on rails. Click one and the field zooms into it;
      every click after that is one fact deeper, until the bottom. */
   var field = document.getElementById("ifield"), focus = document.getElementById("ifocus");
   if (field && focus) {
@@ -740,27 +740,26 @@
     var fact = document.createElement("p"); fact.className = "fact";
     var foot = document.createElement("div"); foot.className = "focus-foot";
     var depthEl = document.createElement("span"); depthEl.className = "depth"; depthEl.setAttribute("aria-hidden", "true");
-    var deeper = document.createElement("button"); deeper.type = "button"; deeper.className = "btn primary"; deeper.textContent = "deeper";
-    var surface = document.createElement("button"); surface.type = "button"; surface.className = "btn"; surface.textContent = "surface";
+    var deeper = document.createElement("button"); deeper.type = "button"; deeper.className = "btn primary"; deeper.textContent = "Deeper";
+    var surface = document.createElement("button"); surface.type = "button"; surface.className = "btn"; surface.textContent = "Surface";
     foot.appendChild(depthEl); foot.appendChild(deeper); foot.appendChild(surface);
     focus.appendChild(fname); focus.appendChild(trail); focus.appendChild(fact); focus.appendChild(foot);
     var openNode = null, facts = [], depth = 0, hideTimer = 0;
     function paintDepth() {
       Array.prototype.forEach.call(depthEl.children, function (d, i) { d.classList.toggle("on", i < depth); });
       var bottom = depth >= facts.length;
-      deeper.textContent = bottom ? "that\u2019s the bottom" : "deeper";
+      deeper.textContent = bottom ? "That\u2019s the bottom" : "Deeper";
       deeper.disabled = bottom;
     }
     function showFact(animate) {
       fact.innerHTML = facts[depth].innerHTML;
-      fact.classList.toggle("ph", facts[depth].classList.contains("ph"));
       depth++;
       paintDepth();
       if (animate && !reduce && fact.animate) fact.animate([{ opacity: 0, transform: "scale(.7)" }, { opacity: 1, transform: "none" }], { duration: 380, easing: "cubic-bezier(.2,.75,.25,1)" });
     }
     function goDeeper() {
       if (depth >= facts.length) return;
-      var li = document.createElement("li"); li.innerHTML = fact.innerHTML; if (fact.classList.contains("ph")) li.className = "ph"; trail.appendChild(li);
+      var li = document.createElement("li"); li.innerHTML = fact.innerHTML; trail.appendChild(li);
       if (!reduce && li.animate) li.animate([{ opacity: 1, transform: "translateY(10px)" }, { opacity: .6, transform: "none" }], { duration: 320, easing: "cubic-bezier(.2,.75,.25,1)" });
       showFact(true);
     }
@@ -769,9 +768,8 @@
       openNode = node;
       facts = Array.prototype.slice.call(node.querySelectorAll(".node-levels > li"));
       depth = 0;
-      fname.textContent = node.querySelector(".node-name").textContent;
+      fname.textContent = node.getAttribute("data-path");
       trail.innerHTML = "";
-      var first = document.createElement("li"); first.textContent = node.querySelector(".node-flavour").textContent; trail.appendChild(first);
       depthEl.innerHTML = "";
       facts.forEach(function () { depthEl.appendChild(document.createElement("i")); });
       node.classList.add("chosen");
@@ -809,53 +807,33 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && openNode && !(dlg && dlg.open)) surfaceUp(); });
     focusOpen = function () { return !!openNode; };
 
-    /* Rails: the sports chain and the media/games pairs are lines through the dots; satellites hang off their parent */
+    /* Rails: each area is a line through its dots; satellites hang off their parent */
     var wrap = field.parentNode, svg = document.getElementById("ilinks"), isec = document.getElementById("interests");
     var nodeEls = Array.prototype.slice.call(field.querySelectorAll(".node"));
     nodeEls.forEach(function (el) { var a = document.createElement("i"); a.className = "anchor"; a.setAttribute("aria-hidden", "true"); el.appendChild(a); });
-    var V = 0, B = 1, BA = 2, MMA = 3, PH = 4, BG = 5, SH = 6, FILM = 7, W = 8, FS = 9, VT = 10, OS = 11;
-    var RAILS = [[V, B], [B, BA], [BA, MMA], [PH, FILM], [BG, SH]];
-    var SATS = [[V, VT], [B, FS], [W, OS]];
-    var narrowMq = window.matchMedia("(max-width: 56rem)");
+    var RAILS = [], SATS = [];
+    nodeEls.forEach(function (el, i) {
+      var prev = -1;
+      for (var p = i - 1; p >= 0 && nodeEls[p].parentNode === el.parentNode; p--) { if (!nodeEls[p].classList.contains("sat")) { prev = p; break; } }
+      if (prev === -1) return;
+      (el.classList.contains("sat") ? SATS : RAILS).push([prev, i]);
+    });
     var lines = [];
-    function origin(i) { var el = nodeEls[i]; return [el.offsetLeft - (narrowMq.matches ? 0 : el.offsetWidth / 2), el.offsetTop]; }
-    function box(i) { var o = origin(i), t = nodeEls[i].querySelector(".node-top"); var l = o[0] + t.offsetLeft, tp = o[1] + t.offsetTop; return { l: l, t: tp, r: l + t.offsetWidth, b: tp + t.offsetHeight, cx: l + t.offsetWidth / 2, cy: tp + t.offsetHeight / 2 }; }
-    function dot(i) { var o = origin(i), a = nodeEls[i].querySelector(".anchor"); return [o[0] + a.offsetLeft + a.offsetWidth / 2, o[1] + a.offsetTop + a.offsetHeight / 2]; }
+    function pos(el) { var x = 0, y = 0; while (el && el !== wrap) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; } return [x, y]; }
+    function box(i) { var t = nodeEls[i].querySelector(".node-top"), o = pos(t); return { l: o[0], t: o[1], r: o[0] + t.offsetWidth, b: o[1] + t.offsetHeight, cx: o[0] + t.offsetWidth / 2, cy: o[1] + t.offsetHeight / 2 }; }
+    function dot(i) { var a = nodeEls[i].querySelector(".anchor"), o = pos(a); return [o[0] + a.offsetWidth / 2, o[1] + a.offsetHeight / 2]; }
     function segsFor() {
       var out = [];
-      if (narrowMq.matches) {
-        var a = dot(V), b = dot(MMA), p = dot(PH), q = dot(SH);
-        out.push({ x1: a[0], y1: a[1], x2: a[0], y2: b[1], m: [V, B, BA, MMA] });
-        out.push({ x1: p[0], y1: p[1], x2: p[0], y2: q[1], m: [PH, FILM, BG, SH] });
-        SATS.forEach(function (s) {
-          var d = dot(s[0]), sb = box(s[1]);
-          out.push({ x1: d[0], y1: d[1], x2: d[0], y2: sb.cy, m: s });
-          out.push({ x1: d[0], y1: sb.cy, x2: sb.l - 4, y2: sb.cy, m: s });
-        });
-      } else {
-        RAILS.forEach(function (p) { var a = dot(p[0]), b = dot(p[1]); out.push({ x1: a[0], y1: a[1], x2: b[0], y2: b[1], m: p }); });
-        SATS.forEach(function (s) {
-          var pb = box(s[0]), sb = box(s[1]);
-          if (s[0] === W) out.push({ x1: pb.r + 2, y1: sb.cy, x2: sb.l - 2, y2: sb.cy, m: s });
-          else out.push({ x1: pb.cx, y1: pb.b, x2: pb.cx, y2: sb.t, m: s });
-        });
-        var bg = box(BG), wd = dot(W);
-        out.push({ x1: bg.cx, y1: bg.b + 2, x2: wd[0], y2: wd[1] - 5, m: [BG, W] });
-      }
-      return out;
-    }
-    function placeSats() {
+      RAILS.forEach(function (p) { var a = dot(p[0]), b = dot(p[1]); out.push({ x1: a[0], y1: a[1], x2: b[0], y2: b[1], m: p }); });
       SATS.forEach(function (s) {
-        var pb = box(s[0]), el = nodeEls[s[1]];
-        if (narrowMq.matches) { el.style.left = ""; el.style.top = ""; return; }
-        var st = el.querySelector(".node-top"), sw = st.offsetWidth, sh = st.offsetHeight;
-        if (s[0] === W) { el.style.left = (pb.r + 24 + sw / 2) + "px"; el.style.top = (pb.t + (pb.b - pb.t) / 2 - sh / 2 - 6) + "px"; }
-        else { el.style.left = pb.cx + "px"; el.style.top = (pb.b + 10) + "px"; }
+        var d = dot(s[0]), sb = box(s[1]);
+        out.push({ x1: d[0], y1: d[1], x2: d[0], y2: sb.cy, m: s });
+        out.push({ x1: d[0], y1: sb.cy, x2: sb.l - 4, y2: sb.cy, m: s });
       });
+      return out;
     }
     function drawLinks() {
       if (!svg) return;
-      placeSats();
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       lines = segsFor().map(function (sg) {
         var l = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -894,7 +872,7 @@
       field.classList.remove("in"); wrap.classList.remove("in");
       requestAnimationFrame(function () {
         drawLinks();
-        var order = nodeEls.slice().sort(function (a, b) { var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect(); return narrowMq.matches ? ra.top - rb.top : (ra.left - rb.left) || (ra.top - rb.top); });
+        var order = nodeEls.slice().sort(function (a, b) { var ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect(); return (Math.round(ra.left / 20) - Math.round(rb.left / 20)) || (ra.top - rb.top); });
         order.forEach(function (el, n) { el.style.setProperty("--d", (reduce ? 0 : n * 45) + "ms"); });
         requestAnimationFrame(function () { field.classList.add("in"); wrap.classList.add("in"); });
         clearTimeout(landTimer);
@@ -903,6 +881,7 @@
     }
     var linkTimer = 0;
     window.addEventListener("resize", function () { clearTimeout(linkTimer); linkTimer = setTimeout(drawLinks, 120); });
+    document.addEventListener("a11ychange", function () { requestAnimationFrame(drawLinks); });
     if (isec) isec.addEventListener("viewshow", arrive);
     if (isec && isec.classList.contains("on")) arrive(); else drawLinks();
   }
