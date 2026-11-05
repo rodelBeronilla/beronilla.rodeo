@@ -731,121 +731,78 @@
     toastTimer = setTimeout(function () { toastEl.classList.remove("is-on"); }, 1800);
   }
 
-  /* Interests: four areas, twelve dots on rails. Choosing one is a camera move: the field
-     scales toward that dot, the rest of the map drifts off, and the tile hands over to the card.
-     Every click after that is one fact deeper, and the camera pushes in a little further. */
+  /* Interests: four areas set as one index. Choosing an item keeps its column,
+     clears the other three and opens the fact in the space they leave. */
   var field = document.getElementById("ifield"), focus = document.getElementById("ifocus");
   if (field && focus) {
     var EZ = "cubic-bezier(.2,.75,.25,1)";
-    var CAM = [1.26, 1.32, 1.38], CAML = [1.14, 1.18, 1.22], GLOW = [.42, .5, .58], GS = [1, 1.06, 1.12];
-    var fname = document.createElement("p"); fname.className = "focus-name";
     var trail = document.createElement("ol"); trail.className = "trail";
     var fact = document.createElement("p"); fact.className = "fact";
     var foot = document.createElement("div"); foot.className = "focus-foot";
-    var depthEl = document.createElement("span"); depthEl.className = "depth"; depthEl.setAttribute("aria-hidden", "true");
-    var deeper = document.createElement("button"); deeper.type = "button"; deeper.className = "btn primary"; deeper.textContent = "Deeper";
-    var surface = document.createElement("button"); surface.type = "button"; surface.className = "btn"; surface.textContent = "Surface";
-    foot.appendChild(depthEl); foot.appendChild(deeper); foot.appendChild(surface);
-    focus.appendChild(fname); focus.appendChild(trail); focus.appendChild(fact); focus.appendChild(foot);
+    var deeper = document.createElement("button"); deeper.type = "button"; deeper.className = "btn"; deeper.textContent = "Deeper";
+    var surface = document.createElement("button"); surface.type = "button"; surface.className = "btn ghost"; surface.textContent = "Surface";
+    foot.appendChild(deeper); foot.appendChild(surface);
+    focus.appendChild(trail); focus.appendChild(fact); focus.appendChild(foot);
+
+    var wrap = field.parentNode, isec = document.getElementById("interests");
+    var cats = Array.prototype.slice.call(field.querySelectorAll(".cat"));
+    var nodeEls = Array.prototype.slice.call(field.querySelectorAll(".node"));
+    var catOf = nodeEls.map(function (el) { return cats.indexOf(el.closest(".cat")); });
+    var narrowMq = window.matchMedia("(max-width: 56rem)");
     var openNode = null, facts = [], depth = 0, hideTimer = 0;
-    var camTx = 0, camTy = 0, camTimer = 0, flipAnim = null;
-    /* one camera, one glow, both stepped by how deep we are */
-    function camStep() {
-      var k = Math.max(0, Math.min(depth - 1, CAM.length - 1));
-      wrap.style.setProperty("--cam", "translate(" + camTx.toFixed(1) + "px," + camTy.toFixed(1) + "px) scale(" + CAM[k] + ")");
-      wrap.style.setProperty("--camL", "translate(" + (camTx * .8).toFixed(1) + "px," + (camTy * .8).toFixed(1) + "px) scale(" + CAML[k] + ")");
-      wrap.style.setProperty("--glow", String(GLOW[k]));
-      wrap.style.setProperty("--gs", String(GS[k]));
-    }
-    function camHome() {
-      clearTimeout(camTimer);
-      wrap.style.setProperty("--cam", "none");
-      wrap.style.setProperty("--camL", "none");
-      camTimer = setTimeout(function () {
-        if (openNode) return;
-        wrap.classList.remove("clip");
-        ["--cam", "--camL", "--camo", "--glow", "--gs", "--gx", "--gy"].forEach(function (p) { wrap.style.removeProperty(p); });
-      }, 560);
-    }
+
     function paintDepth() {
-      Array.prototype.forEach.call(depthEl.children, function (d, i) { d.classList.toggle("on", i < depth); });
       var bottom = depth >= facts.length;
-      deeper.textContent = bottom ? "That\u2019s the bottom" : "Deeper";
-      deeper.disabled = bottom;
+      if (!deeper.hidden) { deeper.textContent = bottom ? "That\u2019s the bottom" : "Deeper"; deeper.disabled = bottom; }
     }
     function showFact(animate) {
       fact.innerHTML = facts[depth].innerHTML;
       depth++;
       paintDepth();
-      if (reduce) return;
-      if (animate && fact.animate) fact.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: EZ });
-      var pip = depthEl.children[depth - 1];
-      if (pip && pip.animate) pip.animate([{ transform: "scale(1)" }, { transform: "scale(1.35)" }, { transform: "scale(1)" }], { duration: 220, easing: "ease-out" });
+      if (animate && !reduce && fact.animate) fact.animate([{ opacity: 0, transform: "translateY(14px)" }, { opacity: 1, transform: "none" }], { duration: 300, easing: EZ });
     }
     function goDeeper() {
       if (depth >= facts.length) return;
       var li = document.createElement("li"); li.innerHTML = fact.innerHTML; trail.appendChild(li);
-      if (!reduce && li.animate) li.animate([{ opacity: 1, transform: "translateY(6px) scale(1.03)" }, { opacity: .6, transform: "none" }], { duration: 320, easing: EZ });
+      if (!reduce && li.animate) li.animate([{ opacity: 1, transform: "translateY(6px)" }, { opacity: .55, transform: "none" }], { duration: 320, easing: EZ });
       showFact(true);
-      if (!reduce) camStep();
     }
-    /* the tile shrinks and dissolves where the card's title lands */
-    function flipOut(top) {
-      if (reduce || !top.animate) return;
-      openNode.classList.add("flip");
-      if (flipAnim) { flipAnim.cancel(); flipAnim = null; }
-      flipAnim = top.animate([{ transform: "none", opacity: 1 }, { transform: "scale(.68)", opacity: 0 }], { duration: 340, easing: EZ, fill: "forwards" });
-    }
-    function flipBack(node, top) {
-      if (!flipAnim) { node.classList.remove("flip"); return; }
-      flipAnim.cancel(); flipAnim = null;
-      if (!top.animate) { node.classList.remove("flip"); return; }
-      var a = top.animate([{ transform: "scale(.68)", opacity: 0 }, { transform: "none", opacity: 1 }], { duration: 300, easing: EZ });
-      a.onfinish = function () { node.classList.remove("flip"); };
-      a.oncancel = function () { node.classList.remove("flip"); };
+    /* the chosen column slides to the grid's left edge and the card takes the space the others leave */
+    function reflow(ci) {
+      var wide = !narrowMq.matches, fr = field.getBoundingClientRect();
+      cats.forEach(function (cat, c) {
+        cat.classList.toggle("held", c === ci);
+        cat.style.removeProperty("--tx"); cat.style.removeProperty("--fd");
+        if (c === ci) { if (wide && !reduce) cat.style.setProperty("--tx", (fr.left - cat.getBoundingClientRect().left).toFixed(1) + "px"); return; }
+        cat.style.setProperty("--fd", ((Math.abs(c - ci) - 1) * 40) + "ms");
+        if (wide && !reduce) cat.style.setProperty("--tx", (c < ci ? -18 : 18) + "px");
+      });
+      if (!wide || !cats[1] || !openNode) { focus.style.removeProperty("--cardx"); focus.style.removeProperty("--cardy"); return; }
+      focus.style.setProperty("--cardx", (cats[1].getBoundingClientRect().left - fr.left).toFixed(1) + "px");
+      /* the card hangs from the live item, pulled up only when it would outrun the column */
+      focus.style.setProperty("--cardy", "0px");
+      var top = openNode.getBoundingClientRect().top - fr.top;
+      focus.style.setProperty("--cardy", Math.max(0, Math.min(top, fr.height - focus.getBoundingClientRect().height)).toFixed(1) + "px");
     }
     function zoomIn(node) {
       var top = node.querySelector(".node-top"), i = nodeEls.indexOf(node);
       openNode = node;
       facts = Array.prototype.slice.call(node.querySelectorAll(".node-levels > li"));
       depth = 0;
-      fname.textContent = node.getAttribute("data-path");
       trail.innerHTML = "";
-      depthEl.innerHTML = "";
-      facts.forEach(function () { depthEl.appendChild(document.createElement("i")); });
-      nodeEls.forEach(function (el) { el.classList.remove("flip"); });
-      node.classList.add("chosen");
+      nodeEls.forEach(function (el) { el.classList.remove("live"); });
+      node.classList.add("live");
+      deeper.hidden = facts.length < 2;
+      deeper.disabled = false;
       field.inert = true;
       top.setAttribute("aria-expanded", "true");
-      clearTimeout(hideTimer); clearTimeout(camTimer);
+      clearTimeout(hideTimer);
       focus.hidden = false;
       showFact(false);
-      if (!reduce) {
-        /* aim the camera at the card's own title line, so the tile lands on it */
-        var wr = wrap.getBoundingClientRect(), nr = fname.getBoundingClientRect(), d = dot(i);
-        var ax = nr.left - wr.left, ay = nr.top - wr.top + nr.height / 2;
-        /* the dot parks in the card's left margin, never on the title's first letter */
-        var dx = ax - Math.min(16, Math.max(0, ax));
-        camTx = (dx - d[0]) * .9; camTy = (ay - d[1]) * .9;
-        wrap.style.setProperty("--camo", d[0].toFixed(1) + "px " + d[1].toFixed(1) + "px");
-        wrap.style.setProperty("--gx", ax.toFixed(1) + "px");
-        wrap.style.setProperty("--gy", ay.toFixed(1) + "px");
-        cats.forEach(function (cat, c) {
-          if (c === catOf[i]) { cat.style.setProperty("--fd", "60ms"); cat.style.removeProperty("--drift"); return; }
-          cat.style.setProperty("--fd", "0ms");
-          cat.style.setProperty("--drift", (c < catOf[i] ? -18 : 18) + "px");
-        });
-        wrap.classList.add("clip");
-      }
-      unlight();
-      if (i !== -1) litOnly(i);
+      reflow(catOf[i]);
       field.classList.add("zoomed"); wrap.classList.add("zoomed");
-      requestAnimationFrame(function () {
-        if (!reduce) camStep();
-        requestAnimationFrame(function () { focus.classList.add("on"); });
-      });
-      flipOut(top);
-      deeper.focus({ preventScroll: true });
+      requestAnimationFrame(function () { requestAnimationFrame(function () { focus.classList.add("on"); }); });
+      (deeper.hidden ? surface : deeper).focus({ preventScroll: true });
     }
     function surfaceUp() {
       if (!openNode) return;
@@ -853,17 +810,14 @@
       openNode = null;
       focus.classList.remove("on");
       field.classList.remove("zoomed"); wrap.classList.remove("zoomed");
-      node.classList.remove("chosen");
-      unlight();
-      cats.forEach(function (cat) { cat.style.removeProperty("--drift"); cat.style.removeProperty("--fd"); });
-      camHome();
-      flipBack(node, top);
+      node.classList.remove("live");
+      cats.forEach(function (cat) { cat.classList.remove("held"); cat.style.removeProperty("--tx"); cat.style.removeProperty("--fd"); });
       field.inert = false;
       top.setAttribute("aria-expanded", "false");
-      hideTimer = setTimeout(function () { if (!openNode) focus.hidden = true; }, reduce ? 0 : 460);
+      hideTimer = setTimeout(function () { if (!openNode) focus.hidden = true; }, reduce ? 0 : 440);
       top.focus({ preventScroll: true });
     }
-    Array.prototype.forEach.call(field.querySelectorAll(".node:not(.sat)"), function (node) {
+    nodeEls.forEach(function (node) {
       node.querySelector(".node-top").addEventListener("click", function () { zoomIn(node); });
     });
     deeper.addEventListener("click", goDeeper);
@@ -875,78 +829,11 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && openNode && !(dlg && dlg.open)) surfaceUp(); });
     focusOpen = function () { return !!openNode; };
 
-    /* Rails: each area is a line through its dots; satellites hang off their parent */
-    var wrap = field.parentNode, svg = document.getElementById("ilinks"), isec = document.getElementById("interests");
-    var nodeEls = Array.prototype.slice.call(field.querySelectorAll(".node"));
-    var cats = Array.prototype.slice.call(field.querySelectorAll(".cat"));
-    var catOf = nodeEls.map(function (el) { return cats.indexOf(el.closest(".cat")); });
-    nodeEls.forEach(function (el) { var a = document.createElement("i"); a.className = "anchor"; a.setAttribute("aria-hidden", "true"); el.appendChild(a); });
-    var RAILS = [], SATS = [];
-    nodeEls.forEach(function (el, i) {
-      var prev = -1;
-      for (var p = i - 1; p >= 0 && nodeEls[p].parentNode === el.parentNode; p--) { if (!nodeEls[p].classList.contains("sat")) { prev = p; break; } }
-      if (prev === -1) return;
-      (el.classList.contains("sat") ? SATS : RAILS).push([prev, i]);
-    });
-    var lines = [];
-    function pos(el) { var x = 0, y = 0; while (el && el !== wrap) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; } return [x, y]; }
-    function box(i) { var t = nodeEls[i].querySelector(".node-top"), o = pos(t); return { l: o[0], t: o[1], r: o[0] + t.offsetWidth, b: o[1] + t.offsetHeight, cx: o[0] + t.offsetWidth / 2, cy: o[1] + t.offsetHeight / 2 }; }
-    function dot(i) { var a = nodeEls[i].querySelector(".anchor"), o = pos(a); return [o[0] + a.offsetWidth / 2, o[1] + a.offsetHeight / 2]; }
-    function segsFor() {
-      var out = [];
-      RAILS.forEach(function (p) { var a = dot(p[0]), b = dot(p[1]); out.push({ x1: a[0], y1: a[1], x2: b[0], y2: b[1], m: p }); });
-      SATS.forEach(function (s) {
-        var d = dot(s[0]), sb = box(s[1]);
-        out.push({ x1: d[0], y1: d[1], x2: d[0], y2: sb.cy, m: s });
-        out.push({ x1: d[0], y1: sb.cy, x2: sb.l - 4, y2: sb.cy, m: s });
-      });
-      return out;
-    }
-    function drawLinks() {
-      if (!svg) return;
-      while (svg.firstChild) svg.removeChild(svg.firstChild);
-      lines = segsFor().map(function (sg) {
-        var l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        l.setAttribute("x1", sg.x1.toFixed(1)); l.setAttribute("y1", sg.y1.toFixed(1)); l.setAttribute("x2", sg.x2.toFixed(1)); l.setAttribute("y2", sg.y2.toFixed(1));
-        l.setAttribute("data-m", sg.m.join(","));
-        l.style.setProperty("--len", Math.hypot(sg.x2 - sg.x1, sg.y2 - sg.y1).toFixed(0));
-        l.style.setProperty("--ld", "0ms");
-        svg.appendChild(l);
-        return l;
-      });
-    }
-    function members(i) {
-      var set = [i];
-      RAILS.concat(SATS).forEach(function (p) { if (p[0] === i) set.push(p[1]); if (p[1] === i) set.push(p[0]); });
-      return set;
-    }
-    function light(i) {
-      var set = members(i);
-      field.classList.add("hl"); wrap.classList.add("hl");
-      nodeEls.forEach(function (el, n) { el.classList.toggle("hot", n === i); el.classList.toggle("near", n !== i && set.indexOf(n) !== -1); });
-      lines.forEach(function (l) { var m = l.getAttribute("data-m").split(",").map(Number); l.setAttribute("class", m.indexOf(i) !== -1 ? "lit" : ""); });
-    }
-    function litOnly(i) {
-      lines.forEach(function (l) { var m = l.getAttribute("data-m").split(",").map(Number); l.setAttribute("class", m.indexOf(i) !== -1 ? "lit" : ""); });
-    }
-    function unlight() {
-      field.classList.remove("hl"); wrap.classList.remove("hl");
-      nodeEls.forEach(function (el) { el.classList.remove("hot", "near"); });
-      lines.forEach(function (l) { l.setAttribute("class", ""); });
-    }
-    nodeEls.forEach(function (el, i) {
-      var top = el.querySelector(".node-top");
-      top.addEventListener("pointerenter", function () { if (!openNode) light(i); });
-      top.addEventListener("pointerleave", function () { if (!openNode) unlight(); });
-      top.addEventListener("focus", function () { if (!openNode && top.matches(":focus-visible")) light(i); });
-      top.addEventListener("blur", function () { if (!openNode) unlight(); });
-    });
+    /* arrival: area by area, the rule draws, the label fades, the items land */
     var landTimer = 0;
-    /* arrival: area by area, the rule draws, the label fades, the dots land, then that area's rails */
     function arrive() {
-      field.classList.remove("in"); wrap.classList.remove("in");
+      field.classList.remove("in");
       requestAnimationFrame(function () {
-        drawLinks();
         cats.forEach(function (cat, c) {
           var base = reduce ? 0 : c * 90;
           cat.style.setProperty("--rd", base + "ms");
@@ -954,11 +841,7 @@
             el.style.setProperty("--d", (reduce ? 0 : base + 150 + k * 50) + "ms");
           });
         });
-        lines.forEach(function (l) {
-          var c = catOf[Number(l.getAttribute("data-m").split(",")[0])];
-          l.style.setProperty("--ld", (reduce || c < 0 ? 0 : c * 90 + 330) + "ms");
-        });
-        requestAnimationFrame(function () { field.classList.add("in"); wrap.classList.add("in"); });
+        requestAnimationFrame(function () { field.classList.add("in"); });
         clearTimeout(landTimer);
         landTimer = setTimeout(function () {
           nodeEls.forEach(function (el) { el.style.removeProperty("--d"); });
@@ -966,11 +849,12 @@
         }, 1400);
       });
     }
-    var linkTimer = 0;
-    window.addEventListener("resize", function () { clearTimeout(linkTimer); linkTimer = setTimeout(drawLinks, 120); });
-    document.addEventListener("a11ychange", function () { requestAnimationFrame(drawLinks); });
+    var reTimer = 0;
+    function reReflow() { if (openNode) reflow(catOf[nodeEls.indexOf(openNode)]); }
+    window.addEventListener("resize", function () { clearTimeout(reTimer); reTimer = setTimeout(reReflow, 120); });
+    document.addEventListener("a11ychange", function () { requestAnimationFrame(reReflow); });
     if (isec) isec.addEventListener("viewshow", arrive);
-    if (isec && isec.classList.contains("on")) arrive(); else drawLinks();
+    if (isec && isec.classList.contains("on")) arrive();
   }
 
   /* Experience: a band of every month since 2015, the four roles as segments on it, one card at a time */
