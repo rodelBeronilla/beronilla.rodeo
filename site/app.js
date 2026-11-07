@@ -469,6 +469,7 @@
         el.className = gr.beside ? "glabel side" : "glabel";
         el.style.top = Math.round(gr.top) + "px";
         c.textContent = String(gr.count);
+        if (name === "year" && gr.count === 12 && !gr.beside) { el.textContent = gr.text; plot.appendChild(el); labels.push(el); return; }
         if (gr.beside) { el.title = gr.text + ", " + gr.count; el.appendChild(c); el.appendChild(document.createTextNode(gr.text)); }
         else { el.appendChild(document.createTextNode(gr.text + " ")); el.appendChild(c); }
         plot.appendChild(el);
@@ -857,6 +858,20 @@
     if (isec && isec.classList.contains("on")) arrive();
   }
 
+  /* Projects: pointing at a tag underlines the same tag on every card; a tap pins it */
+  var built = document.querySelector(".built");
+  if (built) {
+    var tags = Array.prototype.slice.call(built.querySelectorAll(".skills li")), pinned = null;
+    var tagKey = function (li) { return li.textContent.trim().toLowerCase(); };
+    var lightTag = function (k) { tags.forEach(function (li) { li.classList.toggle("lit", !!k && tagKey(li) === k); }); };
+    tags.forEach(function (li) {
+      li.addEventListener("pointerenter", function () { if (!pinned) lightTag(tagKey(li)); });
+      li.addEventListener("pointerleave", function () { if (!pinned) lightTag(null); });
+      li.addEventListener("click", function (e) { e.stopPropagation(); pinned = pinned === tagKey(li) ? null : tagKey(li); lightTag(pinned); });
+    });
+    document.addEventListener("click", function () { if (pinned) { pinned = null; lightTag(null); } });
+  }
+
   /* Experience: a band of every month since 2015, the four roles as segments on it, one card at a time */
   var stage = document.getElementById("experience");
   if (stage) {
@@ -930,19 +945,19 @@
         var mlong = document.createElement("span"); mlong.className = "long"; mlong.textContent = ", late 2026"; ml.appendChild(mlong);
       }
     }
-    var creds = Array.prototype.slice.call(stage.querySelectorAll(".cred[data-year]"));
+    var creds = Array.prototype.slice.call(stage.querySelectorAll(".xp-side li.cred[data-date]"));
     var active = -1;
     function activate(i) {
       if (i === active || !roles[i]) return;
       var dir = i > active ? 1 : -1, prev = roles[active];
       active = i;
-      var end = Number(roles[i].getAttribute("data-end"));
+      var from = roles[i].getAttribute("data-from"), to = roles[i].getAttribute("data-to");
       roles.forEach(function (li, n) { li.classList.toggle("is-active", n === i); });
       segs.forEach(function (s, n) { s.setAttribute("aria-pressed", n === i ? "true" : "false"); });
       if (typeof runEls !== "undefined") { runEls.forEach(function (d) { d.classList.toggle("on", d.getAttribute("data-seg") === String(i)); }); ubars.forEach(function (u, n) { u.classList.toggle("on", n === i); }); }
-      creds.forEach(function (el) { el.classList.toggle("pending", Number(el.getAttribute("data-year")) > end); });
-      if (xpPrev) xpPrev.disabled = i === 0;
-      if (xpNext) xpNext.disabled = i === roles.length - 1;
+      creds.forEach(function (el) { var d = el.getAttribute("data-date"); el.classList.toggle("earned", d >= from && (to === "now" || d <= to)); });
+      if (xpPrev) xpPrev.disabled = i === roles.length - 1;
+      if (xpNext) xpNext.disabled = i === 0;
       if (xpPos) xpPos.textContent = (i + 1) + " of " + roles.length;
       if (reduce || !roles[i].animate) { if (prev) prev.classList.remove("leaving"); return; }
       if (prev) {
@@ -959,6 +974,7 @@
       drawn = true;
       requestAnimationFrame(function () { requestAnimationFrame(function () {
         band.classList.add("in");
+        setTimeout(function () { band.classList.add("settled"); }, reduce ? 0 : 1500);
         if (!reduce && segs[active] && segs[active].animate) setTimeout(function () {
           segs[active].animate([{ boxShadow: "0 0 0 0 var(--accent)" }, { boxShadow: "0 0 0 10px transparent" }], { duration: 700, easing: "ease-out" });
         }, 650);
@@ -972,7 +988,9 @@
       activate(t);
       return true;
     };
-    if (xpPrev) xpPrev.addEventListener("click", function () { xpStep(-1); });
-    if (xpNext) xpNext.addEventListener("click", function () { xpStep(1); });
+    if (xpPrev) xpPrev.addEventListener("click", function () { xpStep(1); });
+    if (xpNext) xpNext.addEventListener("click", function () { xpStep(-1); });
+    var heroXp = document.querySelector(".hero .cta a[href=\"#experience\"]");
+    if (heroXp) heroXp.addEventListener("click", function () { activate(0); });
   }
 })();
