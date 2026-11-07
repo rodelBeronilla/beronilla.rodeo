@@ -45,7 +45,9 @@ def digest(name):
 def stamp(html):
     versions = {name: digest(name) for name in ASSETS}
     pattern = r'((?:href|src)=")(/?)(' + "|".join(re.escape(a) for a in ASSETS) + r')(")'
-    return re.sub(pattern, lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}?v={versions[m.group(3)]}{m.group(4)}", html)
+    html = re.sub(pattern, lambda m: f"{m.group(1)}{m.group(2)}{m.group(3)}?v={versions[m.group(3)]}{m.group(4)}", html)
+    # Share previews are cached by Cloudflare and by every social network, so the image URL must change with the image.
+    return html.replace("/og.png\"", f"/og.png?v={digest('og.png')}\"")
 
 
 class QuietHandler(http.server.SimpleHTTPRequestHandler):
