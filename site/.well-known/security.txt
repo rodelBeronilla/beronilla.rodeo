@@ -1,0 +1,4 @@
+Contact: https://beronilla.rodeo/#contact
+Expires: 2027-11-07T00:00:00Z
+Preferred-Languages: en
+Canonical: https://beronilla.rodeo/.well-known/security.txt
