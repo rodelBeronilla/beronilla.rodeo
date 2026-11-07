@@ -37,7 +37,8 @@ body {
 a { color: inherit; text-decoration-color: var(--line-2); text-underline-offset: .22em; }
 a:hover { text-decoration-color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
-h1, h2, h3, p, ul, ol { margin: 0; }
+.kicker[tabindex="-1"]:focus, .page[tabindex="-1"]:focus { outline: none; }
+h1, h2, h3, h4, p, ul, ol { margin: 0; }
 ul, ol { padding: 0; list-style: none; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 .skip { position: absolute; left: -999px; top: 0; background: var(--fg); color: var(--bg); padding: .5rem .8rem; z-index: 100; }
@@ -186,6 +187,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .js .tenets.fold > li { cursor: pointer; }
 .js .tenets.fold > li > h3 { display: flex; justify-content: space-between; gap: 1rem; margin-bottom: 0; }
 .js .tenets.fold > li > h3::after { content: "+"; color: var(--muted); font-weight: 400; }
+.tenet-btn { flex: 1; font: inherit; letter-spacing: inherit; color: inherit; text-align: left; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; }
 .js .tenets.fold > li.open > h3 { margin-bottom: .3rem; }
 .js .tenets.fold > li.open > h3::after { content: "\2212"; }
 .js .tenets.fold > li > p { display: none; }
@@ -285,7 +287,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .xp-side li.cred.earned > .tl-when::after { content: "During this role"; margin-left: .6rem; font: 600 .78rem var(--sans); color: var(--accent); }
 .honours { margin-top: .3rem; }
 .xp-side .tl-when { display: block; }
-.xp-side .tl-what h3 { font-size: 1rem; }
+.xp-side .tl-what h4 { font-size: 1rem; }
 .no-js .xp { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "main" "side"; row-gap: 1.5rem; }
 .no-js .xp-roles { display: grid; gap: .75rem; }
 .xp-block > .kicker { margin-bottom: .6rem; }
@@ -294,7 +296,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .tl > li { display: grid; grid-template-columns: 9.5rem minmax(0, 1fr); gap: 0 1.5rem; padding: .8rem 0; border-top: 1px solid var(--line); }
 .tl > li:first-child { border-top: 0; padding-top: 0; }
 .tl-when { font: .8rem/1.7 var(--mono); color: var(--muted); }
-.tl-what h3 { font-size: 1.02rem; font-weight: 620; }
+.tl-what h3, .tl-what h4 { font-size: 1.02rem; font-weight: 620; }
 .tl-what p { color: var(--fg-2); margin-top: .12rem; font-size: .92rem; line-height: 1.48; }
 .tl-what sup { font-size: .65em; line-height: 0; }
 .skills { display: flex; flex-wrap: wrap; gap: 0 .35em; margin-top: .55rem; font-size: .85rem; line-height: 1.5; color: var(--muted); }
@@ -452,7 +454,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .xp-side .tl-when { font-size: .72rem; line-height: 1.4; }
   .xp-side li.cred::before { left: -.6rem; }
   .xp-side .tl-what { display: flex; flex-wrap: wrap; gap: 0 .5rem; align-items: baseline; }
-  .xp-side .tl-what h3 { font-size: .9rem; }
+  .xp-side .tl-what h4 { font-size: .9rem; }
   .xp-side .tl-what p { margin-top: 0; font-size: .82rem; }
 }
 @media (max-width: 68rem) and (max-height: 720px) {
@@ -493,6 +495,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .sheet-close { display: flex; flex-direction: column; align-items: center; gap: .4rem; padding: 1rem 0 calc(1.2rem + env(safe-area-inset-bottom, 0)); font-size: .82rem; color: var(--muted); }
   .sheet-close i { width: 2.2rem; height: 4px; border-radius: 2px; background: var(--line-2); }
   .js .page > .page-in { padding-bottom: 2.9rem; }
+  .js .page-end > .foot { padding-bottom: 2.9rem; }
   .a11y { left: calc(.75rem + env(safe-area-inset-left, 0)); bottom: calc(3rem + .6rem + env(safe-area-inset-bottom, 0)); }
   .ss-pill { padding: 3px 12px 3px 4px; font-size: .68rem; }
   .js .swipe { display: flex; align-items: center; justify-content: center; gap: .6rem; flex: none; height: 3rem; padding-bottom: env(safe-area-inset-bottom, 0); border-top: 1px solid var(--line); background: var(--bg); font-size: .78rem; color: var(--muted); }
@@ -537,6 +540,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   html { scroll-behavior: auto; }
   .dot, .pivot-plot, .tenets > li, .tenet-why, .field::after, .meter i, .nav-ind, .focus, .focus > *, .run, .ubar, .seg, .cred, .node, .node-top::before, .cat, .cat-name::before { transition: none; }
   .cat { transform: none; }
+  .js .band.in .run, .cat-name, .sub, .js .ifield.in .node { transition: none; }
   .js .ifield.zoomed .cat:not(.held) { display: none; }
   .btn.sending::after, .cmdk[open], .js .page.seen .st, .js .pull, .js .swipe.nudge .swipe-txt { animation: none; }
   .sheet, .sheet.open { transition: none; }
@@ -605,7 +609,7 @@ html[data-a11y="on"] .swipe-dots button[aria-current]::before { background: var(
 html[data-a11y="on"].js .page:not(.hero) .sec-head, html[data-a11y="on"].js .page:not(.hero) .sec-body > * { opacity: 1; transform: none; transition: none; }
 html[data-a11y="on"].js .band .run, html[data-a11y="on"].js .band:not(.in) .run { transform: none; opacity: 1; transition: none; }
 html[data-a11y="on"].js .pull, html[data-a11y="on"].js .swipe.nudge .swipe-txt { animation: none; }
-html[data-a11y="on"] .cat, html[data-a11y="on"] .cat-name::before, html[data-a11y="on"] .focus > *::before { transition: none; }
+html[data-a11y="on"] .cat, html[data-a11y="on"] .cat-name::before, html[data-a11y="on"] .focus > *::before, html[data-a11y="on"] .cat-name, html[data-a11y="on"] .sub, html[data-a11y="on"].js .ifield.in .node { transition: none; }
 html[data-a11y="on"] .cat { transform: none; }
 html[data-a11y="on"].js .ifield.zoomed .cat:not(.held) { display: none; }
 html[data-a11y="on"] .plot .dot, html[data-a11y="on"] .pivot-plot.is-in .dot { transition: none; }
