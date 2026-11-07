@@ -7,7 +7,7 @@ beronilla.rodeo {
     root * /srv/beronilla.rodeo/site
     # The contact form posts here. The relay (projects/webapp-hosting/contact-relay, joined to
     # media-net as contact-relay) turns it into an email, so the address is never in the page.
-    @contact path /contact
+    @contact path /contact /contact/challenge
     handle @contact {
         request_body {
             max_size 64KB
@@ -15,10 +15,11 @@ beronilla.rodeo {
         reverse_proxy contact-relay:8080
     }
     encode zstd gzip
-    # Pages always revalidate (ETag makes that cheap); assets are versioned by the
-    # deploy script (style.css?v=hash), so they can be cached for a week.
+    # Pages are fresh within a minute, and Cloudflare may serve its last copy for a day if this
+    # server errors. No s-maxage: Cloudflare ignores stale-if-error when s-maxage is set.
+    # Assets are versioned by the deploy script (style.css?v=hash), so they cache for a week.
     @page path / /index.html /404.html /sent.html
-    header @page Cache-Control "no-cache"
+    header @page Cache-Control "public, max-age=60, stale-if-error=86400"
     @asset path *.css *.js *.svg
     header @asset Cache-Control "public, max-age=604800"
     file_server
@@ -28,7 +29,7 @@ beronilla.rodeo {
         file_server
     }
     header {
-        Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-B/Lg1CTCd7lLGp9NoXqJXOWxw2axp951s1WKy6Qg6HI='; style-src 'self'; img-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
+        Content-Security-Policy "default-src 'none'; script-src 'self' 'sha256-B/Lg1CTCd7lLGp9NoXqJXOWxw2axp951s1WKy6Qg6HI='; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests"
         X-Content-Type-Options "nosniff"
         X-Frame-Options "DENY"
         Referrer-Policy "strict-origin-when-cross-origin"

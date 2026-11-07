@@ -1,9 +1,16 @@
 #!/usr/bin/env python3
 """Contact relay for beronilla.rodeo.
 
-One POST endpoint that turns the site's contact form into an email, so the address never
-appears in the page. Standard library only. Caddy proxies /contact here; everything else on
+Turns the site's contact form into an email, so the address never appears in the page.
+Standard library only. Caddy proxies /contact and /contact/challenge here; everything else on
 the site stays static.
+
+Two layers keep a flood from reaching the Gmail sending quota:
+  - Proof of work. GET /contact/challenge hands out a signed, expiring, single-use puzzle the
+    page solves in the background. A message with a valid proof can be emailed straight away.
+  - Adaptive digest. A message without a valid proof, or any message once more than THRESHOLD
+    went out straight away in the last hour, waits in a queue on disk and goes out in one
+    digest email an hour. Nothing is dropped; the quota can't be reached.
 
 Environment:
   GMAIL_USER, GMAIL_APP_PASSWORD   the sending account (an app password, not the real one)
@@ -12,8 +19,15 @@ Environment:
   RATE_LIMIT / RATE_WINDOW         attempts per sender address per window (default 3 / 3600 s)
   GLOBAL_LIMIT                     attempts from everyone per window (default 30). Docker Desktop
                                    masks client addresses, so this is the brake on a flood.
+  POW_BITS                         leading zero bits the proof needs (default 17)
+  DIGEST_THRESHOLD                 immediate sends per hour before the digest takes over (default 5)
+  DIGEST_INTERVAL                  seconds between digest flushes (default 3600)
+  QUEUE_PATH                       the queue file (default /data/queue.jsonl)
 """
+import hashlib
+import hmac
 import html
+import json
 import os
 import re
 import smtplib
@@ -25,6 +39,7 @@ from collections import defaultdict, deque
 from email.message import EmailMessage
 from email.utils import formatdate, make_msgid
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 from urllib.parse import parse_qs
 
 SITE = os.environ.get("SITE_ORIGIN", "https://beronilla.rodeo").rstrip("/")
@@ -36,8 +51,16 @@ TO = os.environ.get("CONTACT_TO", "").strip() or SMTP_USER
 LIMIT = int(os.environ.get("RATE_LIMIT", "3"))
 GLOBAL_LIMIT = int(os.environ.get("GLOBAL_LIMIT", "30"))
 WINDOW = int(os.environ.get("RATE_WINDOW", "3600"))
+BITS = int(os.environ.get("POW_BITS", "17"))
+THRESHOLD = int(os.environ.get("DIGEST_THRESHOLD", "5"))
+INTERVAL = int(os.environ.get("DIGEST_INTERVAL", "3600"))
+QUEUE = Path(os.environ.get("QUEUE_PATH", "/data/queue.jsonl"))
+DIGEST_CAP = 200
+CHALLENGE_TTL = 600
 MAX_BODY = 64 * 1024
 EMAIL_RE = re.compile(r"^[^@\s]{1,120}@[^@\s]{1,120}\.[^@\s]{2,}$")
+# Lives only in memory: a restart voids outstanding challenges and nothing else.
+KEY = os.urandom(32)
 
 # The same inline script index.html carries, byte for byte: the site's CSP pins its hash.
 THEME_SCRIPT = (
@@ -48,6 +71,9 @@ THEME_SCRIPT = (
 
 _hits = defaultdict(deque)
 _lock = threading.Lock()
+_used = {}
+_sent = deque()
+_queue_lock = threading.Lock()
 
 
 def limited(key, cap):
@@ -62,6 +88,144 @@ def limited(key, cap):
         return False
 
 
+# proof of work
+
+def _sign(salt, exp, bits):
+    return hmac.new(KEY, f"{salt}.{exp}.{bits}".encode(), hashlib.sha256).hexdigest()
+
+
+def challenge(now=None):
+    now = int(time.time() if now is None else now)
+    salt, exp = os.urandom(16).hex(), now + CHALLENGE_TTL
+    return {"salt": salt, "exp": exp, "bits": BITS, "sig": _sign(salt, exp, BITS)}
+
+
+def zero_bits(digest):
+    n = 0
+    for byte in digest:
+        if byte == 0:
+            n += 8
+            continue
+        return n + 8 - byte.bit_length()
+    return n
+
+
+def verify(form, now=None):
+    now = time.time() if now is None else now
+    try:
+        salt, sig, nonce = form["salt"], form["sig"], form["nonce"]
+        exp, bits = int(form["exp"]), int(form["bits"])
+    except (KeyError, ValueError):
+        return False
+    if bits < BITS or exp < now or len(nonce) > 20 or not nonce.isdigit():
+        return False
+    if not hmac.compare_digest(_sign(salt, exp, bits), sig):
+        return False
+    if zero_bits(hashlib.sha256(f"{salt}:{nonce}".encode()).digest()) < bits:
+        return False
+    with _lock:
+        for s in [s for s, e in _used.items() if e < now]:
+            del _used[s]
+        if salt in _used:
+            return False
+        _used[salt] = exp
+    return True
+
+
+# mail
+
+def deliver(m):
+    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
+        s.ehlo()
+        s.starttls(context=ssl.create_default_context())
+        s.ehlo()
+        s.login(SMTP_USER, SMTP_PASS)
+        s.send_message(m)
+
+
+def _mail(subject, body, reply_to=None):
+    m = EmailMessage()
+    m["From"] = SMTP_USER
+    m["To"] = TO
+    if reply_to:
+        m["Reply-To"] = reply_to
+    m["Subject"] = subject
+    m["Date"] = formatdate(localtime=True)
+    m["Message-ID"] = make_msgid(domain="beronilla.rodeo")
+    m.set_content(body)
+    return m
+
+
+def single(item):
+    return _mail(f"beronilla.rodeo: {item['name']}",
+                 f"From: {item['name']} <{item['email']}>\nVia: {SITE} contact form\n\n{item['message']}\n",
+                 reply_to=item["email"])
+
+
+def digest(items):
+    parts = [f"{len(items)} message{'s' if len(items) != 1 else ''} from the {SITE} contact form, held for this digest.\n"]
+    for it in items:
+        when = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(it.get("at", 0)))
+        proof = "proof ok" if it.get("proven") else "no proof"
+        parts.append(f"----\nFrom: {it['name']} <{it['email']}>\nAt: {when} ({proof})\n\n{it['message']}\n")
+    return _mail(f"beronilla.rodeo: digest of {len(items)}", "\n".join(parts))
+
+
+def _enqueue(item):
+    with _queue_lock:
+        QUEUE.parent.mkdir(parents=True, exist_ok=True)
+        with QUEUE.open("a", encoding="utf-8") as f:
+            f.write(json.dumps(item) + "\n")
+
+
+def route(item, proven, now=None):
+    """Send now if the proof holds and the hour has room; otherwise queue for the digest."""
+    now = time.time() if now is None else now
+    item = {**item, "at": now, "proven": bool(proven)}
+    if proven:
+        with _lock:
+            while _sent and _sent[0] < now - 3600:
+                _sent.popleft()
+            room = len(_sent) < THRESHOLD
+            if room:
+                _sent.append(now)
+        if room:
+            try:
+                deliver(single(item))
+                return "sent"
+            except Exception as e:  # noqa: BLE001
+                sys.stdout.write("send failed, queued instead: %s\n" % type(e).__name__)
+    _enqueue(item)
+    return "queued"
+
+
+def flush():
+    """Send up to DIGEST_CAP queued messages as one email. Returns how many went out."""
+    with _queue_lock:
+        if not QUEUE.exists():
+            return 0
+        lines = [ln for ln in QUEUE.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        if not lines:
+            return 0
+        batch, rest = lines[:DIGEST_CAP], lines[DIGEST_CAP:]
+        try:
+            deliver(digest([json.loads(ln) for ln in batch]))
+        except Exception as e:  # noqa: BLE001
+            sys.stdout.write("digest failed, kept %d queued: %s\n" % (len(lines), type(e).__name__))
+            return 0
+        QUEUE.write_text("".join(ln + "\n" for ln in rest), encoding="utf-8")
+        return len(batch)
+
+
+def flusher():
+    while True:
+        time.sleep(INTERVAL)
+        n = flush()
+        if n:
+            sys.stdout.write("digest sent with %d message(s)\n" % n)
+            sys.stdout.flush()
+
+
 def page(title, body):
     return (
         '<!doctype html><html lang="en" class="no-js" data-theme="dark"><head><meta charset="utf-8">'
@@ -72,23 +236,6 @@ def page(title, body):
         '<main class="notfound"><p class="kicker">Contact</p>'
         f"<h1>{html.escape(title)}</h1><p>{body}</p></main></body></html>"
     )
-
-
-def send(name, email, message):
-    m = EmailMessage()
-    m["From"] = SMTP_USER
-    m["To"] = TO
-    m["Reply-To"] = email
-    m["Subject"] = f"beronilla.rodeo: {name}"
-    m["Date"] = formatdate(localtime=True)
-    m["Message-ID"] = make_msgid(domain="beronilla.rodeo")
-    m.set_content(f"From: {name} <{email}>\nVia: {SITE} contact form\n\n{message}\n")
-    with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=20) as s:
-        s.ehlo()
-        s.starttls(context=ssl.create_default_context())
-        s.ehlo()
-        s.login(SMTP_USER, SMTP_PASS)
-        s.send_message(m)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -122,15 +269,19 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    def plain(self, ctype, data):
+        self.send_response(200)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(data)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(data)
+
     def do_GET(self):
         if self.path == "/healthz":
-            data = b"ok"
-            self.send_response(200)
-            self.send_header("Content-Type", "text/plain")
-            self.send_header("Content-Length", str(len(data)))
-            self.end_headers()
-            self.wfile.write(data)
-            return
+            return self.plain("text/plain", b"ok")
+        if self.path.split("?")[0] == "/contact/challenge":
+            return self.plain("application/json", json.dumps(challenge()).encode())
         self.redirect(SITE + "/#contact")
 
     def do_POST(self):
@@ -165,17 +316,15 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(429, "Give it an hour", "That is a few messages in a short time. " + back)
         if not (SMTP_USER and SMTP_PASS and TO):
             return self.reply(503, "Not connected yet", "The form is not wired to an inbox at the moment. " + back)
-        try:
-            send(name, email, message)
-        except Exception as e:  # noqa: BLE001
-            self.log_message("send failed: %s", type(e).__name__)
-            return self.reply(502, "Could not send", "The message did not go through. " + back)
-        self.log_message("sent from %s", email.split("@")[-1])
+        how = route({"name": name, "email": email, "message": message}, proven=verify(form))
+        self.log_message("%s from %s", how, email.split("@")[-1])
         self.redirect(SITE + "/sent.html")
 
 
 if __name__ == "__main__":
+    threading.Thread(target=flusher, daemon=True).start()
     srv = ThreadingHTTPServer(("0.0.0.0", 8080), Handler)
     srv.daemon_threads = True
-    print("contact-relay listening on :8080, configured=%s" % bool(SMTP_USER and SMTP_PASS), flush=True)
+    print("contact-relay listening on :8080, configured=%s, pow_bits=%d, digest_threshold=%d"
+          % (bool(SMTP_USER and SMTP_PASS), BITS, THRESHOLD), flush=True)
     srv.serve_forever()

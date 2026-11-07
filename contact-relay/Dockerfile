@@ -1,5 +1,5 @@
 FROM python:3.12-alpine
-RUN adduser -D -H relay
+RUN adduser -D -H relay && mkdir /data && chown relay /data
 WORKDIR /app
 COPY server.py .
 USER relay
