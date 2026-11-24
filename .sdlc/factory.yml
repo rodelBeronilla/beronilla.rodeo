@@ -1,0 +1,34 @@
+# .sdlc/factory.yml - manifest read by the factory collector (GateForge v6, "Per-product contract").
+# Unknown values are null with a "# TBD:" comment; never guess.
+product: beronilla-rodeo
+owner: rodel                      # who approves Guarded and Destructive
+level_target: L2                  # factory pilot (M3)
+live:
+  urls: [https://beronilla.rodeo/, https://beronilla.rodeo/.well-known/security.txt]
+  branch: main                    # live must equal this (docroot files equal HEAD apart from ?v= stamps)
+  deploy: python scripts/deploy.py
+  rollback: git worktree add ../rollback-<sha> <previous-sha> && python ../rollback-<sha>/scripts/deploy.py   # see docs/runbooks/deploy-rollback.md
+  window: null                    # TBD: no window defined; static deploy needs no reload
+  docroot: C:/srv/beronilla.rodeo/site
+  edge_config: plex-stack config/caddy/Caddyfile (vhost beronilla.rodeo); mirror server-config/Caddyfile
+checks:
+  required: []                    # TBD: main is unprotected (#16); "CI / validate" is the only job and tests nothing (#4)
+  local:
+    - "cd contact-relay && python -m pytest -p no:cacheprovider -q"
+    - "python -m ruff check contact-relay scripts --no-cache"
+backup:
+  what: []                        # docroot is rebuilt from git by deploy.py; relay queue volume and .env not backed up (#17)
+  max_age_hours: null             # TBD (#17)
+  restore_tested: null            # never
+risk_paths:                       # owner merges changes here (Guarded)
+  - .sdlc/**
+  - CLAUDE.md
+  - .claude/**
+  - .github/workflows/**
+  # TBD (question): site/, contact-relay/, scripts/deploy.py and server-config/ ship straight to main by the
+  # owner's choice (2026-11-07), so they are not listed here. The spec would make Caddy, compose and
+  # secrets handling Guarded; the owner decides whether the factory pilot changes that (#16).
+destructive_paths: []
+budgets:
+  discovery_findings_per_week: 5
+  default_model: null            # TBD: set by the factory, not here
